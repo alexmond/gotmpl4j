@@ -1,0 +1,47 @@
+= gotmpl4j
+
+A pure-Java implementation of Go's https://pkg.go.dev/text/template[`text/template`] engine,
+with the https://masterminds.github.io/sprig/[Sprig] function library and an optional Spring
+Boot starter. No Go toolchain, no CGo, no native bindings — just the JVM.
+
+It renders the same templates Helm, Hugo, and countless Go CLIs use, and is validated for
+byte-for-byte parity against Go's own `text/template` test suite and Sprig's upstream tests.
+
+== Highlights
+
+* The full Go `text/template` engine — lexer, parser, AST, executor — and Go's 19 built-in functions.
+* The Sprig function library: strings, lists, dicts, math, crypto, date, semver, encoding, and more.
+* Contextual HTML auto-escaping ported from Go's `html/template` (opt-in).
+* A Spring Boot starter: a ready-to-inject engine, configuration properties, a compile cache, and an MVC/WebFlux `ViewResolver`.
+* Pluggable functions via `ServiceLoader` — drop a module on the classpath and its functions appear.
+
+== Modules
+
+[cols="2,3"]
+|===
+| Artifact | Description
+
+| `org.alexmond:gotmpl4j-core`
+| The engine: lexer pass:[->] parser pass:[->] AST pass:[->] executor. Go builtins only; functions are pluggable via `ServiceLoader`.
+
+| `org.alexmond:gotmpl4j-sprig`
+| The Sprig function library, auto-discovered when on the classpath.
+
+| `org.alexmond:gotmpl4j-spring-boot-starter`
+| Spring Boot auto-configuration: engine bean, configuration properties, compile cache, function beans, and an optional `ViewResolver`.
+|===
+
+`gotmpl4j-core` has zero dependency on Sprig or any host application. Add `gotmpl4j-sprig`
+for the Sprig functions, or the starter for Spring Boot integration.
+
+== Next
+
+* xref:getting-started.adoc[Getting started] — add the dependency and render your first template.
+* xref:template-syntax.adoc[Template syntax] — actions, pipelines, control flow, and the Go built-ins.
+* xref:sprig-functions.adoc[Sprig functions] — the function catalog.
+* xref:spring-boot-starter.adoc[Spring Boot starter] — auto-configuration and the view resolver.
+* xref:conformance.adoc[Conformance] — how correctness is held to the Go and Sprig originals.
+
+== License
+
+Apache License 2.0.

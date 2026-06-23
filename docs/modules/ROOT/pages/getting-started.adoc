@@ -1,0 +1,85 @@
+= Getting started
+
+== Add the dependency
+
+For the engine plus the Sprig functions:
+
+[source,xml,subs="attributes"]
+----
+<dependency>
+    <groupId>org.alexmond</groupId>
+    <artifactId>gotmpl4j-sprig</artifactId>
+    <version>{gotmpl4j-version}</version>
+</dependency>
+----
+
+The Sprig module depends on `gotmpl4j-core` transitively and registers its functions
+automatically through `ServiceLoader`. If you want the engine with Go built-ins only,
+depend on `gotmpl4j-core` instead.
+
+== Render a template
+
+[source,java]
+----
+import org.alexmond.gotmpl4j.GoTemplate;
+import java.io.StringWriter;
+import java.util.Map;
+
+var tpl = new GoTemplate();                 // auto-loads Sprig from the classpath
+tpl.parse("greet", "Hello {{ .name | upper }}!");
+
+var out = new StringWriter();
+tpl.execute("greet", Map.of("name", "world"), out);
+//  -> "Hello WORLD!"
+----
+
+`render` is a convenience that returns the string directly:
+
+[source,java]
+----
+String s = new GoTemplate()
+        .parse("greet", "Hello {{ .name | title }}!")
+        .render("greet", Map.of("name", "world"));   // "Hello World!"
+----
+
+== Data binding
+
+The "dot" (`.`) is the current data value. Fields resolve against `Map` keys, JavaBean
+getters, and public fields:
+
+[source,java]
+----
+record User(String name, int age) {}
+
+new GoTemplate()
+        .parse("u", "{{ .name }} is {{ .age }}")
+        .render("u", new User("Ada", 36));   // "Ada is 36"
+----
+
+== Controlling function loading
+
+By default `new GoTemplate()` discovers every `FunctionProvider` on the classpath. Use the
+builder for finer control:
+
+[source,java]
+----
+GoTemplate tpl = GoTemplate.builder()
+        .noAutoDiscovery()                 // skip ServiceLoader discovery
+        .htmlEscaping()                    // enable contextual HTML auto-escaping
+        .withFunctions(Map.of("greet", args -> "hi " + args[0]))
+        .build();
+----
+
+== Reusing a parsed template
+
+Parsing is the expensive step; execution is cheap. Parse once and execute many times — a
+parsed `GoTemplate` (without HTML escaping) is safe to execute concurrently. For a
+pre-resolved handle to one named template, use `compiled`:
+
+[source,java]
+----
+var compiled = tpl.parse("row", "{{ .id }},{{ .name }}\n").compiled("row");
+for (var record : records) {
+    compiled.execute(record, writer);
+}
+----

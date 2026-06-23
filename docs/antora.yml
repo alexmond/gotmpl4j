@@ -1,0 +1,14 @@
+name: gotmpl4j
+title: gotmpl4j
+version: true
+start_page: ROOT:index.adoc
+asciidoc:
+  attributes:
+    gotmpl4j-version: 0.1.0
+    toc: left
+    sectnums: ''
+    keywords: 'Go template, text/template, Sprig, Java, Spring Boot, Helm, Hugo'
+    author: 'Alexander Mondshain'
+    email: 'alex.mondshain@gmail.com'
+nav:
+  - modules/ROOT/nav.adoc

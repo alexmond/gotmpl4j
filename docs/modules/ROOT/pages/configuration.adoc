@@ -1,0 +1,77 @@
+= Configuration
+
+The Spring Boot starter is configured under the `gotmpl4j` prefix
+(`Gotmpl4jProperties`).
+
+== Core properties
+
+[cols="2,1,3"]
+|===
+| Property | Default | Description
+
+| `gotmpl4j.enabled`
+| `true`
+| Enables the auto-configuration.
+
+| `gotmpl4j.prefix`
+| `classpath:/templates/`
+| Location templates are resolved from.
+
+| `gotmpl4j.suffix`
+| `.gotmpl`
+| File-name suffix appended to a view/template name.
+
+| `gotmpl4j.charset`
+| `UTF-8`
+| Charset used when reading templates and writing output.
+
+| `gotmpl4j.cache`
+| `true`
+| Caches compiled template ASTs. Disable during development for live reload.
+
+| `gotmpl4j.view-names`
+| _(none)_
+| If set, only these view names are resolved by the view resolver. Set this when mixing template engines so gotmpl4j does not greedily claim every view.
+
+| `gotmpl4j.request-context-attribute`
+| _(none)_
+| Name of the `RequestContext` exposed to the view, if any.
+|===
+
+== Servlet view properties
+
+Under `gotmpl4j.servlet`:
+
+[cols="2,1,3"]
+|===
+| Property | Default | Description
+
+| `content-type` | `text/html` | Response content type.
+| `expose-request-attributes` | `false` | Expose request attributes to the model.
+| `expose-session-attributes` | `false` | Expose session attributes to the model.
+| `allow-request-override` | `false` | Allow request attributes to override model attributes.
+| `allow-session-override` | `false` | Allow session attributes to override model attributes.
+|===
+
+== Reactive view properties
+
+Under `gotmpl4j.reactive`:
+
+[cols="2,1,3"]
+|===
+| Property | Default | Description
+
+| `media-types` | `text/html` | Supported media types for content negotiation.
+|===
+
+== Example
+
+[source,yaml]
+----
+gotmpl4j:
+  prefix: classpath:/views/
+  suffix: .html
+  cache: false            # live reload during development
+  view-names:
+    - "mail/*"
+----

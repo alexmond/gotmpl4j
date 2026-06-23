@@ -1,0 +1,8 @@
+* xref:index.adoc[Introduction]
+* xref:getting-started.adoc[Getting started]
+* xref:template-syntax.adoc[Template syntax]
+* xref:sprig-functions.adoc[Sprig functions]
+* xref:spring-boot-starter.adoc[Spring Boot starter]
+* xref:configuration.adoc[Configuration]
+* xref:architecture.adoc[Architecture]
+* xref:conformance.adoc[Conformance]
