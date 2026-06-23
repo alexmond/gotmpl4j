@@ -124,7 +124,9 @@ class LogicFunctionsTest {
 
 	@Test
 	void testCoalesceWithAllFalsy() throws IOException, TemplateException {
-		assertEquals("", exec("{{ coalesce \"\" 0 false }}", new HashMap<>()));
+		// coalesce returns nil when every argument is empty; a bare action over nil
+		// renders Go's "<no value>" marker (text/template parity).
+		assertEquals("<no value>", exec("{{ coalesce \"\" 0 false }}", new HashMap<>()));
 	}
 
 	@ParameterizedTest
