@@ -29,6 +29,27 @@ class StringFunctionsTest {
 		return writer.toString();
 	}
 
+	@Test
+	void trimAllTreatsCutsetAsLiteralRunes() throws Exception {
+		// Cutset is a literal set of code points (Go strings.Trim), so regex
+		// metacharacters such as ] [ - are handled correctly (issue #16).
+		assertEquals("a", exec("{{ trimAll \"][\" \"][a][\" }}"));
+		assertEquals("a", exec("{{ trimAll \"-\" \"--a--\" }}"));
+		assertEquals("5.00", exec("{{ trimAll \"$\" \"$5.00$\" }}"));
+	}
+
+	@Test
+	void replaceDoesNotUnescapeArguments() throws Exception {
+		// A literal backslash-n in the search arg must match literally, not as a newline;
+		// Sprig's replace is a plain strings.Replace (issue #17).
+		HashMap<String, Object> data = new HashMap<>();
+		data.put("bs", "\\n");
+		data.put("text", "a\\nb");
+		StringWriter writer = new StringWriter();
+		execute("t", "{{ replace .bs \"X\" .text }}", data, writer);
+		assertEquals("aXb", writer.toString());
+	}
+
 	@ParameterizedTest
 	@CsvSource(delimiter = '|',
 			value = { "{{ upper \"hello\" }}                          | HELLO",
