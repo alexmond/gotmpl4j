@@ -60,6 +60,12 @@ final class NumberParser {
 			numberNode.setFloatValue(intValue);
 		}
 		catch (NumberFormatException ignored) {
+			if (looksLikeInteger(text)) {
+				// An integer-form literal that does not fit in a 64-bit long. Go rejects
+				// these rather than silently widening to a lossy float.
+				throw new TemplateParseException(String.format("integer overflow: %s, line: %d, column: %d", text,
+						token.line(), token.column()));
+			}
 			try {
 				double floatValue = parseFloatValue(text);
 				numberNode.setIsFloat(true);
@@ -95,6 +101,28 @@ final class NumberParser {
 		numberNode.setIntValue(ch);
 		numberNode.setIsFloat(true);
 		numberNode.setFloatValue(ch);
+	}
+
+	/**
+	 * True when {@code text} is an integer-form literal (optional sign, then
+	 * decimal/hex/octal/binary digits) with no float markers — so a failure to parse it
+	 * as a {@code long} means it overflowed rather than that it is a float.
+	 */
+	private static boolean looksLikeInteger(String text) {
+		String s = text;
+		if (!s.isEmpty() && (s.charAt(0) == '+' || s.charAt(0) == '-')) {
+			s = s.substring(1);
+		}
+		if (s.isEmpty() || s.indexOf('.') >= 0) {
+			return false;
+		}
+		boolean hex = s.length() > 1 && s.charAt(0) == '0' && (s.charAt(1) == 'x' || s.charAt(1) == 'X');
+		if (hex) {
+			// hex floats use a p/P exponent; e/E are valid hex digits
+			return s.indexOf('p') < 0 && s.indexOf('P') < 0;
+		}
+		// decimal/octal/binary integers; an e/E exponent would make it a float
+		return s.indexOf('e') < 0 && s.indexOf('E') < 0;
 	}
 
 	private static long parseIntValue(String text) {
