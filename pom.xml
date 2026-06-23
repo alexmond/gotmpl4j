@@ -10,7 +10,7 @@
     </parent>
     <groupId>org.alexmond</groupId>
     <artifactId>gotmpl4j-parent</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
     <packaging>pom</packaging>
     <name>gotmpl4j-parent</name>
     <description>gotmpl4j — a pure-Java implementation of Go's text/template engine, with Sprig functions and a Spring Boot starter</description>
