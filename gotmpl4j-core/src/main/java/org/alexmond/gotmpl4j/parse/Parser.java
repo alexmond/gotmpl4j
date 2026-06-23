@@ -42,7 +42,15 @@ public class Parser {
 		State state = new State();
 		state.variables.add("$");
 
-		parseList(listNode, lexer, state);
+		try {
+			parseList(listNode, lexer, state);
+		}
+		catch (StackOverflowError ex) {
+			// Deeply nested actions (e.g. {{if}}…{{if}}… or (((…))) ) recurse through
+			// parseList/parseControl/parsePipe; convert stack exhaustion into a normal
+			// parse error instead of letting an Error escape.
+			throw new TemplateParseException("template nesting too deep while parsing '" + name + "'");
+		}
 
 		// Can not have ELSE and END node as the last in root list node
 		Node lastNode = listNode.getLast();

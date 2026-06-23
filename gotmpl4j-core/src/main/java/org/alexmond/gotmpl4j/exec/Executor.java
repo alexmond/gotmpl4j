@@ -49,9 +49,19 @@ import org.alexmond.gotmpl4j.parse.WithNode;
 @Slf4j
 public class Executor {
 
+	// Maximum nesting of {{template}}/{{block}} invocations before execution is aborted.
+	// Mirrors Go's text/template maxExecDepth and bounds self-recursive templates such as
+	// {{define "x"}}{{template "x" .}}{{end}} so they raise a TemplateExecutionException
+	// instead of a StackOverflowError. A StackOverflowError backstop in execute() catches
+	// the case where the JVM stack is exhausted before this limit is reached.
+	private static final int MAX_TEMPLATE_DEPTH = 100_000;
+
 	private final Map<String, Node> rootNodes;
 
 	private final Map<String, Function> functions;
+
+	// Current {{template}}-invocation nesting depth (see MAX_TEMPLATE_DEPTH).
+	private int templateDepth;
 
 	// BeanInfo cache for performance optimization
 	private final Map<Class<?>, BeanInfo> beanInfoCache = new ConcurrentHashMap<>();
@@ -105,6 +115,10 @@ public class Executor {
 				variables.put("$", data);
 				BeanInfo beanInfo = getBeanInfo(data);
 				writeNode(writer, listNode, data, beanInfo);
+			}
+			catch (StackOverflowError ex) {
+				throw new TemplateExecutionException("template recursion too deep while executing '" + name
+						+ "' (possible self-referential template)", ex);
 			}
 			catch (IndexOutOfBoundsException ex) {
 				if (log.isDebugEnabled()) {
@@ -431,6 +445,12 @@ public class Executor {
 			throw new TemplateExecutionException(String.format("template %s not defined", name));
 		}
 
+		if (++this.templateDepth > MAX_TEMPLATE_DEPTH) {
+			this.templateDepth--;
+			throw new TemplateExecutionException(
+					"exceeded maximum template depth (" + MAX_TEMPLATE_DEPTH + ") invoking '" + name + "'");
+		}
+
 		Object value = executePipe(templateNode.getPipeNode(), data, beanInfo);
 		BeanInfo valueBeanInfo = (value != null) ? getBeanInfo(value) : null;
 		// Go resets $ and clears outer variables when entering a nested template; its
@@ -445,6 +465,7 @@ public class Executor {
 			writeNode(writer, listNode, value, valueBeanInfo);
 		}
 		finally {
+			this.templateDepth--;
 			this.variables.clear();
 			this.variables.putAll(savedVariables);
 			this.scopeStack.clear();
