@@ -62,9 +62,13 @@ public final class DictFunctions {
 	private static Function get() {
 		return (args) -> {
 			if (args.length < 2 || !(args[0] instanceof Map)) {
-				return null;
+				return "";
 			}
-			return ((Map<?, ?>) args[0]).get(String.valueOf(args[1]));
+			Map<?, ?> map = (Map<?, ?>) args[0];
+			String key = String.valueOf(args[1]);
+			// Sprig's get returns "" (not nil) for a missing key, so a bare {{ get d k }}
+			// over an absent key renders empty rather than Go's "<no value>" marker.
+			return map.containsKey(key) ? map.get(key) : "";
 		};
 	}
 

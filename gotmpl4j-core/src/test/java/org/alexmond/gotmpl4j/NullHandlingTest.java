@@ -10,17 +10,19 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests that null/nil values do not produce the string "null" when rendered in templates.
- * In Go, nil values are omitted from template output; Java's String.valueOf(null) returns
- * "null" which must be avoided.
+ * Tests how null/nil values render in templates. A bare action over a nil/absent value
+ * renders Go's {@code <no value>} marker (text/template parity, issue #13), while the
+ * {@code print}/{@code printf}/{@code println} functions follow {@code fmt} semantics
+ * ({@code <nil>}). Java's {@code String.valueOf(null)} ("null") must never appear.
  */
 class NullHandlingTest {
 
 	@Test
-	void testNullValueOmittedFromOutput() throws Exception {
+	void testNilActionRendersNoValueMarker() throws Exception {
+		// Go text/template renders a nil action value as the literal "<no value>".
 		Map<String, Object> data = new HashMap<>();
 		data.put("name", null);
-		assertEquals("prefix-suffix", render("prefix-{{ .name }}suffix", data));
+		assertEquals("prefix-<no value>suffix", render("prefix-{{ .name }}suffix", data));
 	}
 
 	@Test
@@ -48,11 +50,11 @@ class NullHandlingTest {
 	}
 
 	@Test
-	void testMissingFieldProducesEmpty() throws Exception {
+	void testMissingFieldRendersNoValueMarker() throws Exception {
 		Map<String, Object> data = new HashMap<>();
 		data.put("config", new HashMap<>());
-		// Accessing a missing key in a map returns null
-		assertEquals("value=", render("value={{ .config.name }}", data));
+		// A missing map key renders "<no value>" in Go text/template.
+		assertEquals("value=<no value>", render("value={{ .config.name }}", data));
 	}
 
 	private String render(String template, Map<String, Object> data) throws TemplateException, IOException {

@@ -26,6 +26,7 @@ class GoTemplateServletWebConfiguration {
 		Gotmpl4jProperties.Servlet servlet = properties.getServlet();
 		GoTemplateViewResolver resolver = new GoTemplateViewResolver(service);
 		resolver.setContentType(servlet.getContentType());
+		resolver.setCharset(properties.getCharset());
 		resolver.setViewNames(properties.getViewNames());
 		resolver.setRequestContextAttribute(properties.getRequestContextAttribute());
 		resolver.setExposeRequestAttributes(servlet.isExposeRequestAttributes());

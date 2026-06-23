@@ -35,6 +35,9 @@ class GoTemplateServletWebIntegrationTest {
 	void rendersGoTemplateViewThroughMvc() throws Exception {
 		this.mockMvc.perform(get("/hello"))
 			.andExpect(status().isOk())
+			// The configured charset (UTF-8) must reach the response; without it the
+			// servlet container falls back to ISO-8859-1 and mangles non-ASCII output.
+			.andExpect(content().encoding("UTF-8"))
 			.andExpect(content().string("Hi WORLD from gotmpl4j"));
 	}
 

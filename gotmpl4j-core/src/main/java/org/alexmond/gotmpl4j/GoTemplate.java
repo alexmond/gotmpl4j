@@ -201,6 +201,19 @@ public class GoTemplate {
 		this.escaper = new Escaper(this.rootNodes);
 	}
 
+	/**
+	 * Lazily contextual-escapes {@code name} (and the templates it reaches) on first use.
+	 * <p>
+	 * Thread-safety: {@code escapeLock} serializes every escape pass, so the AST is never
+	 * mutated by two threads at once. {@code escapedNames} is a concurrent set, so the
+	 * {@code add} that records completion <em>happens-before</em> any later
+	 * {@code contains} that observes it — which publishes the node mutations performed
+	 * earlier in the same pass to readers that skip the lock. A template reached
+	 * transitively is recorded in the escaper's persistent output cache, so re-escaping
+	 * it (e.g. when it is later executed as its own entry) is a cache-hit no-op and
+	 * performs no further mutation. Concurrent first-execution is therefore race-free;
+	 * see {@code ConcurrentHtmlEscapeTest}.
+	 */
 	private void ensureEscaped(String name) {
 		if (escapedNames.contains(name)) {
 			return;
