@@ -1,0 +1,47 @@
+= Architecture
+
+== Pipeline
+
+A template string flows through four stages:
+
+[source]
+----
+Template string -> Lexer -> Tokens -> Parser -> AST -> Executor -> Output
+----
+
+* *Lexer* (`parse/Lexer.java`) — scans the template into tokens, tracking action delimiters and trim markers.
+* *Parser* (`parse/Parser.java`) — builds an AST of `Node` types (actions, pipelines, `if`/`range`/`with`, defined templates).
+* *Executor* (`exec/Executor.java`) — walks the AST against the data value, resolving fields, invoking functions, and writing output. A fresh executor is created per `execute` call, so a parsed template can be executed concurrently.
+
+== Modules and the function SPI
+
+`gotmpl4j-core` knows only Go's built-in functions (`Functions.GO_BUILTINS`). Everything else
+is contributed by `FunctionProvider` implementations discovered through `ServiceLoader`:
+
+[cols="2,1,3"]
+|===
+| Provider | Priority | Source module
+
+| Go built-ins | — | `gotmpl4j-core`
+| Sprig | 100 | `gotmpl4j-sprig`
+| Helm | 200 | (external — `jhelm`)
+|===
+
+Higher priority wins on name collisions. To add your own functions, implement
+`FunctionProvider`, register it in `META-INF/services`, and put it on the classpath — or pass
+functions directly through `GoTemplate.builder().withFunctions(...)`.
+
+The core module must not depend on Sprig, Helm, or any host application; that boundary is what
+lets the engine be embedded standalone.
+
+== HTML auto-escaping
+
+The `html/` package is a port of Go's `html/template` contextual escaper: a state machine
+that tracks the HTML/attribute/URL/JS/CSS context at each interpolation point and inserts the
+appropriate escaper. It is opt-in via `GoTemplate.builder().htmlEscaping()`.
+
+== Caching
+
+`TemplateCache` stores compiled ASTs so repeated renders of the same template skip the
+lex/parse stages. The Spring starter wires it in by default; it uses double-checked locking
+and is safe for concurrent use.

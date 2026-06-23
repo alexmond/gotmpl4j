@@ -1,0 +1,80 @@
+= Spring Boot starter
+
+`gotmpl4j-spring-boot-starter` auto-configures a ready-to-use template engine, a compile
+cache, and an optional MVC/WebFlux `ViewResolver`.
+
+== Add the dependency
+
+[source,xml,subs="attributes"]
+----
+<dependency>
+    <groupId>org.alexmond</groupId>
+    <artifactId>gotmpl4j-spring-boot-starter</artifactId>
+    <version>{gotmpl4j-version}</version>
+</dependency>
+----
+
+The starter pulls in `gotmpl4j-core`. Add `gotmpl4j-sprig` as well if you want the Sprig
+functions available in your templates.
+
+== Programmatic rendering
+
+Inject `GoTemplateService` to render templates loaded from the configured location:
+
+[source,java]
+----
+@Service
+class GreetingService {
+
+    private final GoTemplateService templates;
+
+    GreetingService(GoTemplateService templates) {
+        this.templates = templates;
+    }
+
+    String greet(String name) {
+        return templates.render("greeting", Map.of("name", name));
+    }
+}
+----
+
+Templates are resolved from `gotmpl4j.prefix` (default `classpath:/templates/`) with the
+`gotmpl4j.suffix` extension (default `.gotmpl`), so `greeting` maps to
+`classpath:/templates/greeting.gotmpl`.
+
+== MVC / WebFlux views
+
+When Spring MVC (servlet) or WebFlux (reactive) is on the classpath, a `ViewResolver` is
+registered automatically. A controller can return a view name and model the usual way:
+
+[source,java]
+----
+@Controller
+class HomeController {
+
+    @GetMapping("/")
+    String home(Model model) {
+        model.addAttribute("name", "world");
+        return "home";   // -> classpath:/templates/home.gotmpl
+    }
+}
+----
+
+Both the servlet and reactive paths are supported and selected by the application type.
+
+== Auto-configuration
+
+`Gotmpl4jAutoConfiguration` registers:
+
+[cols="2,3"]
+|===
+| Bean | Description
+
+| `GoTemplate` / `GoTemplateFactory` | The engine, configured from properties and discovered function providers.
+| `GoTemplateService` | Loads and renders named templates from the configured location.
+| `TemplateCache` | Caches compiled template ASTs (enabled by default).
+| `GoTemplateViewResolver` | MVC/WebFlux view resolver (when a web application).
+|===
+
+Every bean is guarded with `@ConditionalOnMissingBean`, so you can override any of them by
+declaring your own. See xref:configuration.adoc[Configuration] for the full property reference.

@@ -1,0 +1,96 @@
+= Template syntax
+
+gotmpl4j implements Go's `text/template` syntax. This page is a quick reference; the
+authoritative specification is the https://pkg.go.dev/text/template[Go documentation].
+
+== Actions
+
+Anything between `{{` and `}}` is an _action_. Text outside is copied verbatim.
+
+[source]
+----
+Hello {{ .name }}, you have {{ .count }} messages.
+----
+
+Trim surrounding whitespace with `{{-` and `-}}`:
+
+[source]
+----
+{{- range .items }}
+  - {{ . }}
+{{- end }}
+----
+
+== Pipelines
+
+A pipeline chains commands with `|`; the result of each stage becomes the last argument of the next:
+
+[source]
+----
+{{ .name | upper | printf "%q" }}
+----
+
+== Variables
+
+[source]
+----
+{{ $name := .user.name }}
+{{ $name }}
+{{ range $i, $v := .items }}{{ $i }}={{ $v }} {{ end }}
+----
+
+== Control flow
+
+[source]
+----
+{{ if .enabled }}on{{ else if .pending }}wait{{ else }}off{{ end }}
+
+{{ with .address }}{{ .city }}, {{ .zip }}{{ end }}
+
+{{ range .items }}{{ . }}{{ else }}no items{{ end }}
+----
+
+`range` supports `break` and `continue`.
+
+== Defined templates
+
+[source]
+----
+{{ define "row" }}<td>{{ . }}</td>{{ end }}
+{{ template "row" .value }}
+{{ block "body" . }}default{{ end }}
+----
+
+== Go built-in functions
+
+These functions are always available, matching Go's `text/template` built-in set. They live
+in `Functions.GO_BUILTINS` in `gotmpl4j-core`.
+
+[cols="1,3"]
+|===
+| Function | Description
+
+| `print`, `printf`, `println` | Formatting, like Go's `fmt.Sprint`/`Sprintf`/`Sprintln`.
+| `and`, `or`, `not` | Boolean logic.
+| `eq`, `ne`, `lt`, `le`, `gt`, `ge` | Comparison; handles mixed numeric types.
+| `index` | Element of a map, list, or array by key/index.
+| `slice` | Sub-slice of a string, list, or array.
+| `len` | Length of a string, map, list, or array.
+| `call` | Invoke a function value with arguments.
+| `html`, `js`, `urlquery` | Escapers for HTML, JavaScript, and URL-query contexts.
+|===
+
+== HTML auto-escaping
+
+For HTML output, enable contextual auto-escaping (a port of Go's `html/template`). It inserts
+the correct escaper for each context — element text, attribute values, URLs, `<script>`, and
+`<style>`:
+
+[source,java]
+----
+GoTemplate tpl = GoTemplate.builder().htmlEscaping().build();
+tpl.parse("p", "<a href=\"{{ .url }}\">{{ .text }}</a>");
+----
+
+Each interpolation is escaped according to where it appears, defending against XSS without
+manual escaping in the template.

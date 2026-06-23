@@ -1,0 +1,38 @@
+= Conformance
+
+Correctness is held to the originals — Go's `text/template` and Masterminds/sprig — not to
+hand-written expectations.
+
+== How it works
+
+* *Engine* — test tables are ported from Go's `text/template` `exec_test.go` and rendered through the *real Go engine* to capture ground-truth output.
+* *Sprig* — cases are ported from Masterminds/sprig's own `runt`/`runtv` test tables and rendered through the *real Sprig funcmap*.
+
+The extractor (`.claude/scripts/conformance/runtv_extract.go`) uses the Go compiler as a
+portability oracle: any case whose data isn't portable to the JVM (Go-typed fixtures, methods)
+is dropped automatically. Surviving cases become base64 TSV fixtures under each module's
+`src/test/resources/conformance/`, asserted by `GoTemplateConformanceTest` (core) and
+`SprigConformanceTest` (sprig).
+
+Regenerating the fixtures requires a Go toolchain; running the JUnit suites needs only the
+committed TSVs.
+
+== Known divergences
+
+A small number of behaviors differ from the originals on purpose, because the JVM and Go are
+not identical. These are pinned in `*_known_divergences.txt` next to the fixtures, for example:
+
+* Regular expressions use Java's `java.util.regex` engine rather than Go's RE2 — syntax and worst-case performance differ.
+* Some Go date layouts map approximately onto Java date formatting.
+
+Pinning a divergence keeps it visible and intentional rather than silently drifting.
+
+== Building
+
+[source,bash]
+----
+./mvnw clean install   # build + test + format/PMD/checkstyle gates
+./mvnw test            # tests only
+----
+
+Requires JDK 17.

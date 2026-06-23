@@ -1,0 +1,49 @@
+= Sprig functions
+
+Adding `gotmpl4j-sprig` to the classpath registers the https://masterminds.github.io/sprig/[Sprig]
+function library via `ServiceLoader` — no wiring required. These are the same functions Helm
+templates rely on.
+
+== Categories
+
+[cols="1,3"]
+|===
+| Category | Examples
+
+| Strings | `upper`, `lower`, `title`, `trim`, `trimAll`, `repeat`, `replace`, `substr`, `indent`, `nindent`, `quote`, `wrap`, `regexMatch`, `regexReplaceAll`
+| Lists | `list`, `first`, `last`, `rest`, `initial`, `append`, `prepend`, `concat`, `reverse`, `uniq`, `without`, `compact`, `slice`, `has`
+| Dicts | `dict`, `get`, `set`, `unset`, `hasKey`, `keys`, `values`, `pick`, `omit`, `merge`, `deepCopy`
+| Math | `add`, `sub`, `mul`, `div`, `mod`, `max`, `min`, `floor`, `ceil`, `round`, `seq`, `until`
+| Conversion / defaults | `default`, `empty`, `coalesce`, `ternary`, `toString`, `toJson`, `toYaml`, `atoi`, `int`, `float64`
+| Encoding | `b64enc`, `b64dec`, `b32enc`, `b32dec`
+| Crypto | `sha1sum`, `sha256sum`, `adler32sum`, `bcrypt`, `genPrivateKey`, `genCA`, `genSignedCert`, `encryptAES`, `derivePassword`, `randAlphaNum`, `uuidv4`
+| Date | `now`, `date`, `dateInZone`, `dateModify`, `duration`, `ago`, `unixEpoch`, `toDate`
+| Semver | `semver`, `semverCompare`
+| Reflection | `typeOf`, `kindOf`, `typeIs`, `deepEqual`
+| Network / path | `getHostByName`, `base`, `dir`, `ext`, `clean`, `isAbs`, `osBase`, `osDir`
+|===
+
+== Strict (`must`) variants
+
+Functions that can fail come in two forms. The plain form (`fromJson`, `toJson`, `index`,
+`append`, …) is lenient and returns a zero value on error, matching Sprig's "graceful"
+behavior. The `must` form (`mustFromJson`, `mustToJson`, `mustIndex`, …) raises an error
+instead, so failures surface rather than silently producing empty output.
+
+== Example
+
+[source]
+----
+{{ .name | default "anonymous" | title }}
+{{ list 3 1 2 | sortAlpha | join "," }}
+{{ dict "a" 1 "b" 2 | toJson }}
+{{ now | date "2006-01-02" }}
+----
+
+[NOTE]
+====
+A handful of functions diverge intentionally from upstream Sprig where the JVM and Go differ
+(for example, regular expressions use Java's engine rather than Go's RE2, and some date
+layouts map approximately). See xref:conformance.adoc[Conformance] for how parity is measured
+and where divergences are pinned.
+====
