@@ -1,5 +1,8 @@
 package org.alexmond.gotmpl4j.spring.view;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
 import org.alexmond.gotmpl4j.spring.GoTemplateService;
 
 import org.springframework.web.servlet.view.AbstractTemplateViewResolver;
@@ -15,8 +18,18 @@ public class GoTemplateViewResolver extends AbstractTemplateViewResolver {
 
 	private final GoTemplateService service;
 
+	private Charset charset = StandardCharsets.UTF_8;
+
 	public GoTemplateViewResolver(GoTemplateService service) {
 		this.service = service;
+	}
+
+	/**
+	 * Set the charset propagated to each {@link GoTemplateView} for response encoding.
+	 * @param charset the response charset
+	 */
+	public void setCharset(Charset charset) {
+		this.charset = charset;
 	}
 
 	@Override
@@ -28,6 +41,7 @@ public class GoTemplateViewResolver extends AbstractTemplateViewResolver {
 	protected AbstractUrlBasedView buildView(String viewName) throws Exception {
 		GoTemplateView view = (GoTemplateView) super.buildView(viewName);
 		view.setService(this.service);
+		view.setCharset(this.charset);
 		return view;
 	}
 

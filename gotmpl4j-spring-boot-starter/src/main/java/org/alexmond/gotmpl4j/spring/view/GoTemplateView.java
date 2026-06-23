@@ -1,6 +1,8 @@
 package org.alexmond.gotmpl4j.spring.view;
 
 import java.io.Writer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,6 +22,8 @@ public class GoTemplateView extends AbstractTemplateView {
 
 	private GoTemplateService service;
 
+	private Charset charset = StandardCharsets.UTF_8;
+
 	/**
 	 * Set the rendering service. Injected by {@link GoTemplateViewResolver} when it
 	 * builds the view.
@@ -29,11 +33,23 @@ public class GoTemplateView extends AbstractTemplateView {
 		this.service = service;
 	}
 
+	/**
+	 * Set the charset used to encode the rendered response body. Injected by
+	 * {@link GoTemplateViewResolver} from {@code gotmpl4j.charset}.
+	 * @param charset the response charset
+	 */
+	public void setCharset(Charset charset) {
+		this.charset = charset;
+	}
+
 	@Override
 	protected void renderMergedTemplateModel(Map<String, Object> model, HttpServletRequest request,
 			HttpServletResponse response) throws Exception {
 		String body = this.service.render(getUrl(), model);
 		response.setContentType(getContentType());
+		// Set the encoding before the writer is obtained, otherwise the servlet
+		// container falls back to its default (ISO-8859-1) and mangles non-ASCII output.
+		response.setCharacterEncoding(this.charset.name());
 		try (Writer writer = response.getWriter()) {
 			writer.write(body);
 		}
