@@ -1,0 +1,24 @@
+gotmpl4j
+Copyright 2026 Alexander Mondshain and the gotmpl4j contributors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This product includes and/or is derived from third-party software. Their
+copyright notices and license terms are reproduced in THIRD-PARTY-NOTICES.md
+and must be retained in redistributions. In summary:
+
+  * gotmpl4j-core derives from verils/gotemplate4j
+    (https://github.com/verils/gotemplate4j) — MIT License, Copyright (c) 2021 verils.
+
+  * gotmpl4j-core ports portions of Go's "text/template" and "html/template"
+    packages (https://pkg.go.dev/text/template, https://pkg.go.dev/html/template)
+    — BSD 3-Clause License, Copyright (c) 2009 The Go Authors.
+
+  * gotmpl4j-sprig ports the Sprig function library
+    (https://github.com/Masterminds/sprig) — MIT License,
+    Copyright (C) 2013-2020 Masterminds.
+
+  * gotmpl4j-sprig ports portions of Masterminds/goutils
+    (https://github.com/Masterminds/goutils) — Apache License 2.0.
+
+See THIRD-PARTY-NOTICES.md for the full license texts.
