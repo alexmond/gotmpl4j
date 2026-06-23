@@ -57,6 +57,8 @@ public class GoTemplate {
 
 	private boolean htmlEscape;
 
+	private MissingKeyMode missingKey = MissingKeyMode.DEFAULT;
+
 	@Getter(AccessLevel.NONE)
 	private Escaper escaper;
 
@@ -185,8 +187,45 @@ public class GoTemplate {
 		if (htmlEscape) {
 			ensureEscaped(name);
 		}
-		Executor executor = new Executor(rootNodes, functions);
+		Executor executor = new Executor(rootNodes, functions, missingKey);
 		executor.execute(name, data, writer);
+	}
+
+	/**
+	 * Sets template options, mirroring Go's {@code Template.Option}. The only recognised
+	 * option is {@code missingkey}, controlling how a nil/absent value renders in a bare
+	 * action:
+	 * <ul>
+	 * <li>{@code missingkey=default} / {@code missingkey=invalid} — Go's
+	 * {@code <no value>} (the default).</li>
+	 * <li>{@code missingkey=zero} — an empty string, matching Helm.</li>
+	 * <li>{@code missingkey=error} — execution fails when a nil value is printed.</li>
+	 * </ul>
+	 * @param options the options to apply, e.g. {@code "missingkey=zero"}
+	 * @return this template, for chaining
+	 * @throws IllegalArgumentException if an option is unrecognised
+	 */
+	public GoTemplate option(String... options) {
+		for (String opt : options) {
+			if (opt == null || !opt.startsWith("missingkey=")) {
+				throw new IllegalArgumentException("unrecognized option: " + opt);
+			}
+			switch (opt.substring("missingkey=".length())) {
+				case "default":
+				case "invalid":
+					this.missingKey = MissingKeyMode.DEFAULT;
+					break;
+				case "zero":
+					this.missingKey = MissingKeyMode.ZERO;
+					break;
+				case "error":
+					this.missingKey = MissingKeyMode.ERROR;
+					break;
+				default:
+					throw new IllegalArgumentException("unrecognized option: " + opt);
+			}
+		}
+		return this;
 	}
 
 	/**
