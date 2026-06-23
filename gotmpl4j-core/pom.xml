@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.alexmond</groupId>
-        <artifactId>jhelm-parent</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <artifactId>gotmpl4j-parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
     </parent>
     <artifactId>gotmpl4j-core</artifactId>
 

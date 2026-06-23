@@ -35,17 +35,35 @@ final class JsonMarshal {
 	}
 
 	private static void write(StringBuilder b, Object value) {
-		switch (value) {
-			case null -> b.append("null");
-			case String s -> writeString(b, s);
-			case SafeContent sc -> writeString(b, sc.value());
-			case Boolean bool -> b.append(bool ? "true" : "false");
-			case Double d -> b.append(jsonFloat(d));
-			case Float f -> b.append(jsonFloat(f));
-			case Number n -> b.append(n.toString());
-			case Map<?, ?> map -> writeMap(b, map);
-			case Collection<?> coll -> writeArray(b, coll);
-			default -> writeOther(b, value);
+		if (value == null) {
+			b.append("null");
+		}
+		else if (value instanceof String s) {
+			writeString(b, s);
+		}
+		else if (value instanceof SafeContent sc) {
+			writeString(b, sc.value());
+		}
+		else if (value instanceof Boolean bool) {
+			b.append(bool ? "true" : "false");
+		}
+		else if (value instanceof Double d) {
+			b.append(jsonFloat(d));
+		}
+		else if (value instanceof Float f) {
+			b.append(jsonFloat(f));
+		}
+		else if (value instanceof Number n) {
+			b.append(n.toString());
+		}
+		else if (value instanceof Map<?, ?> map) {
+			writeMap(b, map);
+		}
+		else if (value instanceof Collection<?> coll) {
+			writeArray(b, coll);
+		}
+		else {
+			writeOther(b, value);
 		}
 	}
 

@@ -94,15 +94,25 @@ public final class LogicFunctions {
 	}
 
 	private static boolean isTruthy(Object value) {
-		return switch (value) {
-			case null -> false;
-			case Boolean b -> b;
-			case String s -> !s.isEmpty();
-			case Number number -> number.doubleValue() != 0;
-			case Collection<?> collection -> !collection.isEmpty();
-			case Map<?, ?> map -> !map.isEmpty();
-			default -> true;
-		};
+		if (value == null) {
+			return false;
+		}
+		else if (value instanceof Boolean b) {
+			return b;
+		}
+		else if (value instanceof String s) {
+			return !s.isEmpty();
+		}
+		else if (value instanceof Number number) {
+			return number.doubleValue() != 0;
+		}
+		else if (value instanceof Collection<?> collection) {
+			return !collection.isEmpty();
+		}
+		else if (value instanceof Map<?, ?> map) {
+			return !map.isEmpty();
+		}
+		return true;
 	}
 
 }
