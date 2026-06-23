@@ -20,20 +20,28 @@ class CharUtilsTest {
 	}
 
 	static Stream<Arguments> validCharProvider() {
-		return Stream.of(Arguments.of("'a'", 'a'), Arguments.of("'z'", 'z'), Arguments.of("'1'", '1'));
+		// Expected code points verified against go1.23.4 strconv.UnquoteChar.
+		return Stream.of(Arguments.of("'a'", 97), Arguments.of("'z'", 122), Arguments.of("'1'", 49),
+				// non-ASCII rune
+				Arguments.of("'é'", 233),
+				// one-character escapes
+				Arguments.of("'\\n'", 10), Arguments.of("'\\t'", 9), Arguments.of("'\\a'", 7),
+				Arguments.of("'\\v'", 11), Arguments.of("'\\\\'", 92), Arguments.of("'\\''", 39),
+				// hex, octal, and Unicode escapes
+				Arguments.of("'\\x41'", 65), Arguments.of("'\\101'", 65), Arguments.of("'\\u00e9'", 233),
+				Arguments.of("'\\U0001F600'", 0x1F600));
 	}
 
 	@ParameterizedTest
 	@MethodSource("validCharProvider")
-	void unquoteCharValid(String input, char expected) {
-		// Valid single character - length 3
+	void unquoteCharValid(String input, int expected) {
 		assertEquals(expected, CharUtils.unquoteChar(input));
 	}
 
 	@ParameterizedTest
-	@ValueSource(strings = { "'abc'", "'ab'" })
-	void unquoteCharInvalidMultipleChars(String input) {
-		// Length > 3 with non-backslash first char should throw
+	// too many runes, unknown escape, incomplete hex, octal > 255, code point > U+10FFFF
+	@ValueSource(strings = { "'abc'", "'ab'", "'\\z'", "'\\\"'", "'\\x4'", "'\\400'", "'\\U00110000'" })
+	void unquoteCharInvalid(String input) {
 		assertThrows(IllegalArgumentException.class, () -> CharUtils.unquoteChar(input));
 	}
 
