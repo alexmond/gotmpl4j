@@ -842,6 +842,17 @@ public class Executor {
 			BeanInfo beanInfo, Object finalValue) throws TemplateExecutionException {
 		String identifier = identifierNode.getIdentifier();
 
+		// Go special-cases and/or in the evaluator: operands are evaluated left to right
+		// and
+		// evaluation stops at the first falsy (and) / truthy (or) operand, so a later
+		// operand
+		// that would error is never reached. Intercept before the eager argument
+		// evaluation
+		// below so {{and false (index .s 99)}} matches Go instead of throwing.
+		if (("and".equals(identifier) || "or".equals(identifier)) && functions.containsKey(identifier)) {
+			return executeAndOr("and".equals(identifier), cmdArgNodes, data, beanInfo, finalValue);
+		}
+
 		if (functions.containsKey(identifier)) {
 			Function function = functions.get(identifier);
 			if (function == null) {
@@ -875,6 +886,29 @@ public class Executor {
 		}
 
 		throw new TemplateExecutionException(String.format("%s is not a defined function", identifier));
+	}
+
+	/**
+	 * Short-circuiting {@code and}/{@code or}. Operands (the command arguments, then the
+	 * threaded pipeline value if any) are evaluated left to right; {@code and} returns
+	 * the first falsy operand, {@code or} the first truthy one, otherwise the last
+	 * operand — matching Go, which never evaluates operands past the deciding one.
+	 */
+	private Object executeAndOr(boolean isAnd, List<Node> cmdArgNodes, Object data, BeanInfo beanInfo,
+			Object finalValue) throws TemplateExecutionException {
+		List<Node> argNodes = (cmdArgNodes.size() > 1) ? cmdArgNodes.subList(1, cmdArgNodes.size())
+				: Collections.emptyList();
+		Object result = Boolean.FALSE;
+		for (Node node : argNodes) {
+			result = executeArgument(node, data, beanInfo);
+			if (isTrue(result) != isAnd) {
+				return result;
+			}
+		}
+		if (finalValue != NO_PIPELINE) {
+			result = finalValue;
+		}
+		return result;
 	}
 
 	private void executeArguments(Object data, BeanInfo beanInfo, List<Node> args, Object[] argumentValues)
