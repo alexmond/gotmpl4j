@@ -1,11 +1,20 @@
 package org.alexmond.gotmpl4j.sprig.functions;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.StringReader;
 import java.math.BigInteger;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.RSAPrivateCrtKey;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.RSAPublicKeySpec;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Locale;
@@ -28,6 +37,10 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.crypto.generators.OpenBSDBCrypt;
 import org.bouncycastle.crypto.generators.SCrypt;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import java.nio.charset.StandardCharsets;
@@ -341,7 +354,8 @@ public final class CryptoFunctions {
 			int days = (args.length > 3) ? ((Number) args[3]).intValue() : 365;
 			try {
 				KeyPair keyPair = generateKeyPair("rsa");
-				X509Certificate cert = buildSignedCert(cn, days, keyPair, keyPair, null, ips, dns);
+				X509Certificate cert = buildSignedCert(cn, days, keyPair.getPublic(), keyPair.getPrivate(), null, ips,
+						dns);
 				Map<String, Object> result = new HashMap<>();
 				result.put("Cert", toPemCert(cert));
 				result.put("Key", toPemPrivateKey(keyPair, "rsa"));
@@ -366,13 +380,14 @@ public final class CryptoFunctions {
 			@SuppressWarnings("unchecked")
 			List<String> dns = (args.length > 2 && args[2] instanceof List) ? (List<String>) args[2] : List.of();
 			int days = (args.length > 3) ? ((Number) args[3]).intValue() : 365;
-			// args[4] is a CA map with "Cert" and "Key" PEM strings — not used here since
-			// we generate fresh
+			// args[4] is a CA map with "Cert" and "Key" PEM strings (e.g. from genCA);
+			// the leaf must be signed by that CA so it chains to it.
 			try {
+				Map<?, ?> ca = (Map<?, ?>) args[4];
+				X509Certificate caCert = parseCertificate(String.valueOf(ca.get("Cert")));
+				PrivateKey caKey = parsePrivateKey(String.valueOf(ca.get("Key")));
 				KeyPair keyPair = generateKeyPair("rsa");
-				KeyPair caKeyPair = generateKeyPair("rsa");
-				X509Certificate caCert = buildCaCert(cn + "-ca", days, caKeyPair);
-				X509Certificate cert = buildSignedCert(cn, days, keyPair, caKeyPair, caCert, ips, dns);
+				X509Certificate cert = buildSignedCert(cn, days, keyPair.getPublic(), caKey, caCert, ips, dns);
 				Map<String, Object> result = new HashMap<>();
 				result.put("Cert", toPemCert(cert));
 				result.put("Key", toPemPrivateKey(keyPair, "rsa"));
@@ -476,13 +491,14 @@ public final class CryptoFunctions {
 		return (args) -> {
 			String cn = (args.length > 0) ? String.valueOf(args[0]) : "ca";
 			int days = (args.length > 1) ? ((Number) args[1]).intValue() : 365;
-			// args[2] = existing key PEM — simplified: generate fresh
+			// args[2] = the CA's private key PEM; the CA must use it (key-stable output).
 			try {
-				KeyPair keyPair = generateKeyPair("rsa");
+				String keyPem = String.valueOf(args[2]);
+				KeyPair keyPair = parseKeyPair(keyPem);
 				X509Certificate cert = buildCaCert(cn, days, keyPair);
 				Map<String, Object> result = new HashMap<>();
 				result.put("Cert", toPemCert(cert));
-				result.put("Key", toPemPrivateKey(keyPair, "rsa"));
+				result.put("Key", keyPem);
 				return result;
 			}
 			catch (Exception ex) {
@@ -500,12 +516,15 @@ public final class CryptoFunctions {
 			@SuppressWarnings("unchecked")
 			List<String> dns = (args.length > 2 && args[2] instanceof List) ? (List<String>) args[2] : List.of();
 			int days = (args.length > 3) ? ((Number) args[3]).intValue() : 365;
+			// args[4] = the subject's private key PEM; the cert must use it.
 			try {
-				KeyPair keyPair = generateKeyPair("rsa");
-				X509Certificate cert = buildSignedCert(cn, days, keyPair, keyPair, null, ips, dns);
+				String keyPem = String.valueOf(args[4]);
+				KeyPair keyPair = parseKeyPair(keyPem);
+				X509Certificate cert = buildSignedCert(cn, days, keyPair.getPublic(), keyPair.getPrivate(), null, ips,
+						dns);
 				Map<String, Object> result = new HashMap<>();
 				result.put("Cert", toPemCert(cert));
-				result.put("Key", toPemPrivateKey(keyPair, "rsa"));
+				result.put("Key", keyPem);
 				return result;
 			}
 			catch (Exception ex) {
@@ -523,14 +542,17 @@ public final class CryptoFunctions {
 			@SuppressWarnings("unchecked")
 			List<String> dns = (args.length > 2 && args[2] instanceof List) ? (List<String>) args[2] : List.of();
 			int days = (args.length > 3) ? ((Number) args[3]).intValue() : 365;
+			// args[4] = CA map (Cert/Key PEM), args[5] = the subject's private key PEM.
 			try {
-				KeyPair keyPair = generateKeyPair("rsa");
-				KeyPair caKeyPair = generateKeyPair("rsa");
-				X509Certificate caCert = buildCaCert(cn + "-ca", days, caKeyPair);
-				X509Certificate cert = buildSignedCert(cn, days, keyPair, caKeyPair, caCert, ips, dns);
+				Map<?, ?> ca = (Map<?, ?>) args[4];
+				X509Certificate caCert = parseCertificate(String.valueOf(ca.get("Cert")));
+				PrivateKey caKey = parsePrivateKey(String.valueOf(ca.get("Key")));
+				String keyPem = String.valueOf(args[5]);
+				KeyPair keyPair = parseKeyPair(keyPem);
+				X509Certificate cert = buildSignedCert(cn, days, keyPair.getPublic(), caKey, caCert, ips, dns);
 				Map<String, Object> result = new HashMap<>();
 				result.put("Cert", toPemCert(cert));
-				result.put("Key", toPemPrivateKey(keyPair, "rsa"));
+				result.put("Key", keyPem);
 				return result;
 			}
 			catch (Exception ex) {
@@ -575,14 +597,15 @@ public final class CryptoFunctions {
 		return new JcaX509CertificateConverter().getCertificate(holder);
 	}
 
-	private static X509Certificate buildSignedCert(String cn, int days, KeyPair subjectKeyPair, KeyPair signerKeyPair,
-			X509Certificate signerCert, List<String> ips, List<String> dnsNames) throws Exception {
+	private static X509Certificate buildSignedCert(String cn, int days, PublicKey subjectPublicKey,
+			PrivateKey signerKey, X509Certificate signerCert, List<String> ips, List<String> dnsNames)
+			throws Exception {
 		Instant now = Instant.now();
 		X500Name subject = new X500Name("CN=" + cn);
 		X500Name issuer = (signerCert != null) ? new X500Name(signerCert.getSubjectX500Principal().getName()) : subject;
 		X509v3CertificateBuilder builder = new JcaX509v3CertificateBuilder(issuer,
 				BigInteger.valueOf(SECURE_RANDOM.nextLong() & Long.MAX_VALUE), Date.from(now),
-				Date.from(now.plus(days, ChronoUnit.DAYS)), subject, subjectKeyPair.getPublic());
+				Date.from(now.plus(days, ChronoUnit.DAYS)), subject, subjectPublicKey);
 		// Add SANs
 		int totalSans = ips.size() + dnsNames.size();
 		if (totalSans > 0) {
@@ -596,9 +619,73 @@ public final class CryptoFunctions {
 			}
 			builder.addExtension(Extension.subjectAlternativeName, false, new GeneralNames(names));
 		}
-		ContentSigner signer = new JcaContentSignerBuilder("SHA256WithRSAEncryption").build(signerKeyPair.getPrivate());
+		ContentSigner signer = new JcaContentSignerBuilder("SHA256WithRSAEncryption").build(signerKey);
 		X509CertificateHolder holder = builder.build(signer);
 		return new JcaX509CertificateConverter().getCertificate(holder);
+	}
+
+	/** Parses an X.509 certificate from PEM. */
+	private static X509Certificate parseCertificate(String pem) throws Exception {
+		CertificateFactory cf = CertificateFactory.getInstance("X.509");
+		return (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(pem.getBytes(StandardCharsets.UTF_8)));
+	}
+
+	/**
+	 * Parses a private key from PEM. Handles the PKCS#8 DER this class emits (even under
+	 * an {@code RSA PRIVATE KEY} header) as well as external PKCS#1 (RSA) / SEC1 (EC)
+	 * keys.
+	 */
+	private static PrivateKey parsePrivateKey(String pem) throws Exception {
+		byte[] der = Base64.getDecoder().decode(pem.replaceAll("-----[A-Z0-9 ]+-----", "").replaceAll("\\s", ""));
+		for (String algorithm : new String[] { "RSA", "EC", "DSA" }) {
+			try {
+				return KeyFactory.getInstance(algorithm).generatePrivate(new PKCS8EncodedKeySpec(der));
+			}
+			catch (Exception ignored) {
+				// not PKCS#8 for this algorithm; try the next
+			}
+		}
+		try (PEMParser parser = new PEMParser(new StringReader(pem))) {
+			Object obj = parser.readObject();
+			JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
+			if (obj instanceof PEMKeyPair keyPair) {
+				return converter.getKeyPair(keyPair).getPrivate();
+			}
+			if (obj instanceof PrivateKeyInfo info) {
+				return converter.getPrivateKey(info);
+			}
+		}
+		throw new IllegalArgumentException("unsupported private key PEM");
+	}
+
+	/**
+	 * Parses a key pair from a private key PEM. PKCS#1/SEC1 PEMs carry the public key
+	 * directly; for PKCS#8 the public key is derived from the private key.
+	 */
+	private static KeyPair parseKeyPair(String pem) throws Exception {
+		try (PEMParser parser = new PEMParser(new StringReader(pem))) {
+			if (parser.readObject() instanceof PEMKeyPair keyPair) {
+				return new JcaPEMKeyConverter().getKeyPair(keyPair);
+			}
+		}
+		catch (Exception ignored) {
+			// not a PKCS#1/SEC1 pair; fall through to PKCS#8 + derivation
+		}
+		PrivateKey privateKey = parsePrivateKey(pem);
+		return new KeyPair(derivePublicKey(privateKey), privateKey);
+	}
+
+	/**
+	 * Derives the public key from an RSA private key (the algorithm this class
+	 * generates).
+	 */
+	private static PublicKey derivePublicKey(PrivateKey privateKey) throws Exception {
+		if (privateKey instanceof RSAPrivateCrtKey key) {
+			return KeyFactory.getInstance("RSA")
+				.generatePublic(new RSAPublicKeySpec(key.getModulus(), key.getPublicExponent()));
+		}
+		throw new IllegalArgumentException(
+				"cannot derive public key from a PKCS#8 " + privateKey.getAlgorithm() + " private key");
 	}
 
 	private static String toPemPrivateKey(KeyPair keyPair, String algorithm) throws Exception {
