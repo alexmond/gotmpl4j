@@ -1,12 +1,17 @@
 package org.alexmond.gotmpl4j.sprig.functions;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -189,7 +194,8 @@ class CryptoFunctionsTest {
 
 	@Test
 	void testGenCAWithKey() throws IOException, TemplateException {
-		String result = exec("{{ $ca := genCAWithKey \"myCA\" 365 \"\" }}{{ $ca.Cert }}");
+		String result = exec(
+				"{{ $key := genPrivateKey \"rsa\" }}{{ $ca := genCAWithKey \"myCA\" 365 $key }}{{ $ca.Cert }}");
 		assertTrue(result.contains("BEGIN CERTIFICATE"));
 	}
 
@@ -197,8 +203,8 @@ class CryptoFunctionsTest {
 	void testGenSelfSignedCertWithKey() throws IOException, TemplateException {
 		StringWriter writer = new StringWriter();
 		GoTemplate t = new GoTemplate();
-		t.parse("test",
-				"{{ $cert := genSelfSignedCertWithKey \"localhost\" (list) (list \"localhost\") 365 \"\" }}{{ $cert.Cert }}");
+		t.parse("test", "{{ $key := genPrivateKey \"rsa\" }}"
+				+ "{{ $cert := genSelfSignedCertWithKey \"localhost\" (list) (list \"localhost\") 365 $key }}{{ $cert.Cert }}");
 		t.execute("test", new HashMap<>(), writer);
 		assertTrue(writer.toString().contains("BEGIN CERTIFICATE"));
 	}
@@ -207,10 +213,33 @@ class CryptoFunctionsTest {
 	void testGenSignedCertWithKey() throws IOException, TemplateException {
 		StringWriter writer = new StringWriter();
 		GoTemplate t = new GoTemplate();
-		t.parse("test",
-				"{{ $ca := genCA \"myCA\" 365 }}{{ $cert := genSignedCertWithKey \"myhost\" (list) (list \"myhost\") 365 $ca \"\" }}{{ $cert.Cert }}");
+		t.parse("test", "{{ $ca := genCA \"myCA\" 365 }}{{ $key := genPrivateKey \"rsa\" }}"
+				+ "{{ $cert := genSignedCertWithKey \"myhost\" (list) (list \"myhost\") 365 $ca $key }}{{ $cert.Cert }}");
 		t.execute("test", new HashMap<>(), writer);
 		assertTrue(writer.toString().contains("BEGIN CERTIFICATE"));
+	}
+
+	/**
+	 * The leaf certificate from {@code genSignedCert} must be signed by — and chain to —
+	 * the supplied CA (issue #8). This fails with the old behavior, which signed the leaf
+	 * with a fresh throwaway CA.
+	 */
+	@Test
+	void testGenSignedCertChainsToProvidedCa() throws Exception {
+		String out = exec("{{ $ca := genCA \"myCA\" 365 }}"
+				+ "{{ $cert := genSignedCert \"myhost\" (list) (list \"myhost.local\") 365 $ca }}"
+				+ "{{ $ca.Cert }}|||{{ $cert.Cert }}");
+		String[] parts = out.split("\\|\\|\\|");
+		X509Certificate caCert = parseCert(parts[0]);
+		X509Certificate leaf = parseCert(parts[1]);
+		// Signature verifies against the CA's public key, and issuer == CA subject.
+		assertDoesNotThrow(() -> leaf.verify(caCert.getPublicKey()));
+		assertEquals(caCert.getSubjectX500Principal(), leaf.getIssuerX500Principal());
+	}
+
+	private static X509Certificate parseCert(String pem) throws Exception {
+		return (X509Certificate) CertificateFactory.getInstance("X.509")
+			.generateCertificate(new ByteArrayInputStream(pem.getBytes(StandardCharsets.UTF_8)));
 	}
 
 }
