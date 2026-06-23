@@ -70,6 +70,33 @@ GoTemplate tpl = GoTemplate.builder()
         .build();
 ----
 
+== Missing and nil values
+
+How a nil or absent value renders in a bare action is controlled by the `missingkey`
+option, mirroring Go's `Template.Option`:
+
+[source,java]
+----
+new GoTemplate().parse("t", "x={{ .missing }}").render("t", Map.of());
+// default  -> "x=<no value>"   (Go's text/template behavior)
+
+new GoTemplate().option("missingkey=zero")     // empty string instead of <no value>
+        .parse("t", "x={{ .missing }}").render("t", Map.of());
+// -> "x="                       (Helm semantics)
+----
+
+[cols="2,3"]
+|===
+| Option | A nil/absent action renders as
+
+| `missingkey=default` (the default) / `missingkey=invalid` | Go's `<no value>`
+| `missingkey=zero` | an empty string (what Helm expects)
+| `missingkey=error` | execution fails
+|===
+
+This only affects bare actions like `{{ .x }}`; the `print`/`printf` functions keep Go's
+`fmt` semantics (a nil argument prints `<nil>`).
+
 == Reusing a parsed template
 
 Parsing is the expensive step; execution is cheap. Parse once and execute many times — a

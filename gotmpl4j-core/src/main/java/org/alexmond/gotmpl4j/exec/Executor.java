@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.alexmond.gotmpl4j.Function;
 import org.alexmond.gotmpl4j.Functions;
+import org.alexmond.gotmpl4j.MissingKeyMode;
 import org.alexmond.gotmpl4j.TemplateExecutionException;
 import org.alexmond.gotmpl4j.TemplateNotFoundException;
 import org.alexmond.gotmpl4j.parse.ActionNode;
@@ -96,9 +97,17 @@ public class Executor {
 	// Root data for $ variable
 	private Object rootData;
 
+	// How a nil/absent value is rendered by a bare action (Go's missingkey option).
+	private final MissingKeyMode missingKey;
+
 	public Executor(Map<String, Node> rootNodes, Map<String, Function> functions) {
+		this(rootNodes, functions, MissingKeyMode.DEFAULT);
+	}
+
+	public Executor(Map<String, Node> rootNodes, Map<String, Function> functions, MissingKeyMode missingKey) {
 		this.rootNodes = rootNodes;
 		this.functions = functions;
+		this.missingKey = missingKey;
 	}
 
 	public void execute(String name, Object data, Writer writer)
@@ -1056,8 +1065,8 @@ public class Executor {
 		writer.write(text);
 	}
 
-	private void printValue(Writer writer, Object value) throws IOException {
-		ValuePrinter.printValue(writer, value);
+	private void printValue(Writer writer, Object value) throws IOException, TemplateExecutionException {
+		ValuePrinter.printValue(writer, value, missingKey);
 	}
 
 	// One block-scoped `:=` declaration's undo record: restore {@code previous} if the
