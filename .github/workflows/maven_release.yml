@@ -17,6 +17,8 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # push the release commit + tag, create the GitHub release
     steps:
       - name: Checkout
         uses: actions/checkout@v4
