@@ -97,8 +97,47 @@ public final class StringFunctions {
 			}
 			String cutset = String.valueOf(args[0]);
 			String s = String.valueOf(args[1]);
-			return s.replaceAll("^[" + Pattern.quote(cutset) + "]+|[" + Pattern.quote(cutset) + "]+$", "");
+			return trimCutset(s, cutset);
 		};
+	}
+
+	/**
+	 * Trims leading and trailing runes contained in {@code cutset}, like Go's
+	 * {@code strings.Trim}: the cutset is a literal set of code points, not a regex, so
+	 * characters such as {@code ] ^ - \} are handled correctly.
+	 */
+	private static String trimCutset(String s, String cutset) {
+		if (cutset.isEmpty() || s.isEmpty()) {
+			return s;
+		}
+		int start = 0;
+		int end = s.length();
+		while (start < end) {
+			int cp = s.codePointAt(start);
+			if (!cutsetContains(cutset, cp)) {
+				break;
+			}
+			start += Character.charCount(cp);
+		}
+		while (end > start) {
+			int cp = s.codePointBefore(end);
+			if (!cutsetContains(cutset, cp)) {
+				break;
+			}
+			end -= Character.charCount(cp);
+		}
+		return s.substring(start, end);
+	}
+
+	private static boolean cutsetContains(String cutset, int codePoint) {
+		for (int i = 0; i < cutset.length();) {
+			int cp = cutset.codePointAt(i);
+			if (cp == codePoint) {
+				return true;
+			}
+			i += Character.charCount(cp);
+		}
+		return false;
 	}
 
 	private static Function trimPrefix() {
@@ -454,21 +493,14 @@ public final class StringFunctions {
 			String newStr = String.valueOf(args[1]);
 			String text = String.valueOf(args[2]);
 
-			// Handle common escape sequences that appear as literals in templates
-			old = unescapeString(old);
-			newStr = unescapeString(newStr);
-
+			// Plain literal replace, matching Sprig's strings.Replace. Escape sequences
+			// in
+			// quoted template literals are already decoded by the string lexer, so the
+			// args
+			// must not be unescaped again (that would corrupt raw strings and data
+			// values).
 			return text.replace(old, newStr);
 		};
-	}
-
-	/**
-	 * Convert common escape sequences from literal strings to actual characters. In Go
-	 * templates, string literals like "\n" are passed as literal backslash-n, but
-	 * functions like replace need to treat them as the actual escape character.
-	 */
-	private static String unescapeString(String s) {
-		return s.replace("\\n", "\n").replace("\\t", "\t").replace("\\r", "\r").replace("\\\\", "\\");
 	}
 
 	private static Function plural() {
