@@ -19,7 +19,8 @@ functions available in your templates.
 
 == Programmatic rendering
 
-Inject `GoTemplateService` to render templates loaded from the configured location:
+Inject {api-starter}/{gotmpl4j-version}/org/alexmond/gotmpl4j/spring/GoTemplateService.html[`GoTemplateService`^]
+to render templates loaded from the configured location:
 
 [source,java]
 ----
