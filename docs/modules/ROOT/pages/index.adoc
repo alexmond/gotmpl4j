@@ -42,6 +42,15 @@ for the Sprig functions, or the starter for Spring Boot integration.
 * xref:spring-boot-starter.adoc[Spring Boot starter] — auto-configuration and the view resolver.
 * xref:conformance.adoc[Conformance] — how correctness is held to the Go and Sprig originals.
 
+== API documentation
+
+Versioned Javadoc for each artifact is published on javadoc.io (the version switcher there
+lets you jump between releases):
+
+* {api-core}/{gotmpl4j-version}/index.html[`gotmpl4j-core` API^] — the engine, `GoTemplate`, the function SPI.
+* {api-sprig}/{gotmpl4j-version}/index.html[`gotmpl4j-sprig` API^] — the Sprig function library.
+* {api-starter}/{gotmpl4j-version}/index.html[`gotmpl4j-spring-boot-starter` API^] — the Spring Boot integration.
+
 == License
 
 Apache License 2.0.

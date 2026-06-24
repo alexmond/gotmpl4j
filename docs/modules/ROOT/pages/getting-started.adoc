@@ -33,6 +33,10 @@ tpl.execute("greet", Map.of("name", "world"), out);
 //  -> "Hello WORLD!"
 ----
 
+See the {api-core}/{gotmpl4j-version}/org/alexmond/gotmpl4j/GoTemplate.html[`GoTemplate`^] API
+for every method, and {api-core}/{gotmpl4j-version}/org/alexmond/gotmpl4j/MissingKeyMode.html[`MissingKeyMode`^]
+for the `missingkey` option below.
+
 `render` is a convenience that returns the string directly:
 
 [source,java]
