@@ -24,10 +24,10 @@ public class Gotmpl4jProperties {
 	 */
 	private String prefix = "classpath:/templates/";
 
-	/** File-name suffix of templates under {@link #prefix}. */
+	/** File-name suffix of templates under {@link #prefix}. Default {@code .gotmpl}. */
 	private String suffix = ".gotmpl";
 
-	/** Charset used to read template files and render views. */
+	/** Charset used to read template files and render views. Default {@code UTF-8}. */
 	private Charset charset = StandardCharsets.UTF_8;
 
 	/**
@@ -97,6 +97,10 @@ public class Gotmpl4jProperties {
 		return this.charset;
 	}
 
+	/**
+	 * Returns the configured charset's canonical name, or {@code null} if none is set.
+	 * @return the charset name, or {@code null}
+	 */
 	public String getCharsetName() {
 		return (this.charset != null) ? this.charset.name() : null;
 	}
@@ -143,7 +147,7 @@ public class Gotmpl4jProperties {
 	 */
 	public static class Servlet {
 
-		/** Content-Type value written for resolved views. */
+		/** Content-Type value written for resolved views. Default {@code text/html}. */
 		private String contentType = "text/html";
 
 		/** Whether HttpServletRequest attributes are allowed to merge into the model. */

@@ -6,6 +6,11 @@ package org.alexmond.gotmpl4j.spring;
  */
 public class GoTemplateException extends RuntimeException {
 
+	/**
+	 * Creates the exception.
+	 * @param message the detail message
+	 * @param cause the underlying checked template exception
+	 */
 	public GoTemplateException(String message, Throwable cause) {
 		super(message, cause);
 	}

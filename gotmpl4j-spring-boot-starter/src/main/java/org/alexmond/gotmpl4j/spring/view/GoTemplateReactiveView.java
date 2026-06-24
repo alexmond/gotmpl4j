@@ -26,10 +26,20 @@ public class GoTemplateReactiveView extends AbstractUrlBasedView {
 
 	private Charset charset = StandardCharsets.UTF_8;
 
+	/**
+	 * Set the rendering service. Injected by {@link GoTemplateReactiveViewResolver} when
+	 * it builds the view.
+	 * @param service the gotmpl4j service
+	 */
 	public void setService(GoTemplateService service) {
 		this.service = service;
 	}
 
+	/**
+	 * Set the fallback charset used to encode the response body when the negotiated
+	 * content type does not specify one.
+	 * @param charset the response charset
+	 */
 	public void setCharset(Charset charset) {
 		this.charset = charset;
 	}

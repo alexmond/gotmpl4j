@@ -1,5 +1,8 @@
 package org.alexmond.gotmpl4j.util;
 
+/**
+ * Static helpers for Go-compatible string quoting and manipulation. Not instantiable.
+ */
 public final class StringUtils {
 
 	private StringUtils() {

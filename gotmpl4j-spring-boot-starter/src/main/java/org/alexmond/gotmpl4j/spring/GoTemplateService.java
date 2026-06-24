@@ -42,6 +42,15 @@ public class GoTemplateService {
 		this.factory = factory;
 	}
 
+	/**
+	 * Constructs a service backed by a template loader, enabling rendering of named views
+	 * in addition to inline templates.
+	 * @param loader loads and compiles the template set from the configured location
+	 * @param factory builds configured templates for inline rendering
+	 * @param cache whether to cache the compiled template set; when {@code false} the
+	 * loader re-runs on every {@link #render(String, Object)} call so template edits are
+	 * picked up without a restart
+	 */
 	public GoTemplateService(GoTemplateLoader loader, GoTemplateFactory factory, boolean cache) {
 		this.templates = new TemplateCache(loader::load, cache);
 		this.factory = factory;

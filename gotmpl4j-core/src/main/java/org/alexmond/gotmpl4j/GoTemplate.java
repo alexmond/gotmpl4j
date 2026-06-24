@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -122,17 +123,23 @@ public class GoTemplate {
 	}
 
 	/**
-	 * Parse an unnamed template.
-	 * @param text Template text
+	 * Parse an unnamed template (registered under the empty name {@code ""}).
+	 * @param text the template text
+	 * @return this template, for chaining
+	 * @throws TemplateParseException if the text cannot be parsed
 	 */
 	public GoTemplate parse(String text) throws TemplateParseException {
 		return parse("", text);
 	}
 
 	/**
-	 * Parse a named template.
-	 * @param name The template name
-	 * @param text Template text
+	 * Parse a named template into this set. The first non-empty name parsed becomes this
+	 * set's main template name (used by the no-name {@link #execute(Object, Writer)} and
+	 * {@link #render(Object)}).
+	 * @param name the template name
+	 * @param text the template text
+	 * @return this template, for chaining
+	 * @throws TemplateParseException if the text cannot be parsed
 	 */
 	public GoTemplate parse(String name, String text) throws TemplateParseException {
 		if (this.name == null || this.name.isEmpty()) {
@@ -154,14 +161,25 @@ public class GoTemplate {
 	}
 
 	/**
-	 * Parse a named template from InputStream
+	 * Parse a named template from an {@link InputStream}, decoded as UTF-8.
+	 * @param name the template name
+	 * @param in the stream to read the template text from
+	 * @return this template, for chaining
+	 * @throws TemplateParseException if the text cannot be parsed
+	 * @throws IOException if the stream cannot be read
 	 */
 	public GoTemplate parse(String name, InputStream in) throws TemplateParseException, IOException {
-		return parse(name, new InputStreamReader(in));
+		return parse(name, new InputStreamReader(in, StandardCharsets.UTF_8));
 	}
 
 	/**
-	 * Parse a named template from Reader
+	 * Parse a named template from a {@link Reader}. The reader is fully read; the caller
+	 * retains responsibility for closing it.
+	 * @param name the template name
+	 * @param reader the reader to read the template text from
+	 * @return this template, for chaining
+	 * @throws TemplateParseException if the text cannot be parsed
+	 * @throws IOException if the reader cannot be read
 	 */
 	public GoTemplate parse(String name, Reader reader) throws TemplateParseException, IOException {
 		String text = IOUtils.read(reader);
@@ -169,7 +187,12 @@ public class GoTemplate {
 	}
 
 	/**
-	 * Execute the main template
+	 * Execute the main template (the first named template parsed) to the given writer.
+	 * @param data the root data object (the template's {@code .})
+	 * @param writer the destination for rendered output
+	 * @throws IOException if writing to the writer fails
+	 * @throws TemplateNotFoundException if no main template has been parsed
+	 * @throws TemplateExecutionException if execution fails
 	 */
 	public void execute(Object data, Writer writer)
 			throws IOException, TemplateNotFoundException, TemplateExecutionException {
@@ -177,7 +200,13 @@ public class GoTemplate {
 	}
 
 	/**
-	 * Execute a named template from this template set
+	 * Execute a named template from this set to the given writer.
+	 * @param name the template name
+	 * @param data the root data object (the template's {@code .})
+	 * @param writer the destination for rendered output
+	 * @throws IOException if writing to the writer fails
+	 * @throws TemplateNotFoundException if no template with the given name exists
+	 * @throws TemplateExecutionException if execution fails
 	 */
 	public void execute(String name, Object data, Writer writer)
 			throws IOException, TemplateNotFoundException, TemplateExecutionException {
@@ -328,14 +357,19 @@ public class GoTemplate {
 	}
 
 	/**
-	 * Get the root node of the main template
+	 * Returns the root AST node of the main template. The {@link Node} types are internal
+	 * implementation detail and not part of the stable public API.
+	 * @return the root node of the main template, or {@code null} if none is parsed
 	 */
 	public Node root() {
 		return rootNodes.get(name);
 	}
 
 	/**
-	 * Get the root node of a named template
+	 * Returns the root AST node of a named template. The {@link Node} types are internal
+	 * implementation detail and not part of the stable public API.
+	 * @param name the template name
+	 * @return the root node, or {@code null} if no template with that name exists
 	 */
 	public Node root(String name) {
 		return rootNodes.get(name);

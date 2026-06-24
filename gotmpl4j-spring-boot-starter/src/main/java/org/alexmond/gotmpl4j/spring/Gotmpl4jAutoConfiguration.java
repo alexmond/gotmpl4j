@@ -18,8 +18,8 @@ import org.springframework.core.io.ResourceLoader;
 /**
  * Spring Boot autoconfiguration for gotmpl4j. Exposes a {@link GoTemplateFactory}
  * (bridges Spring function beans into the engine), a {@link GoTemplateLoader} (loads
- * templates from {@code gotmpl4j.template-location}) and a {@link GoTemplateService} bean
- * so applications can render Go templates via dependency injection.
+ * templates from {@code gotmpl4j.prefix}) and a {@link GoTemplateService} bean so
+ * applications can render Go templates via dependency injection.
  *
  * <p>
  * Functions are extended the Spring-idiomatic way: any {@link FunctionProvider} bean in
@@ -37,6 +37,14 @@ import org.springframework.core.io.ResourceLoader;
 @Import({ GoTemplateServletWebConfiguration.class, GoTemplateReactiveWebConfiguration.class })
 public class Gotmpl4jAutoConfiguration {
 
+	/**
+	 * Builds the {@link GoTemplateFactory}, wiring every {@link FunctionProvider} bean
+	 * and any extra named {@link Function} beans in the context into the engine.
+	 * @param providers function-provider beans contributed by the context, in order
+	 * @param extraFunctions a bean holding named functions that override all providers
+	 * (absent means none)
+	 * @return the configured factory
+	 */
 	@Bean
 	@ConditionalOnMissingBean
 	public GoTemplateFactory goTemplateFactory(ObjectProvider<FunctionProvider> providers,
@@ -46,6 +54,14 @@ public class Gotmpl4jAutoConfiguration {
 		return new GoTemplateFactory(providerBeans, functions);
 	}
 
+	/**
+	 * Builds the {@link GoTemplateLoader} that compiles the template set from the
+	 * configured location.
+	 * @param resourceLoader the Spring resource loader used to find templates
+	 * @param properties the gotmpl4j configuration
+	 * @param factory the factory that produces configured templates
+	 * @return the template loader
+	 */
 	@Bean
 	@ConditionalOnMissingBean
 	public GoTemplateLoader goTemplateLoader(ResourceLoader resourceLoader, Gotmpl4jProperties properties,
@@ -53,6 +69,13 @@ public class Gotmpl4jAutoConfiguration {
 		return new GoTemplateLoader(resourceLoader, properties, factory);
 	}
 
+	/**
+	 * Builds the {@link GoTemplateService} consumer entry point.
+	 * @param loader the template loader for named views
+	 * @param factory the factory for inline templates
+	 * @param properties the gotmpl4j configuration (supplies the cache flag)
+	 * @return the rendering service
+	 */
 	@Bean
 	@ConditionalOnMissingBean
 	public GoTemplateService goTemplateService(GoTemplateLoader loader, GoTemplateFactory factory,

@@ -20,6 +20,10 @@ public class GoTemplateViewResolver extends AbstractTemplateViewResolver {
 
 	private Charset charset = StandardCharsets.UTF_8;
 
+	/**
+	 * Creates a resolver that renders views through the given service.
+	 * @param service the gotmpl4j rendering service propagated to each view
+	 */
 	public GoTemplateViewResolver(GoTemplateService service) {
 		this.service = service;
 	}
