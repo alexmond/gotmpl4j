@@ -54,6 +54,12 @@ Correctness is held to the originals via `.claude/scripts/conformance/`:
 
 ## Releasing
 
+**Before triggering a release, run the `release-prep` skill.** The Maven release only runs
+`versions:set` on the POMs — it does NOT bump the `docs/antora.yml` version attribute, the
+README install snippet, or the javadoc.io API links, so those go stale in the tag unless
+fixed first. `release-prep` handles that (and the build/publish-config gates); `update-docs-hub`
+runs after, to pin the new tag.
+
 `.github/workflows/maven_release.yml` (manual dispatch) sets the version, builds, deploys to
 Maven Central via the `release` profile (GPG sign + central-publishing-plugin), tags, and opens
 a GitHub release. Secrets (`OSSRH_*`, `GPG_*`, `CODECOV_TOKEN`) are provisioned from infra via
