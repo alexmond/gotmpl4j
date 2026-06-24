@@ -91,7 +91,7 @@ public final class DateFunctions {
 
 			String javaLayout = convertGoLayoutToJava(layout);
 			try {
-				SimpleDateFormat sdf = new SimpleDateFormat(javaLayout, Locale.ROOT);
+				SimpleDateFormat sdf = new SimpleDateFormat(javaLayout, Locale.ENGLISH);
 				return sdf.format(date);
 			}
 			catch (Exception ex) {
@@ -120,7 +120,7 @@ public final class DateFunctions {
 
 			String javaLayout = convertGoLayoutToJava(layout);
 			try {
-				SimpleDateFormat sdf = new SimpleDateFormat(javaLayout, Locale.ROOT);
+				SimpleDateFormat sdf = new SimpleDateFormat(javaLayout, Locale.ENGLISH);
 				sdf.setTimeZone(TimeZone.getTimeZone(timezone));
 				return sdf.format(date);
 			}
@@ -144,7 +144,7 @@ public final class DateFunctions {
 				return "";
 			}
 
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT);
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
 			return sdf.format(date);
 		};
 	}
@@ -163,7 +163,7 @@ public final class DateFunctions {
 			}
 
 			String timezone = String.valueOf(args[1]);
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT);
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
 			sdf.setTimeZone(TimeZone.getTimeZone(timezone));
 			return sdf.format(date);
 		};
@@ -185,7 +185,7 @@ public final class DateFunctions {
 
 			String javaLayout = convertGoLayoutToJava(layout);
 			try {
-				SimpleDateFormat sdf = new SimpleDateFormat(javaLayout, Locale.ROOT);
+				SimpleDateFormat sdf = new SimpleDateFormat(javaLayout, Locale.ENGLISH);
 				return sdf.parse(dateStr);
 			}
 			catch (ParseException ex) {
@@ -210,7 +210,7 @@ public final class DateFunctions {
 
 			String javaLayout = convertGoLayoutToJava(layout);
 			try {
-				SimpleDateFormat sdf = new SimpleDateFormat(javaLayout, Locale.ROOT);
+				SimpleDateFormat sdf = new SimpleDateFormat(javaLayout, Locale.ENGLISH);
 				return sdf.parse(dateStr);
 			}
 			catch (ParseException ex) {
@@ -358,31 +358,84 @@ public final class DateFunctions {
 
 	// ========== Helper Methods ==========
 
+	// Go reference-time tokens mapped to SimpleDateFormat pattern letters. The scanner in
+	// convertGoLayoutToJava picks the longest token that matches at each position (so
+	// "January" beats "Jan", "2006" beats "06", "15" beats "1"), exactly as Go's layout
+	// parser does.
+	private static final String[][] LAYOUT_TOKENS = { { "2006", "yyyy" }, { "06", "yy" }, { "January", "MMMM" },
+			{ "Jan", "MMM" }, { "01", "MM" }, { "1", "M" }, { "Monday", "EEEE" }, { "Mon", "EEE" }, { "02", "dd" },
+			{ "_2", "d" }, { "2", "d" }, { "15", "HH" }, { "03", "hh" }, { "3", "h" }, { "04", "mm" }, { "4", "m" },
+			{ "05", "ss" }, { "5", "s" }, { "PM", "a" }, { "pm", "a" }, { "Z07:00", "XXX" }, { "Z0700", "XX" },
+			{ "-07:00", "XXX" }, { "-0700", "Z" }, { "-07", "X" }, { "MST", "zzz" } };
+
 	/**
-	 * Converts Go date format to Java SimpleDateFormat. Go uses "2006-01-02 15:04:05"
-	 * while Java uses "yyyy-MM-dd HH:mm:ss"
+	 * Converts a Go reference-time layout (e.g. {@code 2006-01-02 15:04:05}) to a
+	 * {@link SimpleDateFormat} pattern. Unlike a flat search-and-replace, this scans the
+	 * layout token by token (longest match wins) and quotes any literal text, so a layout
+	 * containing letters that are pattern characters — {@code 15h04}, {@code Day 2006} —
+	 * is not corrupted. A {@code .000}/{@code .999} run after the seconds becomes a
+	 * fractional-second field.
 	 */
 	private static String convertGoLayoutToJava(String goLayout) {
-		// Letter and zone tokens first (longest match wins: January before Jan, Monday
-		// before Mon), then the numeric reference-date tokens. Numeric outputs are all
-		// letters, so the numeric replacements can't interfere with one another.
-		return goLayout.replace("2006", "yyyy")
-			.replace("January", "MMMM")
-			.replace("Jan", "MMM")
-			.replace("Monday", "EEEE")
-			.replace("Mon", "EEE")
-			.replace("-07:00", "XXX")
-			.replace("Z07:00", "XXX")
-			.replace("-0700", "Z")
-			.replace("MST", "zzz")
-			.replace("PM", "a")
-			.replace("06", "yy")
-			.replace("15", "HH")
-			.replace("03", "hh")
-			.replace("01", "MM")
-			.replace("02", "dd")
-			.replace("04", "mm")
-			.replace("05", "ss");
+		StringBuilder out = new StringBuilder();
+		StringBuilder literal = new StringBuilder();
+		int i = 0;
+		int n = goLayout.length();
+		while (i < n) {
+			String java = null;
+			int matchLen = 0;
+			for (String[] token : LAYOUT_TOKENS) {
+				if (token[0].length() > matchLen && goLayout.startsWith(token[0], i)) {
+					java = token[1];
+					matchLen = token[0].length();
+				}
+			}
+			if (java != null) {
+				flushLiteral(out, literal);
+				out.append(java);
+				i += matchLen;
+			}
+			else if (goLayout.charAt(i) == '.' && i + 1 < n
+					&& (goLayout.charAt(i + 1) == '0' || goLayout.charAt(i + 1) == '9')) {
+				char frac = goLayout.charAt(i + 1);
+				int j = i + 1;
+				while (j < n && goLayout.charAt(j) == frac) {
+					j++;
+				}
+				flushLiteral(out, literal);
+				out.append('.').append("S".repeat(j - (i + 1)));
+				i = j;
+			}
+			else {
+				literal.append(goLayout.charAt(i));
+				i++;
+			}
+		}
+		flushLiteral(out, literal);
+		return out.toString();
+	}
+
+	// Emits a buffered literal run: quoted if it contains a letter (so SimpleDateFormat
+	// treats it as text, not pattern), otherwise verbatim.
+	private static void flushLiteral(StringBuilder out, StringBuilder literal) {
+		if (literal.length() == 0) {
+			return;
+		}
+		String run = literal.toString();
+		literal.setLength(0);
+		boolean hasLetter = false;
+		for (int k = 0; k < run.length(); k++) {
+			if (Character.isLetter(run.charAt(k))) {
+				hasLetter = true;
+				break;
+			}
+		}
+		if (hasLetter) {
+			out.append('\'').append(run.replace("'", "''")).append('\'');
+		}
+		else {
+			out.append(run);
+		}
 	}
 
 	/**

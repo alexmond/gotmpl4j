@@ -11,6 +11,8 @@ import java.util.HashMap;
 import org.alexmond.gotmpl4j.GoTemplate;
 import org.alexmond.gotmpl4j.TemplateException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 class DateFunctionsTest {
 
@@ -19,6 +21,33 @@ class DateFunctionsTest {
 		GoTemplate template = new GoTemplate();
 		template.parse(name, text);
 		template.execute(name, data, writer);
+	}
+
+	private String exec(String template) throws IOException, TemplateException {
+		StringWriter writer = new StringWriter();
+		execute("t", template, new HashMap<>(), writer);
+		return writer.toString();
+	}
+
+	@ParameterizedTest
+	@CsvSource(delimiter = '|',
+			value = { "15h04                   | 13h45", "Day 2006                | Day 2024",
+					"3:04PM                  | 1:45PM", "02/01/2006              | 15/01/2024",
+					"Mon Jan 2 15:04:05 2006 | Mon Jan 15 13:45:07 2024",
+					"Monday, January 2, 2006 | Monday, January 15, 2024" })
+	void layoutFormatsLikeGo(String layout, String expected) throws Exception {
+		// Parse a fixed wall time then format it; the round-trip is zone-independent.
+		// Expectations verified against go1.23.4 time.Format. The literal-bearing layouts
+		// (15h04, Day 2006) are exactly what the old search-and-replace converter
+		// corrupted.
+		assertEquals(expected.trim(),
+				exec("{{ toDate \"2006-01-02 15:04:05\" \"2024-01-15 13:45:07\" | date \"" + layout.trim() + "\" }}"));
+	}
+
+	@Test
+	void fractionalSecondsRoundTrip() throws Exception {
+		assertEquals("13:45:07.123",
+				exec("{{ toDate \"2006-01-02 15:04:05.000\" \"2024-01-15 13:45:07.123\" | date \"15:04:05.000\" }}"));
 	}
 
 	@Test
