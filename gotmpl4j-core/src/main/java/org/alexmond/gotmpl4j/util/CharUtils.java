@@ -1,5 +1,9 @@
 package org.alexmond.gotmpl4j.util;
 
+/**
+ * Character classification helpers and named character constants (EOF, whitespace, and
+ * other delimiters) used by the lexer. Not instantiable.
+ */
 public final class CharUtils {
 
 	public static final char EOF = (char) -1;

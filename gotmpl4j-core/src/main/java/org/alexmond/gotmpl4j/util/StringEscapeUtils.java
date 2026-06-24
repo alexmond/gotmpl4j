@@ -4,6 +4,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Static helpers for escaping and unescaping strings, including HTML entity unescaping.
+ * Not instantiable.
+ */
 public final class StringEscapeUtils {
 
 	private static final Map<CharSequence, CharSequence> UNESCAPE_MAP;

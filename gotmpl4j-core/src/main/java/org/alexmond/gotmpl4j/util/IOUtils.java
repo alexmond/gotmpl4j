@@ -3,6 +3,10 @@ package org.alexmond.gotmpl4j.util;
 import java.io.IOException;
 import java.io.Reader;
 
+/**
+ * Static helpers for reading character streams, such as draining a {@link java.io.Reader}
+ * fully into a string. Not instantiable.
+ */
 public final class IOUtils {
 
 	private static final int EOF = -1;

@@ -20,10 +20,19 @@ public class GoTemplateReactiveViewResolver extends UrlBasedViewResolver {
 
 	private Charset charset;
 
+	/**
+	 * Creates a resolver that renders views through the given service.
+	 * @param service the gotmpl4j rendering service propagated to each view
+	 */
 	public GoTemplateReactiveViewResolver(GoTemplateService service) {
 		this.service = service;
 	}
 
+	/**
+	 * Set the charset propagated to each {@link GoTemplateReactiveView} as the fallback
+	 * response encoding.
+	 * @param charset the response charset
+	 */
 	public void setCharset(Charset charset) {
 		this.charset = charset;
 	}

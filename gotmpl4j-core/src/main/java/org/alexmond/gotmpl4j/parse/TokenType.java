@@ -1,5 +1,9 @@
 package org.alexmond.gotmpl4j.parse;
 
+/**
+ * Enumerates the kinds of lexical tokens the {@link Lexer} emits from template source,
+ * including delimiters, keywords, literals, identifiers, and control tokens.
+ */
 public enum TokenType {
 
 	/**

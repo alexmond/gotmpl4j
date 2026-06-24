@@ -4,6 +4,11 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * A sequence of sibling nodes, such as the body of a template, an
+ * {@code if}/{@code range} branch, or an {@code else} clause. Iterable over its child
+ * {@link Node}s in document order.
+ */
 public class ListNode implements Node, Iterable<Node> {
 
 	private final List<Node> nodes = new LinkedList<>();

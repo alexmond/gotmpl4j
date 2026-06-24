@@ -12,10 +12,10 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 
 /**
- * Loads every template under {@link Gotmpl4jProperties#getTemplateLocation()} (matching
- * the configured suffix) into a single {@link GoTemplate} set, so a view rendered by name
- * can reference the others via {@code {{ template "..." }}} or shared {@code {{ define
- * }}} blocks. Each file is registered under its path relative to the location, with the
+ * Loads every template under {@link Gotmpl4jProperties#getPrefix()} (matching the
+ * configured suffix) into a single {@link GoTemplate} set, so a view rendered by name can
+ * reference the others via {@code {{ template "..." }}} or shared {@code {{ define }}}
+ * blocks. Each file is registered under its path relative to the location, with the
  * suffix stripped (e.g. {@code templates/layouts/base.gotmpl} -> {@code layouts/base}).
  */
 public class GoTemplateLoader {
@@ -26,6 +26,12 @@ public class GoTemplateLoader {
 
 	private final GoTemplateFactory factory;
 
+	/**
+	 * Creates a loader backed by an explicit resource pattern resolver.
+	 * @param resolver resolves the template location pattern to resources
+	 * @param properties supplies the prefix, suffix, and charset
+	 * @param factory produces the configured {@link GoTemplate} set to parse into
+	 */
 	public GoTemplateLoader(ResourcePatternResolver resolver, Gotmpl4jProperties properties,
 			GoTemplateFactory factory) {
 		this.resolver = resolver;
@@ -33,6 +39,14 @@ public class GoTemplateLoader {
 		this.factory = factory;
 	}
 
+	/**
+	 * Creates a loader, wrapping the given resource loader in a
+	 * {@link PathMatchingResourcePatternResolver} so jar entries are matched too.
+	 * @param resourceLoader the Spring resource loader (typically the application
+	 * context)
+	 * @param properties supplies the prefix, suffix, and charset
+	 * @param factory produces the configured {@link GoTemplate} set to parse into
+	 */
 	public GoTemplateLoader(org.springframework.core.io.ResourceLoader resourceLoader, Gotmpl4jProperties properties,
 			GoTemplateFactory factory) {
 		this(new PathMatchingResourcePatternResolver(resourceLoader), properties, factory);
