@@ -30,9 +30,6 @@ public class Gotmpl4jProperties {
 	/** Charset used to read template files and render views. */
 	private Charset charset = StandardCharsets.UTF_8;
 
-	/** Whether to check that the templates location exists. */
-	private boolean checkTemplateLocation = true;
-
 	/**
 	 * Whether to cache the compiled template set. Disable during development so template
 	 * edits are picked up without a restart.
@@ -106,14 +103,6 @@ public class Gotmpl4jProperties {
 
 	public void setCharset(Charset charset) {
 		this.charset = charset;
-	}
-
-	public boolean isCheckTemplateLocation() {
-		return this.checkTemplateLocation;
-	}
-
-	public void setCheckTemplateLocation(boolean checkTemplateLocation) {
-		this.checkTemplateLocation = checkTemplateLocation;
 	}
 
 	public boolean isCache() {
