@@ -114,3 +114,36 @@ for (var record : records) {
     compiled.execute(record, writer);
 }
 ----
+
+== Error handling
+
+Every failure the engine raises is an unchecked
+{api-core}/{page-component-version}/org/alexmond/gotmpl4j/GoTemplateException.html[`GoTemplateException`^],
+so one catch covers everything; catch a subtype when you need to tell failures apart:
+
+[cols="1,3"]
+|===
+| Exception | Raised when
+
+| `TemplateParseException` | the template text is malformed (`parse`)
+| `TemplateNotFoundException` | no template with the given name exists (`execute` / `render`)
+| `TemplateExecutionException` | execution fails (bad pipeline, a function error, …)
+| `FunctionExecutionException` | a function signals failure; surfaced wrapped in a `TemplateExecutionException`
+|===
+
+[source,java]
+----
+try {
+    return new GoTemplate().parse(name, text).render(data);
+}
+catch (GoTemplateException ex) {
+    // one root for parse + execution + function failures
+    log.warn("template {} failed: {}", name, ex.getMessage());
+    throw ex;
+}
+----
+
+Authors of custom functions signal failure by throwing
+{api-core}/{page-component-version}/org/alexmond/gotmpl4j/FunctionExecutionException.html[`FunctionExecutionException`^]
+(unchecked); the engine wraps it as a `TemplateExecutionException` when it surfaces from
+`execute`/`render`.
