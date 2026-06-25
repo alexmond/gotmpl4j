@@ -2,6 +2,7 @@ package org.alexmond.gotmpl4j.spring;
 
 import java.util.Map;
 
+import org.alexmond.gotmpl4j.GoTemplateException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
