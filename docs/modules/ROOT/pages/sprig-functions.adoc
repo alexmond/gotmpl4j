@@ -48,3 +48,19 @@ A handful of functions diverge intentionally from upstream Sprig where the JVM a
 layouts map approximately). See xref:conformance.adoc[Conformance] for how parity is measured
 and where divergences are pinned.
 ====
+
+== Security considerations
+
+Templates are code. Treat a template from an untrusted source as you would untrusted code —
+the function library gives it real capabilities:
+
+* `getHostByName` performs a **DNS resolution** of whatever name the template supplies. It is
+  the only function that touches the network; there is no HTTP/file/exec function in the
+  library (no `httpGet`, no shell-out).
+* The crypto functions (`bcrypt`, `genPrivateKey`, `genCA`, `genSignedCert`, `encryptAES`,
+  `derivePassword`, …) and the random generators (`randAlphaNum`, `uuidv4`, …) compute on the
+  inputs the template passes; they read no ambient secrets, but a rendered result may contain
+  generated key material, so handle the output accordingly.
+
+Don't render untrusted templates against sensitive data models, and enable HTML auto-escaping
+(`GoTemplate.builder().htmlEscaping()`) when the output is served as HTML.

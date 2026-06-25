@@ -14,7 +14,11 @@
  * <p>
  * Functions are pluggable: implement {@link org.alexmond.gotmpl4j.Function} and
  * contribute them through a {@link org.alexmond.gotmpl4j.FunctionProvider}. Rendering
- * behavior is tuned with {@link org.alexmond.gotmpl4j.MissingKeyMode}. All recoverable
- * failures are reported as subclasses of {@link org.alexmond.gotmpl4j.TemplateException}.
+ * behavior is tuned with {@link org.alexmond.gotmpl4j.MissingKeyMode}. Every failure the
+ * engine raises is an unchecked {@link org.alexmond.gotmpl4j.GoTemplateException}: parse,
+ * execution, and missing-template errors via the
+ * {@link org.alexmond.gotmpl4j.TemplateException} family, and function errors via
+ * {@link org.alexmond.gotmpl4j.FunctionExecutionException}. Catch the root to handle
+ * anything; catch a subtype to distinguish.
  */
 package org.alexmond.gotmpl4j;
