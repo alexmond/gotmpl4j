@@ -5,6 +5,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 
 import org.alexmond.gotmpl4j.GoTemplate;
+import org.alexmond.gotmpl4j.GoTemplateException;
 import org.alexmond.gotmpl4j.TemplateParseException;
 
 import org.springframework.core.io.Resource;

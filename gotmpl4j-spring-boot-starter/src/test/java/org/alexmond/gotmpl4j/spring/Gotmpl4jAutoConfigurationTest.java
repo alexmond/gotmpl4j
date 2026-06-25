@@ -6,6 +6,7 @@ import java.util.Map;
 import org.alexmond.gotmpl4j.Function;
 import org.alexmond.gotmpl4j.FunctionProvider;
 import org.alexmond.gotmpl4j.GoTemplate;
+import org.alexmond.gotmpl4j.GoTemplateException;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;

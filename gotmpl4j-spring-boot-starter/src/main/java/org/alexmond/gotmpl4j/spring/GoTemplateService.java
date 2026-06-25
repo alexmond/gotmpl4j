@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 
 import org.alexmond.gotmpl4j.GoTemplate;
+import org.alexmond.gotmpl4j.GoTemplateException;
 import org.alexmond.gotmpl4j.TemplateCache;
 import org.alexmond.gotmpl4j.TemplateException;
 

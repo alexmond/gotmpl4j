@@ -1,13 +1,13 @@
 package org.alexmond.gotmpl4j;
 
 /**
- * Unchecked exception thrown when a template function fails during execution. Unlike
- * {@link TemplateException}, this is a {@link RuntimeException}, so functions can signal
- * failure without a checked-exception signature. Optionally carries the function name for
- * diagnostic context; the engine wraps it in a {@link TemplateExecutionException} when it
- * surfaces from {@code execute}/{@code render}.
+ * Unchecked exception thrown when a template function fails during execution, so
+ * functions can signal failure without a checked-exception signature. Optionally carries
+ * the function name for diagnostic context; the engine wraps it in a
+ * {@link TemplateExecutionException} when it surfaces from
+ * {@code execute}/{@code render}. Under the common {@link GoTemplateException} root.
  */
-public class FunctionExecutionException extends RuntimeException {
+public class FunctionExecutionException extends GoTemplateException {
 
 	private final String functionName;
 

@@ -143,7 +143,7 @@ public class GoTemplate {
 	 * @return this template, for chaining
 	 * @throws TemplateParseException if the text cannot be parsed
 	 */
-	public GoTemplate parse(String text) throws TemplateParseException {
+	public GoTemplate parse(String text) {
 		return parse("", text);
 	}
 
@@ -156,7 +156,7 @@ public class GoTemplate {
 	 * @return this template, for chaining
 	 * @throws TemplateParseException if the text cannot be parsed
 	 */
-	public GoTemplate parse(String name, String text) throws TemplateParseException {
+	public GoTemplate parse(String name, String text) {
 		if (this.name == null || this.name.isEmpty()) {
 			this.name = name;
 		}
@@ -183,7 +183,7 @@ public class GoTemplate {
 	 * @throws TemplateParseException if the text cannot be parsed
 	 * @throws IOException if the stream cannot be read
 	 */
-	public GoTemplate parse(String name, InputStream in) throws TemplateParseException, IOException {
+	public GoTemplate parse(String name, InputStream in) throws IOException {
 		return parse(name, new InputStreamReader(in, StandardCharsets.UTF_8));
 	}
 
@@ -196,7 +196,7 @@ public class GoTemplate {
 	 * @throws TemplateParseException if the text cannot be parsed
 	 * @throws IOException if the reader cannot be read
 	 */
-	public GoTemplate parse(String name, Reader reader) throws TemplateParseException, IOException {
+	public GoTemplate parse(String name, Reader reader) throws IOException {
 		String text = IOUtils.read(reader);
 		return parse(name, text);
 	}
@@ -209,8 +209,7 @@ public class GoTemplate {
 	 * @throws TemplateNotFoundException if no main template has been parsed
 	 * @throws TemplateExecutionException if execution fails
 	 */
-	public void execute(Object data, Writer writer)
-			throws IOException, TemplateNotFoundException, TemplateExecutionException {
+	public void execute(Object data, Writer writer) throws IOException {
 		execute(name, data, writer);
 	}
 
@@ -223,8 +222,7 @@ public class GoTemplate {
 	 * @throws TemplateNotFoundException if no template with the given name exists
 	 * @throws TemplateExecutionException if execution fails
 	 */
-	public void execute(String name, Object data, Writer writer)
-			throws IOException, TemplateNotFoundException, TemplateExecutionException {
+	public void execute(String name, Object data, Writer writer) throws IOException {
 		if (name == null || !rootNodes.containsKey(name)) {
 			throw new TemplateNotFoundException(String.format("Template '%s' not found.", name));
 		}
@@ -322,7 +320,7 @@ public class GoTemplate {
 	 * @throws TemplateNotFoundException if no main template has been parsed
 	 * @throws TemplateExecutionException if execution fails
 	 */
-	public String render(Object data) throws TemplateNotFoundException, TemplateExecutionException {
+	public String render(Object data) {
 		return render(name, data);
 	}
 
@@ -335,7 +333,7 @@ public class GoTemplate {
 	 * @throws TemplateNotFoundException if no template with the given name exists
 	 * @throws TemplateExecutionException if execution fails
 	 */
-	public String render(String name, Object data) throws TemplateNotFoundException, TemplateExecutionException {
+	public String render(String name, Object data) {
 		StringWriter writer = new StringWriter();
 		try {
 			execute(name, data, writer);
