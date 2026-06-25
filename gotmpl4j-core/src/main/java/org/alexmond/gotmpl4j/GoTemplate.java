@@ -55,11 +55,17 @@ import org.alexmond.gotmpl4j.util.IOUtils;
  * safe (see {@code ensureEscaped}), but for maximum clarity execute once before sharing.
  *
  * <p>
- * <strong>Low-level extension API:</strong> {@link #getFunctions()} and
- * {@link #getRootNodes()} expose the engine's live function and template-node maps so
- * that higher-level engines (such as Helm's {@code tpl}/{@code include}) can share
- * functions and register templates dynamically. They return the backing collections; the
- * {@link org.alexmond.gotmpl4j.parse.Node} values are part of this extension surface.
+ * <strong>Advanced extension API (not covered by semantic versioning):</strong>
+ * {@link #getFunctions()} and {@link #getRootNodes()} expose the engine's live function
+ * and template-node maps so that higher-level engines (such as Helm's
+ * {@code tpl}/{@code include}) can share functions and register templates dynamically.
+ * These getters — and the {@link org.alexmond.gotmpl4j.parse.Node} types they expose —
+ * are an <em>integrator</em> surface for engines built on top of gotmpl4j, not general
+ * application code: they return the live, mutable backing collections and so leak engine
+ * internals. Unlike the rest of this class they are <strong>excluded from the 1.0
+ * API-stability guarantee</strong> and may change in a minor release; a first-class
+ * replacement for cross-instance template sharing is tracked in issue #48. Application
+ * code should drive the engine through {@code parse}/{@code execute}/{@code render} only.
  */
 @Slf4j
 @Getter
