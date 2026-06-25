@@ -10,7 +10,7 @@ cache, and an optional MVC/WebFlux `ViewResolver`.
 <dependency>
     <groupId>org.alexmond</groupId>
     <artifactId>gotmpl4j-spring-boot-starter</artifactId>
-    <version>{gotmpl4j-version}</version>
+    <version>{page-component-version}</version>
 </dependency>
 ----
 
@@ -19,7 +19,7 @@ functions available in your templates.
 
 == Programmatic rendering
 
-Inject {api-starter}/{gotmpl4j-version}/org/alexmond/gotmpl4j/spring/GoTemplateService.html[`GoTemplateService`^]
+Inject {api-starter}/{page-component-version}/org/alexmond/gotmpl4j/spring/GoTemplateService.html[`GoTemplateService`^]
 to render templates loaded from the configured location:
 
 [source,java]

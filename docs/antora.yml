@@ -4,10 +4,10 @@ version: true
 start_page: ROOT:index.adoc
 asciidoc:
   attributes:
-    gotmpl4j-version: 0.3.1
     # javadoc.io serves versioned API docs for every published artifact; the /page/ form
     # keeps the javadoc.io chrome + version switcher. Compose as
-    # {api-core}/{gotmpl4j-version}/<class path>.html in pages.
+    # {api-core}/{page-component-version}/<class path>.html in pages — the component
+    # version is derived by Antora from the tag the hub pins, so it needs no manual bump.
     api-core: 'https://javadoc.io/page/org.alexmond/gotmpl4j-core'
     api-sprig: 'https://javadoc.io/page/org.alexmond/gotmpl4j-sprig'
     api-starter: 'https://javadoc.io/page/org.alexmond/gotmpl4j-spring-boot-starter'

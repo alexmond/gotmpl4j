@@ -9,7 +9,7 @@ For the engine plus the Sprig functions:
 <dependency>
     <groupId>org.alexmond</groupId>
     <artifactId>gotmpl4j-sprig</artifactId>
-    <version>{gotmpl4j-version}</version>
+    <version>{page-component-version}</version>
 </dependency>
 ----
 
@@ -33,8 +33,8 @@ tpl.execute("greet", Map.of("name", "world"), out);
 //  -> "Hello WORLD!"
 ----
 
-See the {api-core}/{gotmpl4j-version}/org/alexmond/gotmpl4j/GoTemplate.html[`GoTemplate`^] API
-for every method, and {api-core}/{gotmpl4j-version}/org/alexmond/gotmpl4j/MissingKeyMode.html[`MissingKeyMode`^]
+See the {api-core}/{page-component-version}/org/alexmond/gotmpl4j/GoTemplate.html[`GoTemplate`^] API
+for every method, and {api-core}/{page-component-version}/org/alexmond/gotmpl4j/MissingKeyMode.html[`MissingKeyMode`^]
 for the `missingkey` option below.
 
 `render` is a convenience that returns the string directly:
