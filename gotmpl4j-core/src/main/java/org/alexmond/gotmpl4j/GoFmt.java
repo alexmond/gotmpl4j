@@ -1,7 +1,6 @@
 package org.alexmond.gotmpl4j;
 
 import java.lang.reflect.Array;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -117,19 +116,51 @@ public final class GoFmt {
 			return "0";
 		}
 		String sign = (d < 0) ? "-" : "";
-		// Double.toString yields the shortest round-tripping decimal; BigDecimal
-		// preserves
-		// those exact digits, and stripTrailingZeros normalises 1000000.0 -> 1E+6 etc.
-		BigDecimal bd = new BigDecimal(Double.toString(Math.abs(d))).stripTrailingZeros();
-		String digits = bd.unscaledValue().toString();
-		int exp = bd.precision() - bd.scale() - 1;
+		// Double.toString already yields the shortest round-tripping decimal; parse its
+		// digits
+		// and exponent directly instead of routing through BigDecimal/BigInteger (a
+		// hot-path
+		// allocation sink). Its output is either "i.f" or "d.fE±exp".
+		String s = Double.toString(Math.abs(d));
+		int eIdx = s.indexOf('E');
+		int javaExp = (eIdx >= 0) ? Integer.parseInt(s.substring(eIdx + 1)) : 0;
+		String mantissa = (eIdx >= 0) ? s.substring(0, eIdx) : s;
+		int dot = mantissa.indexOf('.');
+		String combined = mantissa.substring(0, dot) + mantissa.substring(dot + 1);
+		// Position of the decimal point, counted in digits from the left of `combined`.
+		int pointPos = dot + javaExp;
+		// Strip leading zeros (each shifts the point left) and trailing zeros.
+		int lead = 0;
+		while (lead < combined.length() - 1 && combined.charAt(lead) == '0') {
+			lead++;
+		}
+		pointPos -= lead;
+		int end = combined.length();
+		while (end > lead + 1 && combined.charAt(end - 1) == '0') {
+			end--;
+		}
+		String digits = combined.substring(lead, end);
+		int exp = pointPos - 1;
 		if (exp < -4 || exp >= 6) {
-			String mantissa = (digits.length() == 1) ? digits : digits.charAt(0) + "." + digits.substring(1);
+			String m = (digits.length() == 1) ? digits : digits.charAt(0) + "." + digits.substring(1);
 			String expSign = (exp < 0) ? "-" : "+";
 			String absExp = Integer.toString(Math.abs(exp));
-			return sign + mantissa + "e" + expSign + ((absExp.length() < 2) ? "0" + absExp : absExp);
+			return sign + m + "e" + expSign + ((absExp.length() < 2) ? "0" + absExp : absExp);
 		}
-		return sign + bd.toPlainString();
+		StringBuilder sb = new StringBuilder(sign);
+		if (pointPos <= 0) {
+			sb.append("0.");
+			sb.append("0".repeat(-pointPos));
+			sb.append(digits);
+		}
+		else if (pointPos >= digits.length()) {
+			sb.append(digits);
+			sb.append("0".repeat(pointPos - digits.length()));
+		}
+		else {
+			sb.append(digits, 0, pointPos).append('.').append(digits, pointPos, digits.length());
+		}
+		return sb.toString();
 	}
 
 }
