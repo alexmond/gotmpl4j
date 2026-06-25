@@ -13,6 +13,8 @@ import org.springframework.web.reactive.result.view.UrlBasedViewResolver;
  * the servlet resolver the view name is the template name, so the empty prefix/suffix
  * defaults are kept; {@link #getViewClass()} is overridden so no overridable setter is
  * called from the constructor.
+ *
+ * @since 1.0
  */
 public class GoTemplateReactiveViewResolver extends UrlBasedViewResolver {
 

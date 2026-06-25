@@ -36,13 +36,12 @@ import org.alexmond.gotmpl4j.util.IOUtils;
  * on classpath) or via the {@link Builder}:
  *
  * <pre>{@code
- * // Auto-discovery (finds SprigFunctionProvider, HelmFunctionProvider, etc.)
+ * // Auto-discovery (finds SprigFunctionProvider and any other providers on the classpath)
  * GoTemplate t = new GoTemplate();
  *
  * // Explicit control
  * GoTemplate t = GoTemplate.builder()
  *     .withProvider(new SprigFunctionProvider())
- *     .withProvider(new HelmFunctionProvider(kubeProvider))
  *     .build();
  * }</pre>
  *
@@ -66,6 +65,8 @@ import org.alexmond.gotmpl4j.util.IOUtils;
  * API-stability guarantee</strong> and may change in a minor release; a first-class
  * replacement for cross-instance template sharing is tracked in issue #48. Application
  * code should drive the engine through {@code parse}/{@code execute}/{@code render} only.
+ *
+ * @since 1.0
  */
 @Slf4j
 @Getter

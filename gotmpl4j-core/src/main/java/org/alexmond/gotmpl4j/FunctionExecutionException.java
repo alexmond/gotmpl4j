@@ -6,6 +6,8 @@ package org.alexmond.gotmpl4j;
  * the function name for diagnostic context; the engine wraps it in a
  * {@link TemplateExecutionException} when it surfaces from
  * {@code execute}/{@code render}. Under the common {@link GoTemplateException} root.
+ *
+ * @since 1.0
  */
 public class FunctionExecutionException extends GoTemplateException {
 

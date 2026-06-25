@@ -13,6 +13,8 @@ import org.springframework.web.servlet.view.AbstractUrlBasedView;
  * resolves a view name to a {@link GoTemplateView}. The view name is used as the template
  * name directly (the loader already applies the prefix/suffix), so this resolver keeps
  * {@code UrlBasedViewResolver}'s empty prefix/suffix defaults.
+ *
+ * @since 1.0
  */
 public class GoTemplateViewResolver extends AbstractTemplateViewResolver {
 

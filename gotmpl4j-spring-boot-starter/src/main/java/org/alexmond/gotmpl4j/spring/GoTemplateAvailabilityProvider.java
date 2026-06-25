@@ -10,6 +10,8 @@ import org.springframework.util.ClassUtils;
  * exists, mirroring Spring Boot's {@code MustacheTemplateAvailabilityProvider}. Spring
  * Boot uses this to decide whether a view name is backed by a template (e.g. for error
  * views).
+ *
+ * @since 1.0
  */
 public class GoTemplateAvailabilityProvider implements TemplateAvailabilityProvider {
 

@@ -10,6 +10,8 @@ package org.alexmond.gotmpl4j;
  * <p>
  * Implementations may throw {@link FunctionExecutionException} (an unchecked exception)
  * to signal failure; the engine wraps it as a {@link TemplateExecutionException}.
+ *
+ * @since 1.0
  */
 @FunctionalInterface
 public interface Function {

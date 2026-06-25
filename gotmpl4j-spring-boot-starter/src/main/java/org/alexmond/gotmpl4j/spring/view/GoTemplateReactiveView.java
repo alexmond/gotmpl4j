@@ -19,6 +19,8 @@ import org.springframework.web.server.ServerWebExchange;
  * renders a gotmpl4j template by name. Like the servlet {@link GoTemplateView}, the
  * view's URL is the template name, so rendering delegates to
  * {@link GoTemplateService#render(String, Object)} and writes the result to the response.
+ *
+ * @since 1.0
  */
 public class GoTemplateReactiveView extends AbstractUrlBasedView {
 

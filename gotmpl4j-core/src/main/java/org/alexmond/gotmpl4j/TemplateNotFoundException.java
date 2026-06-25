@@ -4,6 +4,8 @@ package org.alexmond.gotmpl4j;
  * Thrown when a template is requested by a name that is not present in the
  * {@link GoTemplate} set, or when execution is attempted before any main template has
  * been parsed. Subclass of {@link TemplateException}.
+ *
+ * @since 1.0
  */
 public class TemplateNotFoundException extends TemplateException {
 

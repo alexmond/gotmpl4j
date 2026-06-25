@@ -14,6 +14,7 @@ import java.util.Map;
  * <p>
  * Built-in priorities: Go builtins=0, Sprig=100, Helm=200.
  *
+ * @since 1.0
  * @see GoTemplate.Builder
  */
 @FunctionalInterface

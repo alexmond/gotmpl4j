@@ -23,6 +23,8 @@ import java.util.function.Supplier;
  * sources are located and parsed (classpath resources, files, an in-memory string, ...)
  * is left to the caller, keeping this engine class free of any loading or framework
  * concerns.
+ *
+ * @since 1.0
  */
 public class TemplateCache {
 

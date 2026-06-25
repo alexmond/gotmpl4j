@@ -16,6 +16,8 @@ import java.io.Writer;
  * CompiledTemplate greeting = template.compiled("greeting");
  * String out = greeting.render(Map.of("Name", "world"));
  * }</pre>
+ *
+ * @since 1.0
  */
 public final class CompiledTemplate {
 

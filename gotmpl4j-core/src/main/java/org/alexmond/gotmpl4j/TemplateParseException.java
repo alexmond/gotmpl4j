@@ -4,6 +4,8 @@ package org.alexmond.gotmpl4j;
  * Thrown when template text cannot be parsed (lexing or syntax errors). May carry the
  * source line and column of the failure via {@link TemplateException}. Subclass of
  * {@link TemplateException}.
+ *
+ * @since 1.0
  */
 public class TemplateParseException extends TemplateException {
 

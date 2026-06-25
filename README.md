@@ -1,11 +1,19 @@
 # gotmpl4j
 
+[![Maven Central](https://img.shields.io/maven-central/v/org.alexmond/gotmpl4j-core.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/org.alexmond/gotmpl4j-core)
+[![Javadoc](https://javadoc.io/badge2/org.alexmond/gotmpl4j-core/javadoc.svg)](https://javadoc.io/doc/org.alexmond/gotmpl4j-core)
+[![Build](https://img.shields.io/github/actions/workflow/status/alexmond/gotmpl4j/maven.yml?branch=main)](https://github.com/alexmond/gotmpl4j/actions)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Java](https://img.shields.io/badge/Java-17%2B-blue.svg)](https://openjdk.org/)
+
 A pure-Java implementation of Go's [`text/template`](https://pkg.go.dev/text/template)
 engine, with the [Sprig](https://masterminds.github.io/sprig/) function library and an
 optional Spring Boot starter. No Go toolchain, no CGo, no native bindings — just the JVM.
 
 It renders the same templates Helm, Hugo, and countless Go CLIs use, and is validated for
 byte-for-byte parity against Go's own `text/template` test suite and Sprig's upstream tests.
+
+📖 **Documentation:** <https://www.alexmond.org/gotmpl4j/current/index.html>
 
 ## Modules
 

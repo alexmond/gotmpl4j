@@ -24,12 +24,14 @@ import org.springframework.core.io.ResourceLoader;
  * <p>
  * Functions are extended the Spring-idiomatic way: any {@link FunctionProvider} bean in
  * the context is registered with the engine, on top of the providers the engine discovers
- * via {@code ServiceLoader} (sprig, helm). This mirrors how Thymeleaf collects
+ * via {@code ServiceLoader} (such as Sprig). This mirrors how Thymeleaf collects
  * {@code IDialect} beans — the engine owns the SPI, the starter only feeds beans into it.
  *
  * <p>
  * The compile cache is owned by the engine's {@link org.alexmond.gotmpl4j.TemplateCache};
  * {@code gotmpl4j.cache} simply toggles it.
+ *
+ * @since 1.0
  */
 @AutoConfiguration
 @EnableConfigurationProperties(Gotmpl4jProperties.class)

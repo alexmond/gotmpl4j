@@ -11,12 +11,13 @@ import org.alexmond.gotmpl4j.GoTemplate;
  *
  * <p>
  * Discovered automatically via {@link java.util.ServiceLoader} when
- * {@code jhelm-gotemplate-sprig} is on the classpath. Can also be registered explicitly
- * via {@link GoTemplate.Builder#withProvider(FunctionProvider)}.
+ * {@code gotmpl4j-sprig} is on the classpath. Can also be registered explicitly via
+ * {@link GoTemplate.Builder#withProvider(FunctionProvider)}.
  *
  * <p>
  * Priority is {@code 100} (between Go builtins at 0 and Helm functions at 200).
  *
+ * @since 1.0
  * @see SprigFunctionsRegistry
  */
 public class SprigFunctionProvider implements FunctionProvider {

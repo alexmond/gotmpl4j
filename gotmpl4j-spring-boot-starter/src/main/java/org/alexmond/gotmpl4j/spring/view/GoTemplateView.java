@@ -17,6 +17,8 @@ import org.springframework.web.servlet.view.AbstractTemplateView;
  * template by name. The view's URL is the template name (the loader already keys
  * templates by their suffix-stripped relative path), so rendering delegates straight to
  * {@link GoTemplateService#render(String, Object)} with the merged model.
+ *
+ * @since 1.0
  */
 public class GoTemplateView extends AbstractTemplateView {
 

@@ -19,6 +19,8 @@ import org.alexmond.gotmpl4j.TemplateException;
  * independent. The compile-once/render-many lifecycle is owned by the engine's
  * {@link TemplateCache}; this service only wires the {@link GoTemplateLoader} into it as
  * the compile step.
+ *
+ * @since 1.0
  */
 public class GoTemplateService {
 
