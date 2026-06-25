@@ -45,6 +45,21 @@ import org.alexmond.gotmpl4j.util.IOUtils;
  *     .withProvider(new HelmFunctionProvider(kubeProvider))
  *     .build();
  * }</pre>
+ *
+ * <p>
+ * <strong>Thread-safety:</strong> {@code parse} mutates the template set and is not safe
+ * to call concurrently or while executing. Once parsing is complete, a {@code GoTemplate}
+ * may be {@code execute}d from multiple threads concurrently (a fresh executor is built
+ * per call). The one exception is the first execution with html-escaping enabled, which
+ * lazily rewrites the AST under an internal lock; concurrent first-executions are still
+ * safe (see {@code ensureEscaped}), but for maximum clarity execute once before sharing.
+ *
+ * <p>
+ * <strong>Low-level extension API:</strong> {@link #getFunctions()} and
+ * {@link #getRootNodes()} expose the engine's live function and template-node maps so
+ * that higher-level engines (such as Helm's {@code tpl}/{@code include}) can share
+ * functions and register templates dynamically. They return the backing collections; the
+ * {@link org.alexmond.gotmpl4j.parse.Node} values are part of this extension surface.
  */
 @Slf4j
 @Getter
@@ -357,25 +372,6 @@ public class GoTemplate {
 	}
 
 	/**
-	 * Returns the root AST node of the main template. The {@link Node} types are internal
-	 * implementation detail and not part of the stable public API.
-	 * @return the root node of the main template, or {@code null} if none is parsed
-	 */
-	public Node root() {
-		return rootNodes.get(name);
-	}
-
-	/**
-	 * Returns the root AST node of a named template. The {@link Node} types are internal
-	 * implementation detail and not part of the stable public API.
-	 * @param name the template name
-	 * @return the root node, or {@code null} if no template with that name exists
-	 */
-	public Node root(String name) {
-		return rootNodes.get(name);
-	}
-
-	/**
 	 * Builder for constructing {@link GoTemplate} instances with explicit control over
 	 * function providers. Supports ServiceLoader auto-discovery and/or explicit provider
 	 * registration.
@@ -390,6 +386,8 @@ public class GoTemplate {
 
 		private boolean htmlEscaping;
 
+		private String[] options = new String[0];
+
 		Builder() {
 		}
 
@@ -400,6 +398,19 @@ public class GoTemplate {
 		 */
 		public Builder htmlEscaping() {
 			this.htmlEscaping = true;
+			return this;
+		}
+
+		/**
+		 * Set template options at build time, mirroring
+		 * {@link GoTemplate#option(String...)} (the only recognised option is
+		 * {@code missingkey}). The last call wins; an unrecognised option is rejected
+		 * when {@link #build()} is called.
+		 * @param options the options to apply, e.g. {@code "missingkey=zero"}
+		 * @return this builder
+		 */
+		public Builder option(String... options) {
+			this.options = options.clone();
 			return this;
 		}
 
@@ -479,6 +490,8 @@ public class GoTemplate {
 			if (htmlEscaping) {
 				template.enableHtmlEscaping();
 			}
+
+			template.option(options);
 
 			return template;
 		}
