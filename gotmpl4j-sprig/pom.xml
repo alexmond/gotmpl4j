@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.alexmond</groupId>
         <artifactId>gotmpl4j-parent</artifactId>
-        <version>0.3.3-SNAPSHOT</version>
+        <version>1.0.0</version>
     </parent>
     <artifactId>gotmpl4j-sprig</artifactId>
 
