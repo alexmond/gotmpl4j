@@ -45,3 +45,20 @@ appropriate escaper. It is opt-in via `GoTemplate.builder().htmlEscaping()`.
 `TemplateCache` stores compiled ASTs so repeated renders of the same template skip the
 lex/parse stages. The Spring starter wires it in by default; it uses double-checked locking
 and is safe for concurrent use.
+
+== API stability
+
+From 1.0, the supported public API — everything covered by semantic versioning — is driving
+the engine through `GoTemplate` (`parse` / `execute` / `render` / `compiled` / `builder`),
+the `Function` / `FunctionProvider` SPI, the `MissingKeyMode` option, and the
+`GoTemplateException` hierarchy. The Spring Boot starter's documented properties and beans are
+covered too.
+
+`GoTemplate.getRootNodes()` and `getFunctions()` — and the `org.alexmond.gotmpl4j.parse.Node`
+types they expose — are an *advanced integrator surface*, not general application API. They
+return the engine's live, mutable internals so that engines built on top of gotmpl4j (such as
+Helm's `tpl` / `include`, implemented in https://github.com/alexmond/jhelm[jhelm]) can share
+named templates across instances. Because they leak internals, they are *not* covered by the
+1.0 stability guarantee and may change in a minor release; a first-class replacement is tracked
+in https://github.com/alexmond/gotmpl4j/issues/48[issue #48]. Application code should not depend
+on them.
