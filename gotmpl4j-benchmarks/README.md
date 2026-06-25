@@ -67,6 +67,13 @@ does less work and allocates far less, yet the JVM JIT still edges it on raw thr
 | Shared reflective accessor cache (#60) | Interpolation | 1.93 → 2.96 ops/µs | 744 → 480 (−35%) |
 | | Table 100 | 0.005 → 0.008 ops/µs | 203,513 → 137,753 (−32%) |
 | | Table 1000 | — | 2,051,069 → 1,394,849 (−32%) |
+| `GoFmt.floatString` without `BigDecimal` (#60) | Table 100 | — | 137,753 → 106,761 (−23%) |
+| | Table 1000 | — | 1,394,849 → 1,038,586 (−26%) |
+
+Cumulative on the table render: allocation roughly **halved** vs the original baseline
+(n=1000: 2.05 MB → 1.04 MB per render, −49%). Both wins were found with jvmlens (JFR →
+LLM-ready hot-path/allocation summary); it now points at `Executor.pushScope` (per-iteration
+scope allocation) and the reflective getter `invoke` as the next levers.
 
 Caching the per-class property accessor map (keyed by both the bean and Go-style names) on the
 `GoTemplate` removed a linear `PropertyDescriptor` scan + a per-property string allocation on
