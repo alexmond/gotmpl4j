@@ -51,6 +51,9 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <maven.compiler.release>17</maven.compiler.release>
+
+        <!-- Reproducible builds: a constant timestamp so rebuilding a tag is byte-for-byte stable. -->
+        <project.build.outputTimestamp>2026-06-25T00:00:00Z</project.build.outputTimestamp>
     </properties>
     <scm>
         <connection>scm:git:git@github.com:alexmond/gotmpl4j.git</connection>
@@ -320,6 +323,18 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <!-- Stable JPMS module name per module (set via the automatic.module.name property). -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Automatic-Module-Name>${automatic.module.name}</Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
             </plugin>
         </plugins>
     </build>

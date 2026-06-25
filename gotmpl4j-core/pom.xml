@@ -12,6 +12,10 @@
 
     <name>Go Template for Java</name>
     <description>Go template engine for Java</description>
+
+    <properties>
+        <automatic.module.name>org.alexmond.gotmpl4j</automatic.module.name>
+    </properties>
     <url>https://github.com/alexmond/gotmpl4j</url>
 
     <!-- License is inherited from the parent POM (Apache License 2.0).

@@ -13,6 +13,10 @@
     <name>Sprig Functions for Go Template</name>
     <description>Sprig template function library for the gotmpl4j Go template engine</description>
 
+    <properties>
+        <automatic.module.name>org.alexmond.gotmpl4j.sprig</automatic.module.name>
+    </properties>
+
     <dependencies>
         <!-- Core template engine (Function interface, FunctionProvider SPI) -->
         <dependency>
