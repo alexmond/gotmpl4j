@@ -64,6 +64,24 @@ class Gotmpl4jAutoConfigurationTest {
 	}
 
 	@Test
+	void htmlModeEnablesContextualEscaping() {
+		runner.withPropertyValues("gotmpl4j.mode=html").run((context) -> {
+			GoTemplateService service = context.getBean(GoTemplateService.class);
+			// In HTML mode the interpolation is escaped for its context; `<b>` becomes
+			// `&lt;b&gt;` in element text.
+			assertEquals("<p>&lt;b&gt;</p>", service.render("t", "<p>{{ .X }}</p>", Map.of("X", "<b>")));
+		});
+	}
+
+	@Test
+	void textModeIsTheDefaultAndDoesNotEscape() {
+		runner.run((context) -> {
+			GoTemplateService service = context.getBean(GoTemplateService.class);
+			assertEquals("<p><b></p>", service.render("t", "<p>{{ .X }}</p>", Map.of("X", "<b>")));
+		});
+	}
+
+	@Test
 	void registersExtraFunctionMapBeanWithTheEngine() {
 		runner.withUserConfiguration(ExtraFunctionsConfiguration.class).run((context) -> {
 			GoTemplateService service = context.getBean(GoTemplateService.class);

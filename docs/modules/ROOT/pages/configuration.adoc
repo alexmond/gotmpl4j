@@ -21,6 +21,14 @@ The Spring Boot starter is configured under the `gotmpl4j` prefix
 | `.gotmpl`
 | File-name suffix appended to a view/template name.
 
+| `gotmpl4j.mode`
+| `text`
+| Rendering mode. `text` is Go `text/template` with no escaping (Helm-compatible). `html` enables Go `html/template`-style contextual auto-escaping (HTML/attribute/URL/JS/CSS aware).
+
+| `gotmpl4j.order`
+| `LOWEST_PRECEDENCE - 10`
+| Order of the view resolver, relative to other resolvers. Lower it when mixing template engines so gotmpl4j is consulted before a more greedy resolver.
+
 | `gotmpl4j.charset`
 | `UTF-8`
 | Charset used when reading templates and writing output.

@@ -8,7 +8,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
 
 /**
  * Registers a {@link GoTemplateReactiveViewResolver} when the application is a reactive
@@ -38,7 +37,7 @@ class GoTemplateReactiveWebConfiguration {
 		if (properties.getReactive().getMediaTypes() != null) {
 			resolver.setSupportedMediaTypes(properties.getReactive().getMediaTypes());
 		}
-		resolver.setOrder(Ordered.LOWEST_PRECEDENCE - 10);
+		resolver.setOrder(properties.getOrder());
 		return resolver;
 	}
 

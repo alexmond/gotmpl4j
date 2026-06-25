@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.DeprecatedConfigurationProperty;
+import org.springframework.core.Ordered;
 import org.springframework.http.MediaType;
 
 /**
@@ -28,6 +29,17 @@ public class Gotmpl4jProperties {
 
 	/** File-name suffix of templates under {@link #prefix}. Default {@code .gotmpl}. */
 	private String suffix = ".gotmpl";
+
+	/**
+	 * Rendering mode. {@code TEXT} (the default) is Go {@code text/template} with no
+	 * escaping, matching Helm. {@code HTML} enables Go {@code html/template}-style
+	 * contextual auto-escaping that escapes interpolations per HTML/attribute/URL/JS/CSS
+	 * context.
+	 */
+	private TemplateMode mode = TemplateMode.TEXT;
+
+	/** Order of the view resolver, relative to other resolvers when engines are mixed. */
+	private int order = Ordered.LOWEST_PRECEDENCE - 10;
 
 	/** Charset used to read template files and render views. Default {@code UTF-8}. */
 	private Charset charset = StandardCharsets.UTF_8;
@@ -85,6 +97,22 @@ public class Gotmpl4jProperties {
 	@Deprecated(since = "0.1.0")
 	public void setTemplateLocation(String templateLocation) {
 		this.prefix = templateLocation;
+	}
+
+	public TemplateMode getMode() {
+		return this.mode;
+	}
+
+	public void setMode(TemplateMode mode) {
+		this.mode = mode;
+	}
+
+	public int getOrder() {
+		return this.order;
+	}
+
+	public void setOrder(int order) {
+		this.order = order;
 	}
 
 	public String getSuffix() {
@@ -228,6 +256,26 @@ public class Gotmpl4jProperties {
 		public void setMediaTypes(List<MediaType> mediaTypes) {
 			this.mediaTypes = mediaTypes;
 		}
+
+	}
+
+	/**
+	 * Rendering mode, mirroring Go's split between {@code text/template} and
+	 * {@code html/template}.
+	 */
+	public enum TemplateMode {
+
+		/**
+		 * Go {@code text/template}: interpolations are rendered verbatim (the default,
+		 * Helm-compatible).
+		 */
+		TEXT,
+
+		/**
+		 * Go {@code html/template}: interpolations are contextually auto-escaped for HTML
+		 * output.
+		 */
+		HTML
 
 	}
 

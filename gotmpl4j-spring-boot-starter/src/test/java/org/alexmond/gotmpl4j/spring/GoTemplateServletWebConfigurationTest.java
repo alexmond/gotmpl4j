@@ -34,6 +34,14 @@ class GoTemplateServletWebConfigurationTest {
 	}
 
 	@Test
+	void honoursConfiguredResolverOrder() {
+		this.web.withPropertyValues("gotmpl4j.order=42").run((context) -> {
+			GoTemplateViewResolver resolver = context.getBean(GoTemplateViewResolver.class);
+			assertEquals(42, resolver.getOrder());
+		});
+	}
+
+	@Test
 	void noViewResolverInNonWebApp() {
 		this.nonWeb.run((context) -> assertEquals(0, context.getBeanNamesForType(GoTemplateViewResolver.class).length));
 	}
