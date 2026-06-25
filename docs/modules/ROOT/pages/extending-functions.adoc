@@ -124,7 +124,8 @@ Function div = args -> {
 
 The starter wires the SPI the Spring-idiomatic way (mirroring how Thymeleaf collects
 `IDialect` beans): every `FunctionProvider` bean in the context is registered with the engine,
-and any `Function` bean is added by its **bean name** as an extra function on top.
+and a single `Map<String, Function>` bean — if one is present — contributes extra
+name→function entries that override the providers on top.
 
 [source,java]
 ----
@@ -137,8 +138,8 @@ class TemplateFunctionsConfig {
     }
 
     @Bean
-    Function shout() {                           // one function, named by the bean: "shout"
-        return args -> String.valueOf(args[0]).toUpperCase(Locale.ROOT);
+    Map<String, Function> extraTemplateFunctions() {   // one-off helpers, by name
+        return Map.of("shout", args -> String.valueOf(args[0]).toUpperCase(Locale.ROOT));
     }
 }
 ----
