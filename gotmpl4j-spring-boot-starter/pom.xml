@@ -13,6 +13,10 @@
     <name>gotmpl4j Spring Boot Starter</name>
     <description>Spring Boot autoconfiguration for the gotmpl4j Go template engine</description>
 
+    <properties>
+        <automatic.module.name>org.alexmond.gotmpl4j.spring</automatic.module.name>
+    </properties>
+
     <dependencies>
         <!-- The Spring-free engine + the sprig function library -->
         <dependency>
@@ -77,5 +81,26 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <!-- The parent pins annotationProcessorPaths (Lombok), which disables classpath
+                     processor discovery, so register the config processor explicitly here. It
+                     generates spring-configuration-metadata.json for the gotmpl4j.* properties. -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <!-- override (not merge) the parent's Lombok-only paths; this module has no Lombok. -->
+                    <annotationProcessorPaths combine.self="override">
+                        <path>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-configuration-processor</artifactId>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
