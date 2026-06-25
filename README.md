@@ -21,7 +21,7 @@ byte-for-byte parity against Go's own `text/template` test suite and Sprig's ups
 <dependency>
     <groupId>org.alexmond</groupId>
     <artifactId>gotmpl4j-sprig</artifactId>
-    <version>0.1.0</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 

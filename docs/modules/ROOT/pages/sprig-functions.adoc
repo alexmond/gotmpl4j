@@ -2,7 +2,7 @@
 
 Adding `gotmpl4j-sprig` to the classpath registers the https://masterminds.github.io/sprig/[Sprig]
 function library via `ServiceLoader` — no wiring required. These are the same functions Helm
-templates rely on. See the {api-sprig}/{gotmpl4j-version}/index.html[`gotmpl4j-sprig` API^] for the
+templates rely on. See the {api-sprig}/{page-component-version}/index.html[`gotmpl4j-sprig` API^] for the
 function-provider classes.
 
 == Categories
