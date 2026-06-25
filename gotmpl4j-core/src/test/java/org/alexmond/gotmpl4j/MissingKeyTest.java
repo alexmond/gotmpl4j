@@ -49,4 +49,14 @@ class MissingKeyTest {
 		assertThrows(IllegalArgumentException.class, () -> new GoTemplate().option("colors=on"));
 	}
 
+	@Test
+	void builderOptionSetsMissingKey() throws Exception {
+		assertEquals("x[]", render(GoTemplate.builder().option("missingkey=zero").build(), "x[{{ .missing }}]"));
+	}
+
+	@Test
+	void builderRejectsUnknownOptionAtBuild() {
+		assertThrows(IllegalArgumentException.class, () -> GoTemplate.builder().option("missingkey=bogus").build());
+	}
+
 }

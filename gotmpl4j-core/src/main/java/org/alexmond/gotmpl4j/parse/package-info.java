@@ -8,9 +8,12 @@
  * command, branch, and literal nodes) that the executor walks at render time.
  *
  * <p>
- * <strong>Internal implementation detail.</strong> These types are {@code public} only
- * because of Java package boundaries; they are not part of the stable public API and may
- * change without notice between releases. Application code should depend on
- * {@link org.alexmond.gotmpl4j.GoTemplate} instead.
+ * The {@link org.alexmond.gotmpl4j.parse.Node} hierarchy reachable from
+ * {@link org.alexmond.gotmpl4j.GoTemplate#getRootNodes()} is a low-level extension point
+ * — higher-level engines (such as Helm's {@code tpl}/{@code include}) register and share
+ * parsed templates through it — so {@code Node} is part of the committed surface. The
+ * lexer, parser, {@code Token}, and the concrete node internals, however, are
+ * implementation detail and may change between releases; application code should drive
+ * the engine through {@link org.alexmond.gotmpl4j.GoTemplate}.
  */
 package org.alexmond.gotmpl4j.parse;

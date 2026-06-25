@@ -66,7 +66,7 @@ class GoTemplateTest {
 		GoTemplate template = new GoTemplate();
 		template.parse("main", "Hello!");
 
-		Node root = template.root();
+		Node root = template.getRootNodes().get(template.getName());
 		assertNotNull(root);
 	}
 
@@ -77,7 +77,7 @@ class GoTemplateTest {
 		template.parse("main", "Hello!");
 		template.parse("secondary", "Goodbye!");
 
-		Node root = template.root(name);
+		Node root = template.getRootNodes().get(name);
 		assertNotNull(root);
 	}
 
@@ -86,7 +86,7 @@ class GoTemplateTest {
 		GoTemplate template = new GoTemplate();
 		template.parse("main", "Hello!");
 
-		Node root = template.root("nonexistent");
+		Node root = template.getRootNodes().get("nonexistent");
 		assertNull(root);
 	}
 
