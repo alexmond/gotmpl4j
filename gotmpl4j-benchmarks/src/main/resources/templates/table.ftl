@@ -1,0 +1,1 @@
+<table><#list items as s><tr><td>${s.symbol}</td><td>${s.name}</td><td>${s.price}</td><td>${s.change}</td></tr></#list></table>

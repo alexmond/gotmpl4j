@@ -65,6 +65,7 @@
         <module>gotmpl4j-core</module>
         <module>gotmpl4j-sprig</module>
         <module>gotmpl4j-spring-boot-starter</module>
+        <module>gotmpl4j-benchmarks</module>
     </modules>
 
     <dependencyManagement>
