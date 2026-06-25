@@ -56,6 +56,27 @@ class Gotmpl4jAutoConfigurationTest {
 	}
 
 	@Test
+	void backsOffEntirelyWhenDisabled() {
+		runner.withPropertyValues("gotmpl4j.enabled=false").run((context) -> {
+			assertEquals(0, context.getBeanNamesForType(GoTemplateService.class).length);
+			assertEquals(0, context.getBeanNamesForType(GoTemplateFactory.class).length);
+		});
+	}
+
+	@Test
+	void registersExtraFunctionMapBeanWithTheEngine() {
+		runner.withUserConfiguration(ExtraFunctionsConfiguration.class).run((context) -> {
+			GoTemplateService service = context.getBean(GoTemplateService.class);
+			// A Map<String, Function> bean contributes named one-off functions, the way
+			// the
+			// factory collects extra functions (distinct from a whole FunctionProvider
+			// bean).
+			String out = service.render("t", "{{ greet .Name }}", Map.of("Name", "world"));
+			assertEquals("Hello, world", out);
+		});
+	}
+
+	@Test
 	void registersFunctionProviderBeanWithTheEngine() {
 		runner.withUserConfiguration(CustomFunctionsConfiguration.class).run((context) -> {
 			GoTemplateService service = context.getBean(GoTemplateService.class);
@@ -65,6 +86,16 @@ class Gotmpl4jAutoConfigurationTest {
 			String out = service.render("t", "{{ shout .Name }}", Map.of("Name", "world"));
 			assertEquals("WORLD!", out);
 		});
+	}
+
+	@Configuration
+	static class ExtraFunctionsConfiguration {
+
+		@Bean
+		Map<String, Function> extraTemplateFunctions() {
+			return Map.of("greet", (args) -> "Hello, " + args[0]);
+		}
+
 	}
 
 	@Configuration
