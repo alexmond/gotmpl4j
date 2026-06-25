@@ -1,0 +1,147 @@
+= Extending functions
+
+Template functions are pluggable. The Go builtins ship in `gotmpl4j-core`, Sprig adds ~220
+more when `gotmpl4j-sprig` is on the classpath, and your application can contribute its own —
+through the same SPI the built-in libraries use. There are three ways in, from quickest to
+most reusable.
+
+== The `Function` interface
+
+A function is a single method that receives its evaluated pipeline arguments and returns the
+value passed to the next stage (or rendered):
+
+[source,java]
+----
+@FunctionalInterface
+public interface Function {
+    Object invoke(Object... args);
+}
+----
+
+The last argument of a pipeline is the piped value, so `{{ .name | greet "Hello" }}` calls
+`greet` with `("Hello", <value of .name>)`.
+
+== 1. Inline functions on a single template
+
+For one-off or application-local helpers, hand a name→`Function` map to the
+{api-core}/{page-component-version}/org/alexmond/gotmpl4j/GoTemplate.Builder.html[`Builder`^]:
+
+[source,java]
+----
+GoTemplate tpl = GoTemplate.builder()
+        .withFunctions(Map.of(
+                "shout", (Function) args -> String.valueOf(args[0]).toUpperCase(Locale.ROOT)))
+        .build();
+
+tpl.parse("t", "{{ .name | shout }}!");   // -> "WORLD!"
+----
+
+These override any discovered function of the same name (they are applied last).
+
+== 2. A reusable `FunctionProvider`
+
+To package a set of functions for reuse — and to have them auto-register on the classpath —
+implement {api-core}/{page-component-version}/org/alexmond/gotmpl4j/FunctionProvider.html[`FunctionProvider`^]:
+
+[source,java]
+----
+public class GreetingFunctions implements FunctionProvider {
+
+    @Override
+    public Map<String, Function> getFunctions(GoTemplate template) {
+        return Map.of("greet", args -> args[1] + ", " + args[0] + "!");
+    }
+
+    @Override
+    public int priority() {
+        return 150;   // applied after Sprig (100), before Helm (200)
+    }
+}
+----
+
+`getFunctions` receives the owning `GoTemplate`, so a provider may capture it (for example to
+share named templates or compose with other functions).
+
+=== Auto-discovery via `ServiceLoader`
+
+Register the provider as a service and it is discovered automatically whenever the jar is on
+the classpath — no wiring:
+
+.`src/main/resources/META-INF/services/org.alexmond.gotmpl4j.FunctionProvider`
+[source]
+----
+com.example.GreetingFunctions
+----
+
+Now `new GoTemplate()` already has `greet`. (Pass `GoTemplate.builder().noAutoDiscovery()` to
+opt out of classpath discovery and register providers explicitly.)
+
+=== Explicit registration
+
+Skip discovery and add a provider directly:
+
+[source,java]
+----
+GoTemplate tpl = GoTemplate.builder()
+        .withProvider(new GreetingFunctions())
+        .build();
+----
+
+== Priority and name collisions
+
+When two providers register the same name, the higher `priority()` wins. The built-in bands are:
+
+[cols="2,1,3"]
+|===
+| Provider | Priority | Source
+
+| Go builtins | 0 | `gotmpl4j-core`
+| Sprig | 100 | `gotmpl4j-sprig`
+| Helm | 200 | external (https://github.com/alexmond/jhelm[jhelm])
+|===
+
+Inline `withFunctions(...)` always wins, regardless of priority — it is layered on top last.
+
+== Signalling failure
+
+Throw {api-core}/{page-component-version}/org/alexmond/gotmpl4j/FunctionExecutionException.html[`FunctionExecutionException`^]
+(unchecked) to fail a render from inside a function; the engine surfaces it wrapped in a
+`TemplateExecutionException` (both under the `GoTemplateException` root — see
+xref:getting-started.adoc#_error_handling[Error handling]):
+
+[source,java]
+----
+Function div = args -> {
+    long d = ((Number) args[1]).longValue();
+    if (d == 0) {
+        throw new FunctionExecutionException("div: division by zero");
+    }
+    return ((Number) args[0]).longValue() / d;
+};
+----
+
+== Spring Boot
+
+The starter wires the SPI the Spring-idiomatic way (mirroring how Thymeleaf collects
+`IDialect` beans): every `FunctionProvider` bean in the context is registered with the engine,
+and any `Function` bean is added by its **bean name** as an extra function on top.
+
+[source,java]
+----
+@Configuration
+class TemplateFunctionsConfig {
+
+    @Bean
+    FunctionProvider greetingFunctions() {
+        return new GreetingFunctions();          // a whole provider
+    }
+
+    @Bean
+    Function shout() {                           // one function, named by the bean: "shout"
+        return args -> String.valueOf(args[0]).toUpperCase(Locale.ROOT);
+    }
+}
+----
+
+Both are then callable from any view the
+xref:spring-boot-starter.adoc[`GoTemplateService`] renders.
