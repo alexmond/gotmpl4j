@@ -1,9 +1,11 @@
 package org.alexmond.gotmpl4j;
 
+import java.beans.BeanInfo;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.lang.reflect.Method;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
@@ -75,6 +77,15 @@ public class GoTemplate {
 	private final Map<String, Function> functions;
 
 	private final Map<String, Node> rootNodes;
+
+	// Reflection caches shared across every Executor this template spawns, so
+	// introspection is
+	// done once per data class and reused across renders (not rebuilt per execution).
+	@Getter(AccessLevel.NONE)
+	private final Map<Class<?>, BeanInfo> beanInfoCache = new ConcurrentHashMap<>();
+
+	@Getter(AccessLevel.NONE)
+	private final Map<Class<?>, Map<String, Method>> accessorCache = new ConcurrentHashMap<>();
 
 	private String name;
 
@@ -236,7 +247,7 @@ public class GoTemplate {
 		if (htmlEscape) {
 			ensureEscaped(name);
 		}
-		Executor executor = new Executor(rootNodes, functions, missingKey);
+		Executor executor = new Executor(rootNodes, functions, missingKey, beanInfoCache, accessorCache);
 		executor.execute(name, data, writer);
 	}
 

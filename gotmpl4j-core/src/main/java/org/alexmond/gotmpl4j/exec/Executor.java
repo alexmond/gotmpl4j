@@ -64,8 +64,13 @@ public class Executor {
 	// Current {{template}}-invocation nesting depth (see MAX_TEMPLATE_DEPTH).
 	private int templateDepth;
 
-	// BeanInfo cache for performance optimization
-	private final Map<Class<?>, BeanInfo> beanInfoCache = new ConcurrentHashMap<>();
+	// Reflection caches keyed by data class. Owned by the GoTemplate (so they persist
+	// across
+	// the many short-lived Executors it spawns) and shared concurrently, hence
+	// ConcurrentHashMap.
+	private final Map<Class<?>, BeanInfo> beanInfoCache;
+
+	private final Map<Class<?>, Map<String, Method>> accessorCache;
 
 	// Variable storage for template execution context
 	private final Map<String, Object> variables = new HashMap<>();
@@ -105,9 +110,26 @@ public class Executor {
 	}
 
 	public Executor(Map<String, Node> rootNodes, Map<String, Function> functions, MissingKeyMode missingKey) {
+		this(rootNodes, functions, missingKey, new ConcurrentHashMap<>(), new ConcurrentHashMap<>());
+	}
+
+	/**
+	 * Creates an executor that shares the engine-owned reflection caches, so
+	 * introspection is amortised across every render of the owning template rather than
+	 * rebuilt per execution.
+	 * @param rootNodes the parsed template set
+	 * @param functions the function table
+	 * @param missingKey how a nil/absent value renders
+	 * @param beanInfoCache shared {@code Class -> BeanInfo} cache
+	 * @param accessorCache shared {@code Class -> (name -> read method)} cache
+	 */
+	public Executor(Map<String, Node> rootNodes, Map<String, Function> functions, MissingKeyMode missingKey,
+			Map<Class<?>, BeanInfo> beanInfoCache, Map<Class<?>, Map<String, Method>> accessorCache) {
 		this.rootNodes = rootNodes;
 		this.functions = functions;
 		this.missingKey = missingKey;
+		this.beanInfoCache = beanInfoCache;
+		this.accessorCache = accessorCache;
 	}
 
 	public void execute(String name, Object data, Writer writer)
@@ -634,24 +656,13 @@ public class Executor {
 			Object methodValue = invokeNoArgHelperMethod(current, identifier);
 			return (methodValue != NO_METHOD) ? methodValue : map.get(identifier);
 		}
-		BeanInfo currentBeanInfo = getBeanInfo(current);
-		PropertyDescriptor[] propertyDescriptors = currentBeanInfo.getPropertyDescriptors();
-		for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
-			String propertyDescriptorName = propertyDescriptor.getName();
-			if ("class".equals(propertyDescriptorName)) {
-				continue;
+		Method readMethod = accessorFor(current.getClass(), identifier);
+		if (readMethod != null) {
+			try {
+				return readMethod.invoke(current);
 			}
-
-			String goStyleName = toGoStylePropertyName(propertyDescriptorName);
-			if (identifier.equals(propertyDescriptorName) || identifier.equals(goStyleName)) {
-				Method readMethod = propertyDescriptor.getReadMethod();
-				try {
-					return readMethod.invoke(current);
-				}
-				catch (IllegalAccessException | InvocationTargetException ex) {
-					throw new TemplateExecutionException(String.format("can't get value '%s' from data", identifier),
-							ex);
-				}
+			catch (IllegalAccessException | InvocationTargetException ex) {
+				throw new TemplateExecutionException(String.format("can't get value '%s' from data", identifier), ex);
 			}
 		}
 
@@ -1049,6 +1060,42 @@ public class Executor {
 	 */
 	private String toGoStylePropertyName(String propertyDescriptorName) {
 		return Character.toUpperCase(propertyDescriptorName.charAt(0)) + propertyDescriptorName.substring(1);
+	}
+
+	/**
+	 * Resolve the read method for {@code identifier} on {@code type}, matched against
+	 * both the JavaBean property name and its Go-style (capitalised) form. The per-class
+	 * accessor map is built once and cached, replacing a linear
+	 * {@link PropertyDescriptor} scan (with a per-property string allocation) on every
+	 * field access.
+	 * @param type the runtime type being accessed
+	 * @param identifier the template field name
+	 * @return the matching read method, or {@code null} if no property matches
+	 */
+	private Method accessorFor(Class<?> type, String identifier) {
+		return accessorCache.computeIfAbsent(type, this::buildAccessors).get(identifier);
+	}
+
+	private Map<String, Method> buildAccessors(Class<?> type) {
+		Map<String, Method> accessors = new HashMap<>();
+		try {
+			for (PropertyDescriptor descriptor : Introspector.getBeanInfo(type).getPropertyDescriptors()) {
+				String name = descriptor.getName();
+				Method readMethod = descriptor.getReadMethod();
+				if ("class".equals(name) || readMethod == null) {
+					continue;
+				}
+				// First descriptor wins on a key collision, matching the old linear scan.
+				accessors.putIfAbsent(name, readMethod);
+				accessors.putIfAbsent(toGoStylePropertyName(name), readMethod);
+			}
+		}
+		catch (IntrospectionException ex) {
+			if (log.isDebugEnabled()) {
+				log.debug("Failed to introspect class {}: {}", type.getName(), ex.getMessage());
+			}
+		}
+		return accessors;
 	}
 
 	/**
