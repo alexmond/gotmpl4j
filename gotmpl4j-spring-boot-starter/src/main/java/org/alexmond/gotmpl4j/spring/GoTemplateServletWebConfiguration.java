@@ -8,7 +8,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
 
 /**
  * Registers a {@link GoTemplateViewResolver} when the application is a servlet web
@@ -34,7 +33,7 @@ class GoTemplateServletWebConfiguration {
 		resolver.setAllowRequestOverride(servlet.isAllowRequestOverride());
 		resolver.setAllowSessionOverride(servlet.isAllowSessionOverride());
 		resolver.setCache(properties.isCache());
-		resolver.setOrder(Ordered.LOWEST_PRECEDENCE - 10);
+		resolver.setOrder(properties.getOrder());
 		return resolver;
 	}
 

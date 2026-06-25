@@ -50,10 +50,11 @@ public class Gotmpl4jAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public GoTemplateFactory goTemplateFactory(ObjectProvider<FunctionProvider> providers,
-			ObjectProvider<Map<String, Function>> extraFunctions) {
+			ObjectProvider<Map<String, Function>> extraFunctions, Gotmpl4jProperties properties) {
 		List<FunctionProvider> providerBeans = providers.orderedStream().toList();
 		Map<String, Function> functions = extraFunctions.getIfAvailable(Map::of);
-		return new GoTemplateFactory(providerBeans, functions);
+		boolean htmlEscaping = properties.getMode() == Gotmpl4jProperties.TemplateMode.HTML;
+		return new GoTemplateFactory(providerBeans, functions, htmlEscaping);
 	}
 
 	/**

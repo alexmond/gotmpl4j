@@ -4,6 +4,8 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.core.Ordered;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -19,6 +21,8 @@ class Gotmpl4jPropertiesTest {
 		assertEquals(".gotmpl", properties.getSuffix());
 		assertEquals(StandardCharsets.UTF_8, properties.getCharset());
 		assertTrue(properties.isCache());
+		assertEquals(Gotmpl4jProperties.TemplateMode.TEXT, properties.getMode());
+		assertEquals(Ordered.LOWEST_PRECEDENCE - 10, properties.getOrder());
 	}
 
 	@Test
@@ -30,12 +34,16 @@ class Gotmpl4jPropertiesTest {
 		properties.setSuffix(".tmpl");
 		properties.setCharset(StandardCharsets.ISO_8859_1);
 		properties.setCache(false);
+		properties.setMode(Gotmpl4jProperties.TemplateMode.HTML);
+		properties.setOrder(5);
 
 		assertFalse(properties.isEnabled());
 		assertEquals("file:/srv/views/", properties.getTemplateLocation());
 		assertEquals(".tmpl", properties.getSuffix());
 		assertEquals(StandardCharsets.ISO_8859_1, properties.getCharset());
 		assertFalse(properties.isCache());
+		assertEquals(Gotmpl4jProperties.TemplateMode.HTML, properties.getMode());
+		assertEquals(5, properties.getOrder());
 	}
 
 }

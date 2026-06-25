@@ -35,9 +35,21 @@ public class GoTemplateFactory {
 
 	private final Map<String, Function> extraFunctions;
 
+	private final boolean htmlEscaping;
+
 	/** Creates a factory with no Spring-provided extensions (engine defaults only). */
 	public GoTemplateFactory() {
-		this(List.of(), Map.of());
+		this(List.of(), Map.of(), false);
+	}
+
+	/**
+	 * Creates a factory in text mode (no escaping).
+	 * @param providers function providers contributed by the Spring context (applied on
+	 * top of {@code ServiceLoader}-discovered providers, by priority)
+	 * @param extraFunctions named functions that override all providers (may be empty)
+	 */
+	public GoTemplateFactory(List<FunctionProvider> providers, Map<String, Function> extraFunctions) {
+		this(providers, extraFunctions, false);
 	}
 
 	/**
@@ -45,10 +57,14 @@ public class GoTemplateFactory {
 	 * @param providers function providers contributed by the Spring context (applied on
 	 * top of {@code ServiceLoader}-discovered providers, by priority)
 	 * @param extraFunctions named functions that override all providers (may be empty)
+	 * @param htmlEscaping when {@code true}, produced templates enable Go
+	 * {@code html/template}-style contextual auto-escaping
 	 */
-	public GoTemplateFactory(List<FunctionProvider> providers, Map<String, Function> extraFunctions) {
+	public GoTemplateFactory(List<FunctionProvider> providers, Map<String, Function> extraFunctions,
+			boolean htmlEscaping) {
 		this.providers = new ArrayList<>(providers);
 		this.extraFunctions = new LinkedHashMap<>(extraFunctions);
+		this.htmlEscaping = htmlEscaping;
 	}
 
 	/**
@@ -63,6 +79,9 @@ public class GoTemplateFactory {
 		}
 		if (!this.extraFunctions.isEmpty()) {
 			builder.withFunctions(this.extraFunctions);
+		}
+		if (this.htmlEscaping) {
+			builder.htmlEscaping();
 		}
 		return builder.build();
 	}
