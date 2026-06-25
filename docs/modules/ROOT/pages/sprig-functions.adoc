@@ -61,6 +61,18 @@ the function library gives it real capabilities:
   `derivePassword`, …) and the random generators (`randAlphaNum`, `uuidv4`, …) compute on the
   inputs the template passes; they read no ambient secrets, but a rendered result may contain
   generated key material, so handle the output accordingly.
+* **Regular expressions are backtracking, not RE2.** The `regex*` functions (`regexMatch`,
+  `regexFindAll`, `regexReplaceAll`, `regexSplit`, and their `must`/`Literal` variants) compile
+  the supplied pattern with `java.util.regex`, which — unlike Go's RE2 that upstream Sprig uses —
+  backtracks and has no match timeout. A pathological pattern over attacker-influenced text can
+  hang a thread (ReDoS). For untrusted input, validate or size-bound the pattern and the subject,
+  or run matching under a watchdog. Pattern *syntax* also differs (Java regex vs RE2), so a few
+  expressions behave differently than under Go.
+* **Size-driven allocation is unbounded.** `repeat`, `indent`/`nindent`, and the
+  `randAscii`/`randAlphaNum`/`randNumeric`/`randBytes` generators allocate in proportion to a
+  caller-supplied count — `{{ repeat 2000000000 "xx" }}` exhausts memory (or overflows `int`).
+  This matches upstream Sprig (fine for trusted templates); cap the count yourself before passing
+  it on if the template is untrusted.
 
 Don't render untrusted templates against sensitive data models, and enable HTML auto-escaping
 (`GoTemplate.builder().htmlEscaping()`) when the output is served as HTML.
