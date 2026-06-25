@@ -4,6 +4,8 @@ package org.alexmond.gotmpl4j;
  * Thrown when a parsed template fails during execution — for example a function raises an
  * error, a pipeline operates on an incompatible value, or {@code missingkey=error} is set
  * and a nil value reaches a bare action. Subclass of {@link TemplateException}.
+ *
+ * @since 1.0
  */
 public class TemplateExecutionException extends TemplateException {
 

@@ -18,6 +18,8 @@ import org.springframework.core.io.support.ResourcePatternResolver;
  * reference the others via {@code {{ template "..." }}} or shared {@code {{ define }}}
  * blocks. Each file is registered under its path relative to the location, with the
  * suffix stripped (e.g. {@code templates/layouts/base.gotmpl} -> {@code layouts/base}).
+ *
+ * @since 1.0
  */
 public class GoTemplateLoader {
 

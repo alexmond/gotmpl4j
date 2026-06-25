@@ -4,6 +4,8 @@ package org.alexmond.gotmpl4j;
  * Base exception for template parsing and execution errors. Optionally carries line and
  * column information for error location context. Unchecked, under the common
  * {@link GoTemplateException} root.
+ *
+ * @since 1.0
  */
 public class TemplateException extends GoTemplateException {
 

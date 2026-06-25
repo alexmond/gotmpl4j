@@ -5,6 +5,8 @@ package org.alexmond.gotmpl4j;
  * {@code text/template} {@code missingkey} option. Set via
  * {@link GoTemplate#option(String...)}; the default is {@link #DEFAULT}, so Go
  * conformance is unchanged unless a caller opts in.
+ *
+ * @since 1.0
  */
 public enum MissingKeyMode {
 

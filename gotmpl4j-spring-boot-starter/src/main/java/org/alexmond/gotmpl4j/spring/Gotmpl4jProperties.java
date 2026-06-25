@@ -11,6 +11,8 @@ import org.springframework.http.MediaType;
 /**
  * Configuration for the gotmpl4j Spring Boot starter, mirroring the conventions of
  * {@code spring.mustache.*} / {@code spring.freemarker.*}.
+ *
+ * @since 1.0
  */
 @ConfigurationProperties("gotmpl4j")
 public class Gotmpl4jProperties {

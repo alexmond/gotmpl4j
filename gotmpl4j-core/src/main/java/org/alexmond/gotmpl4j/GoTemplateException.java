@@ -12,6 +12,8 @@ package org.alexmond.gotmpl4j;
  * {@link TemplateExecutionException}, {@link TemplateNotFoundException}, and
  * {@link FunctionExecutionException} narrow the failure; catch them individually when you
  * need to distinguish, or this root to catch them all.
+ *
+ * @since 1.0
  */
 public class GoTemplateException extends RuntimeException {
 
