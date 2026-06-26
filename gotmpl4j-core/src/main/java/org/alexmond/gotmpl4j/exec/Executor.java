@@ -258,8 +258,9 @@ public class Executor {
 
 	private void writeList(Writer writer, ListNode listNode, Object data, BeanInfo beanInfo)
 			throws IOException, TemplateExecutionException, TemplateNotFoundException {
-		for (Node node : listNode) {
-			writeNode(writer, node, data, beanInfo);
+		int count = listNode.size();
+		for (int i = 0; i < count; i++) {
+			writeNode(writer, listNode.get(i), data, beanInfo);
 		}
 	}
 
@@ -440,8 +441,9 @@ public class Executor {
 			throws IOException, TemplateExecutionException, TemplateNotFoundException {
 		ListNode ifListNode = rangeNode.getIfListNode();
 		BeanInfo itemBeanInfo = getBeanInfo(value);
-		for (Node node : ifListNode) {
-			writeNode(writer, node, value, itemBeanInfo);
+		int count = ifListNode.size();
+		for (int i = 0; i < count; i++) {
+			writeNode(writer, ifListNode.get(i), value, itemBeanInfo);
 		}
 	}
 
