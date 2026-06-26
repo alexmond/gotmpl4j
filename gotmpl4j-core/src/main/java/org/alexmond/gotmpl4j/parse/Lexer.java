@@ -20,6 +20,10 @@ public class Lexer {
 
 	private static final String DEFAULT_RIGHT_COMMENT = "*/";
 
+	// EOF + newline as a constant (built once), so the hot text-scan checks use the
+	// allocation-free CharSequence overload instead of a per-call varargs char[].
+	private static final String EOF_OR_NEWLINE = String.valueOf(CharUtils.EOF) + CharUtils.NEW_LINE;
+
 	private static final char TRIM_MARKER = '-';
 
 	private static final int TRIM_MARKER_LENGTH = 1;
@@ -445,12 +449,12 @@ public class Lexer {
 			char ch = getCurrentCharAndGoToNext();
 			if (ch == '\\') {
 				ch = getCurrentCharAndGoToNext();
-				if (!CharUtils.isAnyOf(ch, CharUtils.EOF, CharUtils.NEW_LINE)) {
+				if (!CharUtils.isAnyOf(ch, EOF_OR_NEWLINE)) {
 					continue;
 				}
 			}
 
-			if (CharUtils.isAnyOf(ch, CharUtils.EOF, CharUtils.NEW_LINE)) {
+			if (CharUtils.isAnyOf(ch, EOF_OR_NEWLINE)) {
 				return parseError("unterminated quoted string");
 			}
 
@@ -508,12 +512,12 @@ public class Lexer {
 			if (ch == '\\') {
 				ch = getCurrentCharAndGoToNext();
 
-				if (!CharUtils.isAnyOf(ch, CharUtils.EOF, CharUtils.NEW_LINE)) {
+				if (!CharUtils.isAnyOf(ch, EOF_OR_NEWLINE)) {
 					continue;
 				}
 			}
 
-			if (CharUtils.isAnyOf(ch, CharUtils.EOF, CharUtils.NEW_LINE)) {
+			if (CharUtils.isAnyOf(ch, EOF_OR_NEWLINE)) {
 				return parseError("unclosed character constant");
 			}
 
