@@ -89,7 +89,16 @@ public final class CharUtils {
 	 * @return true if ch is what you want
 	 */
 	public static boolean isAnyOf(char ch, CharSequence chars) {
-		return chars.chars().anyMatch((c) -> c == ch);
+		// A plain scan: the lexer calls this in its innermost character loop, so it must
+		// not
+		// allocate. chars.chars() would build an IntStream (+ spliterator + lambda) per
+		// call.
+		for (int i = 0; i < chars.length(); i++) {
+			if (chars.charAt(i) == ch) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
