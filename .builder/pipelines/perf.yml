@@ -1,0 +1,32 @@
+name: Performance (JMH)
+
+# Analog of .github/workflows/perf.yml — runs the gotmpl4j JMH suite once per main commit
+# (plus on demand). avgt mode → JSON. No perf gate is enforced (matches the original: the
+# numbers are for spotting sizeable regressions over time, not micro-deltas).
+#
+# Gap vs the original: the GitHub workflow ships jmh-result.json to UniTrack for
+# perf-over-time tracking (alexmond/unitrack/action). builder has no external perf-results
+# upload, so this pipeline runs the benchmark and leaves the JSON as a build artifact; the
+# historical trend store is not populated. The benchmark run itself is faithfully translated.
+
+on: [push, manual]
+push:
+  branches: [main]
+
+jobs:
+  benchmark:
+    image: eclipse-temurin:17-jdk
+    cache:
+      key: m2-gotmpl4j
+      paths: [.m2/repository]
+    artifacts: [jmh-result.json]
+    steps:
+      - name: Checkout
+        run: git clone --depth 1 https://github.com/alexmond/gotmpl4j.git .
+      - name: Build benchmark jar
+        run: ./mvnw -B -pl gotmpl4j-benchmarks -am package -DskipTests --no-transfer-progress -Dmaven.repo.local=.m2/repository
+      - name: Run JMH (average-time → JSON)
+        run: |
+          java -jar gotmpl4j-benchmarks/target/benchmarks.jar "gotmpl4j(Render|Parse)" \
+            -bm avgt -tu us -f 1 -wi 3 -i 5 -w 1s -r 1s \
+            -rf json -rff jmh-result.json
