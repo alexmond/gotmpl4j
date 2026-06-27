@@ -1,0 +1,40 @@
+name: Performance (JMH → UniTrack)
+
+# Runs the gotmpl4j JMH suite and reports the results to UniTrack for perf-over-time
+# tracking. Kept out of the per-PR build: JMH takes minutes and GitHub-hosted runners are
+# shared/noisy, so this runs once per main commit (plus on demand). The numbers are best for
+# spotting sizeable regressions over time, not micro-deltas — no perf gate is enforced here.
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+      - name: Build benchmark jar
+        run: ./mvnw -B -pl gotmpl4j-benchmarks -am package -DskipTests --no-transfer-progress
+      - name: Run JMH (average-time → JSON)
+        # avgt mode gives real latency + percentiles (the shape UniTrack tracks); only the
+        # gotmpl4j benchmarks (the peers — FreeMarker/Thymeleaf — don't change here).
+        run: |
+          java -jar gotmpl4j-benchmarks/target/benchmarks.jar "gotmpl4j(Render|Parse)" \
+            -bm avgt -tu us -f 1 -wi 3 -i 5 -w 1s -r 1s \
+            -rf json -rff jmh-result.json
+      - name: Report perf to UniTrack
+        if: always()
+        uses: alexmond/unitrack/action@v0
+        with:
+          url: ${{ vars.UNITRACK_URL }}
+          token: ${{ secrets.UNITRACK_TOKEN }}
+          perf: 'jmh-result.json'
+          soft-fail: "true"
