@@ -5,6 +5,8 @@
 [![Build](https://img.shields.io/github/actions/workflow/status/alexmond/gotmpl4j/maven.yml?branch=main)](https://github.com/alexmond/gotmpl4j/actions)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-17%2B-blue.svg)](https://openjdk.org/)
+[![coverage](https://unitrack.alexmond.org/badge/37/coverage.svg)](https://unitrack.alexmond.org/projects/37)
+[![tests](https://unitrack.alexmond.org/badge/37/pass.svg)](https://unitrack.alexmond.org/projects/37)
 
 A pure-Java implementation of Go's [`text/template`](https://pkg.go.dev/text/template)
 engine, with the [Sprig](https://masterminds.github.io/sprig/) function library and an
