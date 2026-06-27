@@ -1,0 +1,20 @@
+name: Java CI with Maven
+
+# Analog of .github/workflows/maven.yml — build + test on every push to main
+# (and on demand). JDK 17 via the temurin image; the Maven repo is cached across runs.
+
+on: [push, manual]
+push:
+  branches: [main]
+
+jobs:
+  build:
+    image: eclipse-temurin:17-jdk
+    cache:
+      key: m2-gotmpl4j
+      paths: [.m2/repository]
+    steps:
+      - name: Checkout
+        run: git clone --depth 1 https://github.com/alexmond/gotmpl4j.git .
+      - name: Build with Maven
+        run: ./mvnw -B package --file pom.xml --no-transfer-progress -Dmaven.repo.local=.m2/repository

@@ -1,0 +1,41 @@
+name: Maven Release
+
+# Analog of .github/workflows/maven_release.yml — manual release: set the release
+# version, verify, deploy to Maven Central (GPG-signed), then set the next dev version.
+#
+# Gaps vs the GitHub Actions original (builder can't do these today, see PR notes):
+#  - no git write-back/push, so the version-bump commits + the tag are NOT pushed here;
+#  - no GitHub Release creation (softprops/action-gh-release has no builder analog).
+# This pipeline runs the Maven half (set-version → verify → deploy); the git commit/tag/push
+# and the GitHub Release remain manual until builder grows write-back.
+
+on: [manual]
+
+inputs:
+  releaseVersion:
+    type: string
+    description: Release version
+    required: true
+  nextVersion:
+    type: string
+    description: Next development version (with -SNAPSHOT suffix)
+    required: true
+
+jobs:
+  release:
+    image: eclipse-temurin:17-jdk
+    secrets: [OSSRH_USERNAME, OSSRH_PASSWORD, GPG_PRIVATE_KEY, GPG_PASSPHRASE]
+    cache:
+      key: m2-gotmpl4j
+      paths: [.m2/repository]
+    steps:
+      - name: Checkout
+        run: git clone --depth 1 https://github.com/alexmond/gotmpl4j.git .
+      - name: Set Release Version
+        run: ./mvnw versions:set -DnewVersion=$releaseVersion --no-transfer-progress -Dmaven.repo.local=.m2/repository
+      - name: Verify Build
+        run: ./mvnw --batch-mode verify --no-transfer-progress -Dmaven.repo.local=.m2/repository
+      - name: Deploy to Maven Central
+        run: ./mvnw --batch-mode clean deploy -Prelease -Dgpg.passphrase="$GPG_PASSPHRASE" --no-transfer-progress -Dmaven.repo.local=.m2/repository
+      - name: Set Next Development Version
+        run: ./mvnw versions:set -DnewVersion=$nextVersion --no-transfer-progress -Dmaven.repo.local=.m2/repository
