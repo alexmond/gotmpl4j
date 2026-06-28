@@ -16,11 +16,14 @@ public class Stock {
 
 	private final double change;
 
+	private final double ratio;
+
 	public Stock(String symbol, String name, double price, double change) {
 		this.symbol = symbol;
 		this.name = name;
 		this.price = price;
 		this.change = change;
+		this.ratio = (price != 0.0) ? (change / price * 100.0) : 0.0;
 	}
 
 	public String getSymbol() {
@@ -39,8 +42,17 @@ public class Stock {
 		return this.change;
 	}
 
+	public double getRatio() {
+		return this.ratio;
+	}
+
 	public boolean isUp() {
 		return this.change >= 0;
+	}
+
+	/** A loss row ({@code change < 0}); drives the conditional "minus" styling branch. */
+	public boolean isMinus() {
+		return this.change < 0;
 	}
 
 }

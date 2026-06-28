@@ -1,1 +1,1 @@
-<table>{{ range .Items }}<tr><td>{{ .Symbol }}</td><td>{{ .Name }}</td><td>{{ .Price }}</td><td>{{ .Change }}</td></tr>{{ end }}</table>
+<table>{{ range .Items }}<tr><td>{{ .Symbol }}</td><td>{{ .Name }}</td><td><strong>{{ .Price }}</strong></td>{{ if .Minus }}<td class="minus">{{ .Change }}</td><td class="minus">{{ .Ratio }}</td>{{ else }}<td>{{ .Change }}</td><td>{{ .Ratio }}</td>{{ end }}</tr>{{ end }}</table>

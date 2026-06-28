@@ -31,8 +31,9 @@ cross-runtime reference:
 
 The workload mirrors the canonical
 https://github.com/mbosecke/template-benchmark[mbosecke/template-benchmark] "stocks" table:
-render a list of N stock rows (a loop plus four field accesses per row). gotmpl4j and Go share
-the *byte-identical* template file, so that column is a true like-for-like across runtimes.
+render a list of N stock rows, each with a loop, a gain/loss `if`/`else` conditional, six field
+accesses, and two floating-point values (price, percentage ratio). gotmpl4j and Go share the
+same `table.gotmpl`, so that column is a true like-for-like across runtimes.
 
 == Results
 
@@ -42,19 +43,21 @@ this measures the hot render path, not compile cost.
 [cols="2,>1,>1,>1,>1,>1,>1",options="header"]
 |===
 | Workload | gotmpl4j | FreeMarker | Thymeleaf | Mustache | Pebble | Go (ref)
-| Interpolation (`Hello <name>`) | 2.83 | 1.61 | 0.17 | *4.22* | 2.26 | 0.97
-| Table, 10 rows                 | 0.074 | 0.080 | 0.021 | *0.098* | 0.091 | 0.028
-| Table, 100 rows                | 0.0080 | 0.0088 | 0.0025 | *0.0106* | 0.0091 | 0.0032
-| Table, 1000 rows               | 0.00080 | 0.00083 | 0.00029 | *0.00109* | 0.00093 | 0.00032
+| Interpolation (`Hello <name>`) | 3.16 | 1.78 | 0.17 | *4.18* | 2.46 | 0.94
+| Table, 10 rows                 | *0.058* | 0.051 | 0.010 | *0.058* | 0.054 | 0.020
+| Table, 100 rows                | 0.0059 | 0.0055 | 0.0013 | *0.0060* | 0.0055 | 0.0023
+| Table, 1000 rows               | 0.00060 | 0.00053 | 0.00013 | 0.00060 | 0.00056 | 0.00021
 |===
 
 === Reading the numbers
 
-* *gotmpl4j is in the mainstream pack.* On interpolation it beats FreeMarker and leaves
-  Thymeleaf far behind; on the loop-heavy table it lands within ~10–25 % of the
-  FreeMarker/Pebble cluster.
-* *Mustache leads* both workloads — expected, as a logic-less engine has the thinnest dispatch
-  of the group.
+* *gotmpl4j leads the interpreter pack on the table.* On the loop-and-conditional stocks
+  workload it *ties logic-less Mustache* for the top spot and edges out Pebble and FreeMarker —
+  a notable result for a full Go-template + Sprig interpreter. The float-formatting and
+  render-allocation optimizations (see _Optimization history_) land squarely on this workload,
+  which formats two doubles per row.
+* *On interpolation* gotmpl4j is second only to Mustache (the thinnest possible render path),
+  well ahead of Pebble, FreeMarker, and far ahead of Thymeleaf.
 * *gotmpl4j out-throughputs native Go* `text/template` on the JVM, rendering the same template
   file (the JIT edges the Go runtime here — see the fairness note).
 * The headline: gotmpl4j is the *only* engine here that speaks Go `text/template` + Sprig, and
@@ -68,6 +71,28 @@ are apples-to-apples. The Go benchmark writes to `io.Discard` (no output buffer)
 strictly less work and allocates far less — treat the Go column as a *runtime reference*, not a
 like-for-like number.
 ====
+
+== gotmpl4j feature workloads
+
+The cross-engine table above is limited to what *every* engine can express. gotmpl4j's
+distinctive surface — Sprig functions, pipelines, control flow, `printf`, template composition —
+has no equivalent in the other engines, so the `FeatureBenchmark` suite measures it
+*single-engine*, to track gotmpl4j's own performance across releases and optimizations rather
+than to rank it against others.
+
+[cols="2,>1,3",options="header"]
+|===
+| Workload | ops/µs | What it exercises
+| Sprig pipeline | 0.19 | `{{ . \| upper \| trunc 5 \| trimSuffix "X" \| repeat 2 \| quote }}` over a list
+| List / dict | 0.15 | `dict`, `keys`, `sortAlpha`, `index`, `join`, `len`
+| Control flow | 0.14 | nested `if`/`else if`/`else`, `with`, `range … else`
+| Composition | 0.12 | `define` + `template` invocation per row
+| Large output | 0.027 | 200-element loop emitting a paragraph each (writer-stress)
+| `printf` | 0.007 | `printf "%s=%d (%.2f%%)"` per row — format-string parsing dominates
+|===
+
+`printf` is the slowest by design — re-parsing the format string per call is inherently costly;
+the others reflect the everyday Sprig-and-control-flow paths a Helm-style template hits.
 
 == Where gotmpl4j sits in the wider field
 
@@ -94,6 +119,10 @@ The benchmarks live in the (unpublished) `gotmpl4j-benchmarks` module:
 # Run everything (2 forks recommended for anything you'd quote)
 java -jar gotmpl4j-benchmarks/target/benchmarks.jar -f 2 -wi 3 -i 5
 
+# Just the cross-engine comparison, or just gotmpl4j's feature suite
+java -jar gotmpl4j-benchmarks/target/benchmarks.jar "InterpolationBenchmark|TableBenchmark"
+java -jar gotmpl4j-benchmarks/target/benchmarks.jar FeatureBenchmark
+
 # One class, with allocation profiling
 java -jar gotmpl4j-benchmarks/target/benchmarks.jar TableBenchmark -prof gc
 
@@ -113,10 +142,14 @@ LLM-ready hot-path/allocation summary) and tuned along the way:
 | | Table 100 | 0.005 → 0.008 ops/µs | 203,513 → 137,753 (−32%)
 | `GoFmt.floatString` without `BigDecimal` | Table 100 | — | 137,753 → 106,761 (−23%)
 | | Table 1000 | — | 1,394,849 → 1,038,586 (−26%)
+| `floatString` without intermediate substrings | Table 1000 | — | 1,038,586 → 771,716 (−26%)
+| Unsync writer + per-thread float-format scratch | Table 1000 | — | 771,716 → 644,082 (−17%)
 |===
 
-Cumulatively, per-render allocation on the table workload was roughly *halved* versus the
-original baseline (n=1000: 2.05 MB → 1.04 MB, −49%). Caching the per-class property accessor
-map (keyed by both bean and Go-style names) removed a linear `PropertyDescriptor` scan and a
-per-property string allocation on every field access, amortising JavaBeans introspection across
-renders instead of rebuilding it each execution.
+Cumulatively, per-render allocation on the table workload dropped by roughly *two-thirds* versus
+the original baseline (n=1000: 2.05 MB → 0.64 MB, −69%). The wins came from caching the
+per-class property accessor map (amortising JavaBeans introspection across renders), rewriting
+`GoFmt.floatString` to format directly from `Double.toString` digits into a presized builder
+with no intermediate substrings, reusing per-thread scratch buffers for that formatting, and
+replacing the synchronized `StringWriter` output sink with an unsynchronized `StringBuilder`.
+Each was found and verified with jvmlens plus a multi-fork JMH `gc.alloc.rate.norm` A/B.

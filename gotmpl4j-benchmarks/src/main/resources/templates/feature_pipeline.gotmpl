@@ -1,0 +1,1 @@
+{{ range .words }}{{ . | upper | trunc 5 | trimSuffix "X" | repeat 2 | quote }} {{ end }}

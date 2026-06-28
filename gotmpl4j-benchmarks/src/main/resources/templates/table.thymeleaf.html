@@ -1,1 +1,1 @@
-<table><tr th:each="s : ${items}"><td th:text="${s.symbol}">x</td><td th:text="${s.name}">x</td><td th:text="${s.price}">x</td><td th:text="${s.change}">x</td></tr></table>
+<table><tr th:each="s : ${items}"><td th:text="${s.symbol}">x</td><td th:text="${s.name}">x</td><td><strong th:text="${s.price}">x</strong></td><th:block th:if="${s.minus}"><td class="minus" th:text="${s.change}">x</td><td class="minus" th:text="${s.ratio}">x</td></th:block><th:block th:unless="${s.minus}"><td th:text="${s.change}">x</td><td th:text="${s.ratio}">x</td></th:block></tr></table>

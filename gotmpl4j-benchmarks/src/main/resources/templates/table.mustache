@@ -1,1 +1,1 @@
-<table>{{#items}}<tr><td>{{symbol}}</td><td>{{name}}</td><td>{{price}}</td><td>{{change}}</td></tr>{{/items}}</table>
+<table>{{#items}}<tr><td>{{symbol}}</td><td>{{name}}</td><td><strong>{{price}}</strong></td>{{#minus}}<td class="minus">{{change}}</td><td class="minus">{{ratio}}</td>{{/minus}}{{^minus}}<td>{{change}}</td><td>{{ratio}}</td>{{/minus}}</tr>{{/items}}</table>

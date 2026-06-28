@@ -23,6 +23,8 @@ type Stock struct {
 	Name   string
 	Price  float64
 	Change float64
+	Ratio  float64
+	Minus  bool
 }
 
 func stocks(n int) []Stock {
@@ -30,7 +32,10 @@ func stocks(n int) []Stock {
 	out := make([]Stock, n)
 	for i := 0; i < n; i++ {
 		s := symbols[i%len(symbols)]
-		out[i] = Stock{Symbol: s, Name: s + " Inc.", Price: 100.0 + float64(i%500), Change: float64((i%7)-3) * 1.25}
+		price := 100.0 + float64(i%500)
+		change := float64((i%7)-3) * 1.25
+		out[i] = Stock{Symbol: s, Name: s + " Inc.", Price: price, Change: change, Ratio: change / price * 100.0,
+			Minus: change < 0}
 	}
 	return out
 }
