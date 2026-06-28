@@ -115,50 +115,90 @@ public final class GoFmt {
 		if (d == 0.0) {
 			return "0";
 		}
-		String sign = (d < 0) ? "-" : "";
+		boolean neg = d < 0;
 		// Double.toString already yields the shortest round-tripping decimal; parse its
-		// digits
-		// and exponent directly instead of routing through BigDecimal/BigInteger (a
-		// hot-path
-		// allocation sink). Its output is either "i.f" or "d.fE±exp".
+		// digits and exponent directly instead of routing through BigDecimal/BigInteger
+		// (a
+		// hot-path allocation sink). Its output is either "i.f" or "d.fE±exp". Pull the
+		// significant digits into one small char buffer and let renderDigits emit them
+		// into
+		// a single presized StringBuilder, avoiding the intermediate substring/concat
+		// churn
+		// that dominated this method's allocation (the mantissa/combined/digits
+		// temporaries).
 		String s = Double.toString(Math.abs(d));
+		int len = s.length();
 		int eIdx = s.indexOf('E');
-		int javaExp = (eIdx >= 0) ? Integer.parseInt(s.substring(eIdx + 1)) : 0;
-		String mantissa = (eIdx >= 0) ? s.substring(0, eIdx) : s;
-		int dot = mantissa.indexOf('.');
-		String combined = mantissa.substring(0, dot) + mantissa.substring(dot + 1);
-		// Position of the decimal point, counted in digits from the left of `combined`.
-		int pointPos = dot + javaExp;
+		int javaExp = (eIdx >= 0) ? Integer.parseInt(s, eIdx + 1, len, 10) : 0;
+		int mantEnd = (eIdx >= 0) ? eIdx : len;
+		// digits[] holds the mantissa's digit characters (the '.' skipped); dotLogical is
+		// how many of them sit left of the decimal point.
+		char[] digits = new char[mantEnd];
+		int n = 0;
+		int dotLogical = mantEnd;
+		for (int i = 0; i < mantEnd; i++) {
+			char c = s.charAt(i);
+			if (c == '.') {
+				dotLogical = n;
+			}
+			else {
+				digits[n++] = c;
+			}
+		}
+		// Position of the decimal point, counted in digits from the left of digits[0..n).
+		int pointPos = dotLogical + javaExp;
 		// Strip leading zeros (each shifts the point left) and trailing zeros.
 		int lead = 0;
-		while (lead < combined.length() - 1 && combined.charAt(lead) == '0') {
+		while (lead < n - 1 && digits[lead] == '0') {
 			lead++;
 		}
 		pointPos -= lead;
-		int end = combined.length();
-		while (end > lead + 1 && combined.charAt(end - 1) == '0') {
+		int end = n;
+		while (end > lead + 1 && digits[end - 1] == '0') {
 			end--;
 		}
-		String digits = combined.substring(lead, end);
+		return renderDigits(neg, digits, lead, end - lead, pointPos);
+	}
+
+	/**
+	 * Emits the trimmed significant digits {@code digits[lead, lead+dlen)} in Go's %g
+	 * form: scientific notation when the decimal exponent ({@code pointPos - 1}) is
+	 * {@code < -4} or {@code >= 6}, otherwise plain decimal. The StringBuilder is
+	 * presized to a safe upper bound so it never grows.
+	 */
+	private static String renderDigits(boolean neg, char[] digits, int lead, int dlen, int pointPos) {
 		int exp = pointPos - 1;
+		StringBuilder sb = new StringBuilder(dlen + Math.abs(pointPos) + 8);
+		if (neg) {
+			sb.append('-');
+		}
 		if (exp < -4 || exp >= 6) {
-			String m = (digits.length() == 1) ? digits : digits.charAt(0) + "." + digits.substring(1);
-			String expSign = (exp < 0) ? "-" : "+";
-			String absExp = Integer.toString(Math.abs(exp));
-			return sign + m + "e" + expSign + ((absExp.length() < 2) ? "0" + absExp : absExp);
+			sb.append(digits[lead]);
+			if (dlen > 1) {
+				sb.append('.').append(digits, lead + 1, dlen - 1);
+			}
+			sb.append('e').append((exp < 0) ? '-' : '+');
+			int absExp = Math.abs(exp);
+			if (absExp < 10) {
+				sb.append('0');
+			}
+			sb.append(absExp);
 		}
-		StringBuilder sb = new StringBuilder(sign);
-		if (pointPos <= 0) {
+		else if (pointPos <= 0) {
 			sb.append("0.");
-			sb.append("0".repeat(-pointPos));
-			sb.append(digits);
+			for (int i = 0; i < -pointPos; i++) {
+				sb.append('0');
+			}
+			sb.append(digits, lead, dlen);
 		}
-		else if (pointPos >= digits.length()) {
-			sb.append(digits);
-			sb.append("0".repeat(pointPos - digits.length()));
+		else if (pointPos >= dlen) {
+			sb.append(digits, lead, dlen);
+			for (int i = 0; i < pointPos - dlen; i++) {
+				sb.append('0');
+			}
 		}
 		else {
-			sb.append(digits, 0, pointPos).append('.').append(digits, pointPos, digits.length());
+			sb.append(digits, lead, pointPos).append('.').append(digits, lead + pointPos, dlen - pointPos);
 		}
 		return sb.toString();
 	}
