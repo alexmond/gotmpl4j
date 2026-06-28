@@ -22,6 +22,18 @@ import java.util.Map;
  */
 public final class GoFmt {
 
+	// Per-thread scratch for floatString: the mantissa digit buffer and the output
+	// builder.
+	// A double's shortest decimal has <= 17 significant digits, so 32 chars never grows
+	// in
+	// practice; reusing them across the (very hot) per-value float formatting avoids a
+	// char[] + StringBuilder allocation on every call. floatString is non-reentrant, so
+	// the
+	// two buffers are safe to reuse within a single call.
+	private static final ThreadLocal<char[]> DIGIT_SCRATCH = ThreadLocal.withInitial(() -> new char[32]);
+
+	private static final ThreadLocal<StringBuilder> OUT_SCRATCH = ThreadLocal.withInitial(() -> new StringBuilder(32));
+
 	private GoFmt() {
 	}
 
@@ -132,8 +144,13 @@ public final class GoFmt {
 		int javaExp = (eIdx >= 0) ? Integer.parseInt(s, eIdx + 1, len, 10) : 0;
 		int mantEnd = (eIdx >= 0) ? eIdx : len;
 		// digits[] holds the mantissa's digit characters (the '.' skipped); dotLogical is
-		// how many of them sit left of the decimal point.
-		char[] digits = new char[mantEnd];
+		// how many of them sit left of the decimal point. Reuse the per-thread scratch
+		// (grown only for the rare oversized input).
+		char[] digits = DIGIT_SCRATCH.get();
+		if (digits.length < mantEnd) {
+			digits = new char[mantEnd];
+			DIGIT_SCRATCH.set(digits);
+		}
 		int n = 0;
 		int dotLogical = mantEnd;
 		for (int i = 0; i < mantEnd; i++) {
@@ -168,7 +185,8 @@ public final class GoFmt {
 	 */
 	private static String renderDigits(boolean neg, char[] digits, int lead, int dlen, int pointPos) {
 		int exp = pointPos - 1;
-		StringBuilder sb = new StringBuilder(dlen + Math.abs(pointPos) + 8);
+		StringBuilder sb = OUT_SCRATCH.get();
+		sb.setLength(0);
 		if (neg) {
 			sb.append('-');
 		}

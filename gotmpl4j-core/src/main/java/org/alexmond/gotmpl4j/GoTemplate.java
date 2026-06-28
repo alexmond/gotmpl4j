@@ -352,15 +352,20 @@ public class GoTemplate {
 	 * @throws TemplateExecutionException if execution fails
 	 */
 	public String render(String name, Object data) {
-		StringWriter writer = new StringWriter();
+		// StringWriter wraps a synchronized StringBuffer growing from 16 chars; the
+		// render
+		// loop is single-threaded and writes thousands of small segments, so an
+		// unsynchronized StringBuilder (presized past the early doublings) removes the
+		// per-write monitor + capacity churn that dominated the output path.
+		StringBuilder out = new StringBuilder(256);
 		try {
-			execute(name, data, writer);
+			execute(name, data, new StringBuilderWriter(out));
 		}
 		catch (IOException ex) {
-			// A StringWriter never performs I/O; an IOException here is not expected.
+			// A StringBuilder never performs I/O; an IOException here is not expected.
 			throw new TemplateExecutionException("Unexpected I/O error rendering '" + name + "'", ex);
 		}
-		return writer.toString();
+		return out.toString();
 	}
 
 	/**
@@ -510,6 +515,67 @@ public class GoTemplate {
 			template.option(options);
 
 			return template;
+		}
+
+	}
+
+	/**
+	 * A minimal unsynchronized {@link Writer} over a {@link StringBuilder} — the render
+	 * sink for {@link #render(String, Object)}. Unlike {@link StringWriter} (which wraps
+	 * a synchronized {@code StringBuffer}) it adds no per-write locking, and
+	 * {@code write} appends directly without the intermediate {@code char[]} that
+	 * {@code Writer}'s default {@code write(String)} would create.
+	 */
+	// The buf field holds the caller's render buffer; this writer lives only for one
+	// render() call, so the AvoidStringBufferField long-lived-leak heuristic does not
+	// apply.
+	@SuppressWarnings("PMD.AvoidStringBufferField")
+	private static final class StringBuilderWriter extends Writer {
+
+		private final StringBuilder buf;
+
+		StringBuilderWriter(StringBuilder buf) {
+			this.buf = buf;
+		}
+
+		@Override
+		public void write(int c) {
+			this.buf.append((char) c);
+		}
+
+		@Override
+		public void write(String str) {
+			this.buf.append(str);
+		}
+
+		@Override
+		public void write(String str, int off, int len) {
+			this.buf.append(str, off, off + len);
+		}
+
+		@Override
+		public void write(char[] cbuf, int off, int len) {
+			this.buf.append(cbuf, off, len);
+		}
+
+		@Override
+		public Writer append(CharSequence csq) {
+			this.buf.append(csq);
+			return this;
+		}
+
+		@Override
+		public Writer append(char c) {
+			this.buf.append(c);
+			return this;
+		}
+
+		@Override
+		public void flush() {
+		}
+
+		@Override
+		public void close() {
 		}
 
 	}
