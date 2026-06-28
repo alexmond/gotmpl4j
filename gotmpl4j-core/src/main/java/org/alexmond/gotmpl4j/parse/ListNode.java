@@ -1,7 +1,7 @@
 package org.alexmond.gotmpl4j.parse;
 
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -11,10 +11,25 @@ import java.util.List;
  */
 public class ListNode implements Node, Iterable<Node> {
 
-	private final List<Node> nodes = new LinkedList<>();
+	private final List<Node> nodes = new ArrayList<>();
 
 	public void append(Node node) {
 		nodes.add(node);
+	}
+
+	/**
+	 * @return the number of child nodes
+	 */
+	public int size() {
+		return nodes.size();
+	}
+
+	/**
+	 * @param index the child position (0-based)
+	 * @return the child node at {@code index}
+	 */
+	public Node get(int index) {
+		return nodes.get(index);
 	}
 
 	public Node getLast() {
