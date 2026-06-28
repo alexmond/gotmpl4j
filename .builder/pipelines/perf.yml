@@ -13,6 +13,8 @@ on: [push, manual]
 push:
   branches: [main]
 
+checkout: true
+
 jobs:
   benchmark:
     image: eclipse-temurin:17-jdk
@@ -21,8 +23,6 @@ jobs:
       paths: [.m2/repository]
     artifacts: [jmh-result.json]
     steps:
-      - name: Checkout
-        run: git clone --depth 1 https://github.com/alexmond/gotmpl4j.git .
       - name: Build benchmark jar
         run: ./mvnw -B -pl gotmpl4j-benchmarks -am package -DskipTests --no-transfer-progress -Dmaven.repo.local=.m2/repository
       - name: Run JMH (average-time → JSON)
