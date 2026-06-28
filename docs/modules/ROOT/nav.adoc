@@ -7,3 +7,4 @@
 * xref:configuration.adoc[Configuration]
 * xref:architecture.adoc[Architecture]
 * xref:conformance.adoc[Conformance]
+* xref:performance.adoc[Performance]

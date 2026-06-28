@@ -1,8 +1,10 @@
 # gotmpl4j-benchmarks
 
-JMH benchmarks comparing **gotmpl4j** against the two most-used Spring Boot view engines —
-**Thymeleaf** and **FreeMarker** — plus **Go `text/template`** ("the original") as a
-cross-runtime reference. Tracking epic: [#60](https://github.com/alexmond/gotmpl4j/issues/60).
+JMH benchmarks comparing **gotmpl4j** against four mainstream JVM template engines —
+**FreeMarker**, **Thymeleaf**, **Mustache** (mustache.java) and **Pebble** — plus
+**Go `text/template`** ("the original") as a cross-runtime reference. The workload mirrors the
+canonical [mbosecke/template-benchmark](https://github.com/mbosecke/template-benchmark) "stocks"
+table. Tracking epic: [#60](https://github.com/alexmond/gotmpl4j/issues/60).
 
 Not published (no Maven Central deploy); excluded from the lint/coverage gates.
 
@@ -26,8 +28,8 @@ no separable parse API, so it's omitted there.
 
 | Benchmark | Workload | Engines |
 |---|---|---|
-| `InterpolationBenchmark` | `Hello <name>` render | gotmpl4j, FreeMarker, Thymeleaf |
-| `TableBenchmark` | render N stock rows (`n` = 10/100/1000) | gotmpl4j, FreeMarker, Thymeleaf |
+| `InterpolationBenchmark` | `Hello <name>` render | gotmpl4j, FreeMarker, Thymeleaf, Mustache, Pebble |
+| `TableBenchmark` | render N stock rows (`n` = 10/100/1000) | gotmpl4j, FreeMarker, Thymeleaf, Mustache, Pebble |
 | `ParseBenchmark` | compile the table template | gotmpl4j, FreeMarker |
 
 The data model (`Stock`, `Person`) is shared across all JVM engines via bean getters.
@@ -46,19 +48,33 @@ Cross-runtime (JVM vs Go) — read as *indicative* ("within N× of native"), not
 
 ## Results (indicative)
 
-Render throughput, **ops/µs (higher is better)**, JMH 2 forks on a dev workstation — re-run on
-your own hardware before quoting:
+Render throughput, **ops/µs (higher is better)**, JMH 2 forks × 5 iterations on a dev
+workstation (JDK 17) — re-run on your own hardware before quoting:
 
-| Workload | gotmpl4j | FreeMarker | Thymeleaf | Go `text/template` (ref) |
-|---|---|---|---|---|
-| Interpolation | **2.96** | 1.75 | 0.16 | 0.89 |
-| Table, 100 rows | 0.008 | **0.009** | 0.003 | 0.0032 |
+| Workload | gotmpl4j | FreeMarker | Thymeleaf | Mustache | Pebble | Go `text/template` (ref) |
+|---|---|---|---|---|---|---|
+| Interpolation   | 2.83  | 1.61  | 0.17  | **4.22** | 2.26  | 0.97 |
+| Table, 10 rows  | 0.074 | 0.080 | 0.021 | **0.098** | 0.091 | 0.028 |
+| Table, 100 rows | 0.0080 | 0.0088 | 0.0025 | **0.0106** | 0.0091 | 0.0032 |
+| Table, 1000 rows | 0.00080 | 0.00083 | 0.00029 | **0.00109** | 0.00093 | 0.00032 |
 
-gotmpl4j leads on interpolation and is on par with compiled FreeMarker on the loop-heavy
-table, well ahead of Thymeleaf. **Fairness note:** the three JVM engines all materialise the
-output (a `String`/`StringWriter`), so those columns are apples-to-apples; the Go bench writes
-to `io.Discard` (no output buffer), so Go is a *runtime reference*, not a like-for-like — it
-does less work and allocates far less, yet the JVM JIT still edges it on raw throughput here.
+gotmpl4j sits squarely in the mainstream pack: faster than FreeMarker and far ahead of
+Thymeleaf on interpolation, and within ~10–25 % of the FreeMarker/Pebble cluster on the
+loop-heavy table. **Mustache** leads both workloads — it's a logic-less engine with the
+thinnest possible render path — and **Pebble** edges gotmpl4j/FreeMarker on the table. The
+headline: gotmpl4j is the **only** engine here that speaks Go `text/template` + Sprig, and it
+pays no throughput penalty for that — it renders the *identical* template Go does, faster than
+native Go on the JVM. **Fairness note:** all five JVM engines materialise the output (a
+`String`/`StringWriter`), so those columns are apples-to-apples; the Go bench writes to
+`io.Discard` (no output buffer), so Go is a *runtime reference*, not a like-for-like — it does
+less work and allocates far less, yet the JVM JIT still edges it on raw throughput here.
+
+For the broader compiled-engine field (Rocker, JTE, JStachio, Velocity, Trimou…), see the
+canonical [mbosecke/template-benchmark](https://github.com/mbosecke/template-benchmark) and
+[agentgt/template-benchmark](https://github.com/agentgt/template-benchmark) suites. Compiled
+template engines (templates → bytecode) sit a tier above all the interpreted engines measured
+here, gotmpl4j included; gotmpl4j's niche is Go-template compatibility, not beating a code
+generator.
 
 ### Optimization history (before → after)
 
