@@ -11,6 +11,8 @@ name: Maven Release
 
 on: [manual]
 
+checkout: true
+
 inputs:
   releaseVersion:
     type: string
@@ -29,8 +31,6 @@ jobs:
       key: m2-gotmpl4j
       paths: [.m2/repository]
     steps:
-      - name: Checkout
-        run: git clone --depth 1 https://github.com/alexmond/gotmpl4j.git .
       - name: Set Release Version
         run: ./mvnw versions:set -DnewVersion=$releaseVersion --no-transfer-progress -Dmaven.repo.local=.m2/repository
       - name: Verify Build
