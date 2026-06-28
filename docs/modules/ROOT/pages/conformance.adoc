@@ -5,7 +5,7 @@ hand-written expectations.
 
 == By the numbers
 
-*967 conformance cases* are ported from the upstream Go and Sprig test suites and asserted
+*1,305 conformance cases* are ported from the upstream Go and Sprig test suites and asserted
 byte-for-byte against gotmpl4j — each rendered through the *real* Go engine / Sprig funcmap to
 capture ground-truth output:
 
@@ -16,16 +16,22 @@ capture ground-truth output:
 | `text/template` execute/text cases | 31
 | `text/template` value reflection — fields & methods (`tval`) | 223
 | `text/template/parse` lexer token tables | 40
-| `html/template` escaper | 64
-| `html/template` escaping-context text | 153
-| `html/template` escaper error cases | 45
-| `html/template` CSS value decoding | 18
-| *Go engine subtotal* | *602*
+| `html/template` escaper / escaping-context text / errors / CSS decode | 280
+| `html/template` end-to-end escaping (`TestEscape`) | 131
+| `html/template` typed safe content (`TestTypedContent`) | 207
+| *Go engine subtotal* | *940*
 | Sprig `runt(tpl, expect)` — no-data cases | 283
 | Sprig `runtv(tpl, expect, vars)` — with-data cases | 82
 | *Sprig subtotal* | *365*
-| *Total* | *967*
+| *Total* | *1,305*
 |===
+
+The `html/template` rows span the full contextual auto-escaper: the low-level escaper
+primitives and parser state machine (280), the end-to-end `TestEscape` table that runs whole
+templates through the public API (131), and the `TestTypedContent` matrix that drives nine
+typed safe-content kinds (`HTML`, `CSS`, `JS`, `JSStr`, `URL`, `Srcset`, `HTMLAttr`, …) through
+every escaping context and asserts gotmpl4j passes them through or emits the same `ZgotmplZ`
+filter-failsafe as Go (207).
 
 These are the *portable subset*: the extractor uses the Go compiler as an oracle and drops any
 case whose data can't cross to the JVM (Go-typed fixtures, pointer-receiver methods, complex

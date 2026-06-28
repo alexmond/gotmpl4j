@@ -7,14 +7,14 @@
 [![Java](https://img.shields.io/badge/Java-17%2B-blue.svg)](https://openjdk.org/)
 [![coverage](https://unitrack.alexmond.org/badge/37/coverage.svg)](https://unitrack.alexmond.org/projects/37)
 [![tests](https://unitrack.alexmond.org/badge/37/pass.svg)](https://unitrack.alexmond.org/projects/37)
-[![conformance](https://img.shields.io/badge/conformance-967%20cases-brightgreen)](https://www.alexmond.org/gotmpl4j/current/conformance.html)
+[![conformance](https://img.shields.io/badge/conformance-1305%20cases-brightgreen)](https://www.alexmond.org/gotmpl4j/current/conformance.html)
 
 A pure-Java implementation of Go's [`text/template`](https://pkg.go.dev/text/template)
 engine, with the [Sprig](https://masterminds.github.io/sprig/) function library and an
 optional Spring Boot starter. No Go toolchain, no CGo, no native bindings — just the JVM.
 
 It renders the same templates Helm, Hugo, and countless Go CLIs use, and is validated for
-byte-for-byte parity across **967 conformance cases** ported from Go's own `text/template` /
+byte-for-byte parity across **1,305 conformance cases** ported from Go's own `text/template` /
 `html/template` test suites and Sprig's upstream tests — each rendered through the real Go
 engine and Sprig funcmap for ground truth.
 
@@ -54,20 +54,23 @@ functions, or the starter for Spring Boot integration.
 
 ## Conformance
 
-Correctness is held to the originals, not to hand-written expectations. **967 cases** are
+Correctness is held to the originals, not to hand-written expectations. **1,305 cases** are
 ported from the upstream suites and asserted byte-for-byte:
 
 | Source | Cases |
 |---|--:|
 | Go `text/template` exec / text / value-reflection tables | 282 |
 | Go `text/template/parse` lexer token tables | 40 |
-| Go `html/template` escaper / escape-text / errors / CSS | 280 |
-| **Go engine subtotal** | **602** |
+| Go `html/template` escaper primitives / escape-text / errors / CSS | 280 |
+| Go `html/template` end-to-end escaping (`TestEscape`) | 131 |
+| Go `html/template` typed safe content (`TestTypedContent`) | 207 |
+| **Go engine subtotal** | **940** |
 | Sprig `runt` (no-data) + `runtv` (with-vars) tables | 365 |
-| **Total** | **967** |
+| **Total** | **1,305** |
 
 - **Engine** — ported from Go's `text/template`, `text/template/parse`, and `html/template`
-  test files, rendered through the real Go engine to capture ground-truth output.
+  test files (incl. the end-to-end auto-escaping and typed-content matrices), rendered through
+  the real Go engine to capture ground-truth output.
 - **Sprig** — ported from Masterminds/sprig's own `runt`/`runtv` test tables, rendered
   through the real Sprig funcmap.
 

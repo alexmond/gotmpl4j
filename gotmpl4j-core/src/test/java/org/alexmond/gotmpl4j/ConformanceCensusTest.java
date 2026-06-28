@@ -37,14 +37,22 @@ class ConformanceCensusTest {
 
 	private static Map<String, Integer> baseline() {
 		Map<String, Integer> m = new LinkedHashMap<>();
-		m.put("gotmpl_exec", 28); // text/template exec_test execTests
-		m.put("text", 31); // text/template Execute text cases
-		m.put("tval", 223); // text/template field/method value reflection
-		m.put("lex", 40); // text/template/parse lexer token tables
-		m.put("escaper", 64); // html/template escaper
-		m.put("escape_text", 153); // html/template escape-context text
-		m.put("escape_errors", 45); // html/template escaper error cases
-		m.put("css_decode", 18); // html/template CSS value decoding
+		m.put("/conformance/gotmpl_exec_cases.tsv", 28); // text/template exec_test
+															// execTests
+		m.put("/conformance/text_cases.tsv", 31); // text/template Execute text cases
+		m.put("/conformance/tval_cases.tsv", 223); // text/template field/method value
+													// reflection
+		m.put("/conformance/lex_cases.tsv", 40); // text/template/parse lexer token tables
+		m.put("/conformance/escaper_cases.tsv", 64); // html/template escaper
+		m.put("/conformance/escape_text_cases.tsv", 153); // html/template escape-context
+															// text
+		m.put("/conformance/escape_errors_cases.tsv", 45); // html/template escaper error
+															// cases
+		m.put("/conformance/css_decode_cases.tsv", 18); // html/template CSS value
+														// decoding
+		m.put("/html/escape_cases.tsv", 131); // html/template end-to-end TestEscape
+		m.put("/html/html_typed_content_cases.tsv", 207); // html/template
+															// TestTypedContent matrix
 		return m;
 	}
 
@@ -53,13 +61,14 @@ class ConformanceCensusTest {
 		StringBuilder report = new StringBuilder("\nCore conformance census (Go text/template + html/template):\n");
 		int total = 0;
 		for (Map.Entry<String, Integer> e : CORE_BASELINE.entrySet()) {
-			int actual = count("/conformance/" + e.getKey() + "_cases.tsv");
+			int actual = count(e.getKey());
 			total += actual;
-			report.append(String.format("  %-16s %4d  (>= %d)%n", e.getKey(), actual, e.getValue()));
+			String name = e.getKey().substring(e.getKey().lastIndexOf('/') + 1).replace("_cases.tsv", "");
+			report.append(String.format("  %-22s %4d  (>= %d)%n", name, actual, e.getValue()));
 			assertTrue(actual >= e.getValue(),
 					() -> e.getKey() + " conformance cases dropped: " + actual + " < baseline " + e.getValue());
 		}
-		report.append(String.format("  %-16s %4d%n", "TOTAL", total));
+		report.append(String.format("  %-22s %4d%n", "TOTAL", total));
 		System.out.print(report);
 		assertTrue(total >= CORE_TOTAL, "core conformance total dropped below " + CORE_TOTAL);
 	}

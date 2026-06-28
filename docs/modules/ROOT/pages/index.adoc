@@ -5,7 +5,7 @@ with the https://masterminds.github.io/sprig/[Sprig] function library and an opt
 Boot starter. No Go toolchain, no CGo, no native bindings — just the JVM.
 
 It renders the same templates Helm, Hugo, and countless Go CLIs use, and is validated for
-byte-for-byte parity across *967 conformance cases* ported from Go's own `text/template` /
+byte-for-byte parity across *1,305 conformance cases* ported from Go's own `text/template` /
 `html/template` test suites and Sprig's upstream tests — each rendered through the real Go
 engine and Sprig funcmap for ground truth. See xref:conformance.adoc[Conformance] for the
 breakdown.
