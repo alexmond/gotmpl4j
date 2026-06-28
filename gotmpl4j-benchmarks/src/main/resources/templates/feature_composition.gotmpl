@@ -1,0 +1,1 @@
+{{ define "row" }}<li>{{ .name }}: {{ .val | upper }}</li>{{ end }}<ul>{{ range .entries }}{{ template "row" . }}{{ end }}</ul>

@@ -1,1 +1,1 @@
-<table>{% for s in items %}<tr><td>{{ s.symbol }}</td><td>{{ s.name }}</td><td>{{ s.price }}</td><td>{{ s.change }}</td></tr>{% endfor %}</table>
+<table>{% for s in items %}<tr><td>{{ s.symbol }}</td><td>{{ s.name }}</td><td><strong>{{ s.price }}</strong></td>{% if s.minus %}<td class="minus">{{ s.change }}</td><td class="minus">{{ s.ratio }}</td>{% else %}<td>{{ s.change }}</td><td>{{ s.ratio }}</td>{% endif %}</tr>{% endfor %}</table>

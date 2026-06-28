@@ -1,0 +1,1 @@
+{{ range .items }}{{ if gt .n 5 }}big{{ else if gt .n 2 }}mid{{ else }}small{{ end }}:{{ with .label }}{{ . }}{{ end }};{{ end }}[{{ range .empty }}x{{ else }}none{{ end }}]
