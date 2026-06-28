@@ -14,6 +14,7 @@ byte-for-byte parity against Go's own `text/template` test suite and Sprig's ups
 * Contextual HTML auto-escaping ported from Go's `html/template` (opt-in).
 * A Spring Boot starter: a ready-to-inject engine, configuration properties, a compile cache, and an MVC/WebFlux `ViewResolver`.
 * Pluggable functions via `ServiceLoader` — drop a module on the classpath and its functions appear.
+* xref:performance.adoc[Mainstream-engine throughput] — renders in the same tier as FreeMarker, Pebble, and Mustache, and faster than native Go `text/template` on the same templates.
 
 == Modules
 
@@ -41,6 +42,7 @@ for the Sprig functions, or the starter for Spring Boot integration.
 * xref:sprig-functions.adoc[Sprig functions] — the function catalog.
 * xref:spring-boot-starter.adoc[Spring Boot starter] — auto-configuration and the view resolver.
 * xref:conformance.adoc[Conformance] — how correctness is held to the Go and Sprig originals.
+* xref:performance.adoc[Performance] — JMH benchmarks vs FreeMarker, Thymeleaf, Mustache, Pebble, and Go.
 
 == API documentation
 

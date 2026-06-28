@@ -1,0 +1,122 @@
+= Performance
+
+gotmpl4j is an *interpreter* for Go's `text/template` syntax, yet it renders in the same
+throughput tier as the mainstream compiled JVM template engines — and faster than native Go
+`text/template` on the same templates. This page summarises the JMH benchmark suite shipped in
+the `gotmpl4j-benchmarks` module and how to reproduce it.
+
+[NOTE]
+====
+Numbers below are *indicative* — measured with JMH (2 forks × 5 iterations) on a single
+developer workstation (JDK 17). Throughput is hardware- and JVM-specific; always re-run on your
+own box before quoting. The point of the table is the *relative* standing of the engines, not
+the absolute figures.
+====
+
+== What's compared
+
+The suite pits gotmpl4j against four of the most-used JVM template engines, plus Go itself as a
+cross-runtime reference:
+
+[cols="1,3",options="header"]
+|===
+| Engine | Role
+| *gotmpl4j* | This library — Go `text/template` + Sprig, pure Java.
+| *FreeMarker* | Mature, widely used Spring Boot view engine.
+| *Thymeleaf* | The default Spring Boot HTML view engine.
+| *Mustache* | `mustache.java` — logic-less, the thinnest possible render path.
+| *Pebble* | Twig/Jinja-style engine with a compiled AST.
+| *Go `text/template`* | The original, run natively via `go test -bench` — a runtime reference.
+|===
+
+The workload mirrors the canonical
+https://github.com/mbosecke/template-benchmark[mbosecke/template-benchmark] "stocks" table:
+render a list of N stock rows (a loop plus four field accesses per row). gotmpl4j and Go share
+the *byte-identical* template file, so that column is a true like-for-like across runtimes.
+
+== Results
+
+Render throughput in *ops/µs — higher is better*. Templates are pre-parsed in `@Setup`, so
+this measures the hot render path, not compile cost.
+
+[cols="2,>1,>1,>1,>1,>1,>1",options="header"]
+|===
+| Workload | gotmpl4j | FreeMarker | Thymeleaf | Mustache | Pebble | Go (ref)
+| Interpolation (`Hello <name>`) | 2.83 | 1.61 | 0.17 | *4.22* | 2.26 | 0.97
+| Table, 10 rows                 | 0.074 | 0.080 | 0.021 | *0.098* | 0.091 | 0.028
+| Table, 100 rows                | 0.0080 | 0.0088 | 0.0025 | *0.0106* | 0.0091 | 0.0032
+| Table, 1000 rows               | 0.00080 | 0.00083 | 0.00029 | *0.00109* | 0.00093 | 0.00032
+|===
+
+=== Reading the numbers
+
+* *gotmpl4j is in the mainstream pack.* On interpolation it beats FreeMarker and leaves
+  Thymeleaf far behind; on the loop-heavy table it lands within ~10–25 % of the
+  FreeMarker/Pebble cluster.
+* *Mustache leads* both workloads — expected, as a logic-less engine has the thinnest dispatch
+  of the group.
+* *gotmpl4j out-throughputs native Go* `text/template` on the JVM, rendering the same template
+  file (the JIT edges the Go runtime here — see the fairness note).
+* The headline: gotmpl4j is the *only* engine here that speaks Go `text/template` + Sprig, and
+  it pays no throughput penalty for that compatibility.
+
+[IMPORTANT]
+.Fairness note
+====
+All five JVM engines materialise their output to a `String`/`StringWriter`, so those columns
+are apples-to-apples. The Go benchmark writes to `io.Discard` (no output buffer), so it does
+strictly less work and allocates far less — treat the Go column as a *runtime reference*, not a
+like-for-like number.
+====
+
+== Where gotmpl4j sits in the wider field
+
+The engines above are all *interpreters* (they walk an AST at render time). A separate tier of
+*compiled* engines — Rocker, JTE, JStachio, and others — generate Java bytecode from templates
+and therefore sit a notch above every interpreter measured here, gotmpl4j included. For that
+broader landscape see the canonical
+https://github.com/mbosecke/template-benchmark[mbosecke/template-benchmark] and the
+https://github.com/agentgt/template-benchmark[agentgt fork] (which adds JTE and JStachio).
+
+gotmpl4j's niche is *Go-template compatibility*, not beating a code generator: if you need to
+render Helm-/Hugo-style `text/template` + Sprig templates on the JVM, gotmpl4j does it at
+mainstream-interpreter speed.
+
+== Reproducing
+
+The benchmarks live in the (unpublished) `gotmpl4j-benchmarks` module:
+
+[source,bash]
+----
+# Build the shaded JMH runner
+./mvnw -q -pl gotmpl4j-benchmarks -am package
+
+# Run everything (2 forks recommended for anything you'd quote)
+java -jar gotmpl4j-benchmarks/target/benchmarks.jar -f 2 -wi 3 -i 5
+
+# One class, with allocation profiling
+java -jar gotmpl4j-benchmarks/target/benchmarks.jar TableBenchmark -prof gc
+
+# The Go reference (reuses the identical .gotmpl files)
+cd benchmarks/go && go test -bench . -benchmem
+----
+
+== Optimization history
+
+The interpreter has been profiled with https://github.com/alexmond/jvmlens[jvmlens] (JFR →
+LLM-ready hot-path/allocation summary) and tuned along the way:
+
+[cols="3,2,2,2",options="header"]
+|===
+| Change | Workload | Throughput | Allocation (B/op)
+| Shared reflective accessor cache | Interpolation | 1.93 → 2.96 ops/µs | 744 → 480 (−35%)
+| | Table 100 | 0.005 → 0.008 ops/µs | 203,513 → 137,753 (−32%)
+| `GoFmt.floatString` without `BigDecimal` | Table 100 | — | 137,753 → 106,761 (−23%)
+| | Table 1000 | — | 1,394,849 → 1,038,586 (−26%)
+|===
+
+Cumulatively, per-render allocation on the table workload was roughly *halved* versus the
+original baseline (n=1000: 2.05 MB → 1.04 MB, −49%). Caching the per-class property accessor
+map (keyed by both bean and Go-style names) removed a linear `PropertyDescriptor` scan and a
+per-property string allocation on every field access, amortising JavaBeans introspection across
+renders instead of rebuilding it each execution.

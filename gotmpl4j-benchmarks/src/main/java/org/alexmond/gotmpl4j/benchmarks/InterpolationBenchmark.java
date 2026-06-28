@@ -1,11 +1,17 @@
 package org.alexmond.gotmpl4j.benchmarks;
 
+import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import com.github.mustachejava.DefaultMustacheFactory;
+import com.github.mustachejava.Mustache;
 import freemarker.cache.StringTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
+import io.pebbletemplates.pebble.PebbleEngine;
+import io.pebbletemplates.pebble.template.PebbleTemplate;
 import org.alexmond.gotmpl4j.GoTemplate;
 import org.alexmond.gotmpl4j.benchmarks.model.Person;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -45,6 +51,10 @@ public class InterpolationBenchmark {
 
 	private String thymeleafSource;
 
+	private Mustache mustache;
+
+	private PebbleTemplate pebble;
+
 	@Setup
 	public void setup() throws Exception {
 		this.gotmpl = new GoTemplate();
@@ -65,6 +75,12 @@ public class InterpolationBenchmark {
 		this.thymeleafSource = Templates.load("hello.thymeleaf.txt");
 		// warm the parsed-template cache
 		thymeleafRender();
+
+		this.mustache = new DefaultMustacheFactory().compile(new StringReader(Templates.load("hello.mustache")),
+				"hello");
+		this.pebble = new PebbleEngine.Builder().autoEscaping(false)
+			.build()
+			.getLiteralTemplate(Templates.load("hello.pebble"));
 	}
 
 	@Benchmark
@@ -84,6 +100,20 @@ public class InterpolationBenchmark {
 		Context ctx = new Context();
 		ctx.setVariable("name", this.person.getName());
 		return this.thymeleaf.process(this.thymeleafSource, ctx);
+	}
+
+	@Benchmark
+	public String mustacheRender() throws Exception {
+		StringWriter out = new StringWriter();
+		this.mustache.execute(out, this.person).flush();
+		return out.toString();
+	}
+
+	@Benchmark
+	public String pebbleRender() throws Exception {
+		StringWriter out = new StringWriter();
+		this.pebble.evaluate(out, Map.of("name", this.person.getName()));
+		return out.toString();
 	}
 
 }

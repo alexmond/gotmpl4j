@@ -1,0 +1,1 @@
+<table>{% for s in items %}<tr><td>{{ s.symbol }}</td><td>{{ s.name }}</td><td>{{ s.price }}</td><td>{{ s.change }}</td></tr>{% endfor %}</table>
