@@ -7,13 +7,16 @@
 [![Java](https://img.shields.io/badge/Java-17%2B-blue.svg)](https://openjdk.org/)
 [![coverage](https://unitrack.alexmond.org/badge/37/coverage.svg)](https://unitrack.alexmond.org/projects/37)
 [![tests](https://unitrack.alexmond.org/badge/37/pass.svg)](https://unitrack.alexmond.org/projects/37)
+[![conformance](https://img.shields.io/badge/conformance-967%20cases-brightgreen)](https://www.alexmond.org/gotmpl4j/current/conformance.html)
 
 A pure-Java implementation of Go's [`text/template`](https://pkg.go.dev/text/template)
 engine, with the [Sprig](https://masterminds.github.io/sprig/) function library and an
 optional Spring Boot starter. No Go toolchain, no CGo, no native bindings — just the JVM.
 
 It renders the same templates Helm, Hugo, and countless Go CLIs use, and is validated for
-byte-for-byte parity against Go's own `text/template` test suite and Sprig's upstream tests.
+byte-for-byte parity across **967 conformance cases** ported from Go's own `text/template` /
+`html/template` test suites and Sprig's upstream tests — each rendered through the real Go
+engine and Sprig funcmap for ground truth.
 
 📖 **Documentation:** <https://www.alexmond.org/gotmpl4j/current/index.html>
 
@@ -51,16 +54,31 @@ functions, or the starter for Spring Boot integration.
 
 ## Conformance
 
-Correctness is held to the originals, not to hand-written expectations:
+Correctness is held to the originals, not to hand-written expectations. **967 cases** are
+ported from the upstream suites and asserted byte-for-byte:
 
-- **Engine** — ported from Go's `text/template` `exec_test.go` tables, rendered through the
-  real Go engine to capture ground-truth output (see `.claude/scripts/conformance/`).
+| Source | Cases |
+|---|--:|
+| Go `text/template` exec / text / value-reflection tables | 282 |
+| Go `text/template/parse` lexer token tables | 40 |
+| Go `html/template` escaper / escape-text / errors / CSS | 280 |
+| **Go engine subtotal** | **602** |
+| Sprig `runt` (no-data) + `runtv` (with-vars) tables | 365 |
+| **Total** | **967** |
+
+- **Engine** — ported from Go's `text/template`, `text/template/parse`, and `html/template`
+  test files, rendered through the real Go engine to capture ground-truth output.
 - **Sprig** — ported from Masterminds/sprig's own `runt`/`runtv` test tables, rendered
   through the real Sprig funcmap.
 
 The extractor (`.claude/scripts/conformance/runtv_extract.go`) uses the Go compiler as an
-oracle: any case whose data isn't portable to the JVM is dropped automatically, and the
-surviving cases become base64 TSV fixtures asserted by the JUnit conformance suites.
+oracle: any case whose data isn't portable to the JVM (Go-typed fixtures, methods, complex
+numbers) is dropped automatically, so 967 is an honest **portable** denominator — not a claim
+of "100% of Go's tests." Surviving cases become base64 TSV fixtures asserted by the JUnit
+conformance suites; `ConformanceCensusTest` re-derives the counts on every build and fails if
+coverage drops. Only a few intentional, pinned divergences (Helm `missingkey=zero`, Java regex
+vs RE2, float formatting) deviate — see the
+[Conformance docs](https://www.alexmond.org/gotmpl4j/current/conformance.html).
 
 ## Build
 
