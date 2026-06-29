@@ -10,7 +10,7 @@
     </parent>
     <groupId>org.alexmond</groupId>
     <artifactId>gotmpl4j-parent</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>gotmpl4j-parent</name>
     <description>gotmpl4j — a complete Go text/template + Sprig engine for the JVM, validated byte-for-byte against 1,305 of Go's own test cases, with a Spring Boot starter. No Go toolchain.</description>
@@ -53,7 +53,7 @@
         <maven.compiler.release>17</maven.compiler.release>
 
         <!-- Reproducible builds: a constant timestamp so rebuilding a tag is byte-for-byte stable. -->
-        <project.build.outputTimestamp>2026-06-29T20:53:46Z</project.build.outputTimestamp>
+        <project.build.outputTimestamp>2026-06-29T21:05:39Z</project.build.outputTimestamp>
     </properties>
     <scm>
         <connection>scm:git:git@github.com:alexmond/gotmpl4j.git</connection>
