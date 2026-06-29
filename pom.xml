@@ -13,7 +13,7 @@
     <version>1.1.5-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>gotmpl4j-parent</name>
-    <description>gotmpl4j — a pure-Java implementation of Go's text/template engine, with Sprig functions and a Spring Boot starter</description>
+    <description>gotmpl4j — a complete Go text/template + Sprig engine for the JVM, validated byte-for-byte against 1,305 of Go's own test cases, with a Spring Boot starter. No Go toolchain.</description>
     <url>https://www.alexmond.org/gotmpl4j/current/index.html</url>
 
     <issueManagement>
