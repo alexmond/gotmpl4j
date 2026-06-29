@@ -6,15 +6,7 @@ All notable changes to gotmpl4j are documented here. The format follows
 
 ## [Unreleased]
 
-### Performance
-- Lexer: replace four `input.indexOf(delim, pos) == pos` "starts-at" checks with `startsWith`,
-  removing a per-`{{` scan of the whole remaining template (an O(n²) cost). Parsing a
-  Helm-chart-shaped template is **~5× faster** (6.9 ms → 1.3 ms in `ParseBenchmark`), which the
-  jhelm chart-render workload pays on every render. Allocation unchanged; parse output identical
-  (conformance green). ([#95])
-- Parse allocation: back the `PipeNode`/`ChainNode` lists with `ArrayList` (was `LinkedList`)
-  and presize the lexer token list to the template length — −1.5 % parse allocation, structural
-  cleanup consistent with #67/#80. ([#95])
+## [1.2.0] — 2026-06-29
 
 ### Added
 - New module **`gotmpl4j-spring`** — template functions that read the running Spring
@@ -24,7 +16,17 @@ All notable changes to gotmpl4j are documented here. The format follows
   `principal`) when `spring-security-core` is on the classpath, and servlet request functions
   (`param`/`header`/`cookie`/`session`/`requestUri`/`csrf`) in a web application
   (`spring-web` optional). Auto-configured; ships with the Spring Boot starter.
-  ([#91], [#92], [#94])
+  ([#91], [#92], [#94]); documented in [#93].
+
+### Performance
+- Lexer: replace four `input.indexOf(delim, pos) == pos` "starts-at" checks with `startsWith`,
+  removing a per-`{{` scan of the whole remaining template (an O(n²) cost). Parsing a
+  Helm-chart-shaped template is **~5× faster** (6.9 ms → 1.3 ms in `ParseBenchmark`), which the
+  jhelm chart-render workload pays on every render. Allocation unchanged; parse output identical
+  (conformance green). ([#95], [#96])
+- Parse allocation: back the `PipeNode`/`ChainNode` lists with `ArrayList` (was `LinkedList`)
+  and presize the lexer token list to the template length — −1.5 % parse allocation, structural
+  cleanup consistent with #67/#80. ([#97])
 
 ## [1.1.5] — 2026-06-29
 
@@ -119,7 +121,8 @@ Pre-1.0 development line: gotmpl4j extracted from
 [jhelm](https://github.com/alexmond/jhelm) into a standalone project, with the engine, Sprig,
 the Spring Boot starter, the conformance tooling, and Maven Central publishing established.
 
-[Unreleased]: https://github.com/alexmond/gotmpl4j/compare/1.1.5...HEAD
+[Unreleased]: https://github.com/alexmond/gotmpl4j/compare/1.2.0...HEAD
+[1.2.0]: https://github.com/alexmond/gotmpl4j/compare/1.1.5...1.2.0
 [1.1.5]: https://github.com/alexmond/gotmpl4j/compare/1.1.4...1.1.5
 [1.1.4]: https://github.com/alexmond/gotmpl4j/compare/1.1.3...1.1.4
 [1.1.3]: https://github.com/alexmond/gotmpl4j/compare/1.1.2...1.1.3
@@ -127,8 +130,11 @@ the Spring Boot starter, the conformance tooling, and Maven Central publishing e
 [1.1.1]: https://github.com/alexmond/gotmpl4j/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/alexmond/gotmpl4j/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/alexmond/gotmpl4j/releases/tag/1.0.0
+[#97]: https://github.com/alexmond/gotmpl4j/pull/97
+[#96]: https://github.com/alexmond/gotmpl4j/pull/96
 [#95]: https://github.com/alexmond/gotmpl4j/issues/95
 [#94]: https://github.com/alexmond/gotmpl4j/pull/94
+[#93]: https://github.com/alexmond/gotmpl4j/pull/93
 [#92]: https://github.com/alexmond/gotmpl4j/pull/92
 [#91]: https://github.com/alexmond/gotmpl4j/pull/91
 [#90]: https://github.com/alexmond/gotmpl4j/issues/90
