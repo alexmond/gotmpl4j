@@ -64,6 +64,7 @@
     <modules>
         <module>gotmpl4j-core</module>
         <module>gotmpl4j-sprig</module>
+        <module>gotmpl4j-spring</module>
         <module>gotmpl4j-spring-boot-starter</module>
         <module>gotmpl4j-benchmarks</module>
     </modules>
@@ -79,6 +80,11 @@
             <dependency>
                 <groupId>org.alexmond</groupId>
                 <artifactId>gotmpl4j-sprig</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.alexmond</groupId>
+                <artifactId>gotmpl4j-spring</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
