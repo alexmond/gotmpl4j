@@ -58,7 +58,7 @@ public class Lexer {
 	private final String rightComment;
 
 	@Getter
-	private final List<Token> tokens = new ArrayList<>(8);
+	private final List<Token> tokens;
 
 	/**
 	 * Current position of the input
@@ -108,6 +108,8 @@ public class Lexer {
 		}
 
 		this.input = input;
+		// Presize ~length/8 to avoid re-growing the token array on large templates.
+		this.tokens = new ArrayList<>(Math.max(16, input.length() / 8));
 		this.keepComments = keepComments;
 		this.leftDelimiter = leftDelimiter;
 		this.rightDelimiter = rightDelimiter;
@@ -193,10 +195,7 @@ public class Lexer {
 			}
 		}
 
-		// Only whether the comment marker starts AT pos matters; startsWith checks just
-		// there
-		// instead of scanning the whole remaining template — the per-{{ lexer hot spot
-		// (#95).
+		// startsWith checks only at pos (not an indexOf scan) — per-{{ hot spot, #95.
 		boolean hasComment = input.startsWith(leftComment, pos);
 		if (hasComment) {
 			moveStartToPos();

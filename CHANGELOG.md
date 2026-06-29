@@ -12,6 +12,9 @@ All notable changes to gotmpl4j are documented here. The format follows
   Helm-chart-shaped template is **~5× faster** (6.9 ms → 1.3 ms in `ParseBenchmark`), which the
   jhelm chart-render workload pays on every render. Allocation unchanged; parse output identical
   (conformance green). ([#95])
+- Parse allocation: back the `PipeNode`/`ChainNode` lists with `ArrayList` (was `LinkedList`)
+  and presize the lexer token list to the template length — −1.5 % parse allocation, structural
+  cleanup consistent with #67/#80. ([#95])
 
 ### Added
 - New module **`gotmpl4j-spring`** — template functions that read the running Spring

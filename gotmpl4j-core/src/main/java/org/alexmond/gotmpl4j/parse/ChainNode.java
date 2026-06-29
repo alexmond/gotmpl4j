@@ -1,6 +1,6 @@
 package org.alexmond.gotmpl4j.parse;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
@@ -10,7 +10,7 @@ public class ChainNode implements Node {
 
 	private final Node node;
 
-	private final List<String> fields = new LinkedList<>();
+	private final List<String> fields = new ArrayList<>();
 
 	public ChainNode(Node node) {
 		this.node = node;

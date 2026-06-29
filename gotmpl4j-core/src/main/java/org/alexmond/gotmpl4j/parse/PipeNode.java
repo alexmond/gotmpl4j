@@ -1,6 +1,6 @@
 package org.alexmond.gotmpl4j.parse;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -12,9 +12,9 @@ public class PipeNode implements Node {
 
 	private final String context;
 
-	private final List<VariableNode> variables = new LinkedList<>();
+	private final List<VariableNode> variables = new ArrayList<>();
 
-	private final List<CommandNode> commands = new LinkedList<>();
+	private final List<CommandNode> commands = new ArrayList<>();
 
 	// true for a `:=` declaration (and range vars), false for a `=` assignment. A
 	// declaration is scoped to its enclosing block; an assignment updates the existing
