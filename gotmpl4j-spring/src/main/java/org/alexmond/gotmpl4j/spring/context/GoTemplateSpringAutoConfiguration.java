@@ -1,10 +1,12 @@
 package org.alexmond.gotmpl4j.spring.context;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.alexmond.gotmpl4j.FunctionProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
@@ -12,6 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.context.request.RequestContextHolder;
 
 /**
  * Registers {@link SpringContextFunctions} as a {@link FunctionProvider} bean so a
@@ -52,6 +55,24 @@ public class GoTemplateSpringAutoConfiguration {
 		@ConditionalOnMissingBean
 		SpringSecurityFunctions springSecurityFunctions() {
 			return new SpringSecurityFunctions();
+		}
+
+	}
+
+	/**
+	 * Request functions ({@code param}/{@code header}/{@code session}/…), registered only
+	 * in a servlet web application where {@code spring-web} + the Servlet API are
+	 * present.
+	 */
+	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+	@ConditionalOnClass({ RequestContextHolder.class, HttpServletRequest.class })
+	static class SpringWebFunctionsConfiguration {
+
+		@Bean
+		@ConditionalOnMissingBean
+		SpringWebFunctions springWebFunctions() {
+			return new SpringWebFunctions();
 		}
 
 	}

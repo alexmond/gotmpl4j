@@ -91,6 +91,32 @@ Spring Security pull nothing extra and these functions simply don't appear.
 {{ if hasRole "ADMIN" }}<a href="/admin">Admin</a>{{ end }}
 ----
 
+=== Web request (servlet)
+
+In a servlet web application, request functions read the current request from
+`RequestContextHolder`. `spring-web` and the Servlet API are *optional* dependencies, so these
+register only in a servlet web app; outside a request they return an empty value rather than
+failing.
+
+[cols="2,3",options="header"]
+|===
+| Function | Meaning
+| `{{ param "q" }}` / `{{ param "q" "all" }}` | request parameter, with optional default
+| `{{ header "X-Tenant" }}` | request header
+| `{{ cookie "theme" }}` | cookie value
+| `{{ session "cartId" }}` | session attribute (does not create a session)
+| `{{ requestUri }}` | the request URI
+| `{{ csrf.Token }}` | the CSRF token (when Spring Security set one) — also `.ParameterName` / `.HeaderName`
+|===
+
+[source,gotemplate]
+----
+<form method="post" action="/save">
+  <input type="hidden" name="{{ csrf.ParameterName }}" value="{{ csrf.Token }}">
+  <input name="q" value="{{ param "q" }}">
+</form>
+----
+
 == Configuration
 
 [cols="3,1,4",options="header"]
