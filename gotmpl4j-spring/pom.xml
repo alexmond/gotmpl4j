@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.alexmond</groupId>
+        <artifactId>gotmpl4j-parent</artifactId>
+        <version>1.1.6-SNAPSHOT</version>
+    </parent>
+    <artifactId>gotmpl4j-spring</artifactId>
+
+    <name>Spring Context Functions for Go Template</name>
+    <description>Template functions that read from the running Spring application — messages
+        (i18n), Environment/config, and beans — for the gotmpl4j Go template engine.</description>
+
+    <properties>
+        <automatic.module.name>org.alexmond.gotmpl4j.spring.context</automatic.module.name>
+    </properties>
+
+    <dependencies>
+        <!-- Core template engine (Function interface, FunctionProvider SPI). -->
+        <dependency>
+            <groupId>org.alexmond</groupId>
+            <artifactId>gotmpl4j-core</artifactId>
+        </dependency>
+        <!-- Spring context (MessageSource, Environment, ApplicationContext). -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+        <!-- Boot auto-configuration that registers the FunctionProvider bean. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <!-- Tests. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>
