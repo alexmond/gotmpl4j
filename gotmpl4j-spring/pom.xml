@@ -50,6 +50,18 @@
             <artifactId>spring-security-core</artifactId>
             <optional>true</optional>
         </dependency>
+        <!-- Spring Web + Servlet API are optional: the request functions (param/header/
+             session/cookie/csrf) are only auto-configured in a servlet web application. -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <optional>true</optional>
+        </dependency>
 
         <!-- Tests. -->
         <dependency>

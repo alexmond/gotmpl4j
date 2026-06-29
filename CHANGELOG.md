@@ -11,8 +11,10 @@ All notable changes to gotmpl4j are documented here. The format follows
   application ([#90]): `msg` (i18n via `MessageSource`), `env` (Spring `Environment`),
   `bean` (`ApplicationContext` lookup, opt-in via `gotmpl4j.spring.expose-beans`), and Spring
   Security helpers (`hasRole`/`hasAnyRole`/`hasAuthority`/`isAuthenticated`/`username`/
-  `principal`) when `spring-security-core` is on the classpath (an optional dependency). Auto-
-  configured; ships with the Spring Boot starter. ([#91], [#92])
+  `principal`) when `spring-security-core` is on the classpath, and servlet request functions
+  (`param`/`header`/`cookie`/`session`/`requestUri`/`csrf`) in a web application
+  (`spring-web` optional). Auto-configured; ships with the Spring Boot starter.
+  ([#91], [#92], [#94])
 
 ## [1.1.5] — 2026-06-29
 
@@ -115,6 +117,7 @@ the Spring Boot starter, the conformance tooling, and Maven Central publishing e
 [1.1.1]: https://github.com/alexmond/gotmpl4j/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/alexmond/gotmpl4j/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/alexmond/gotmpl4j/releases/tag/1.0.0
+[#94]: https://github.com/alexmond/gotmpl4j/pull/94
 [#92]: https://github.com/alexmond/gotmpl4j/pull/92
 [#91]: https://github.com/alexmond/gotmpl4j/pull/91
 [#90]: https://github.com/alexmond/gotmpl4j/issues/90
