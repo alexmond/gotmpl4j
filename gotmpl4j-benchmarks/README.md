@@ -36,8 +36,9 @@ no separable parse API, so it's omitted there.
 `InterpolationBenchmark` and `TableBenchmark` are the **cross-engine comparison** (limited to
 what every engine can express; the table mirrors the canonical
 [mbosecke/template-benchmark](https://github.com/mbosecke/template-benchmark) "stocks" page).
-`FeatureBenchmark` is **gotmpl4j-only** — it exercises the Go-template + Sprig surface no other
-engine has, to track gotmpl4j's own performance across releases.
+`FeatureBenchmark` has no peer JVM engine (Sprig functions, pipelines, composition), so it's
+compared instead against its **reference implementation** — Go `text/template` +
+Masterminds/sprig — which the Go bench renders from the same `feature_*.gotmpl` files and data.
 
 The data model (`Stock`, `Person`) is shared across all JVM engines via bean getters.
 gotmpl4j resolves `{{ .Symbol }}` → `getSymbol()` (Go-style property mapping), so
@@ -86,17 +87,21 @@ generator.
 
 ### gotmpl4j feature suite (single-engine)
 
-`FeatureBenchmark` measures gotmpl4j's Go-template + Sprig surface that no other engine can
-express — for tracking gotmpl4j's own performance, not ranking it:
+`FeatureBenchmark` renders gotmpl4j's Go-template + Sprig surface against its reference
+implementation, **native Go `text/template` + Masterminds/sprig**, on the same templates/data
+(ops/µs, higher is better):
 
-| Workload | ops/µs | Exercises |
-|---|---|---|
-| Sprig pipeline | 0.19 | `upper \| trunc \| trimSuffix \| repeat \| quote` chain |
-| List / dict | 0.15 | `dict`, `keys`, `sortAlpha`, `index`, `join`, `len` |
-| Control flow | 0.14 | nested `if`/`else if`/`else`, `with`, `range … else` |
-| Composition | 0.12 | `define` + `template` per row |
-| Large output | 0.027 | 200-element loop, paragraph each (writer-stress) |
-| `printf` | 0.007 | `printf "%s=%d (%.2f%%)"` — format-string parse dominates |
+| Workload | gotmpl4j | Go+Sprig (ref) | gotmpl4j is | Exercises |
+|---|--:|--:|---|---|
+| Sprig pipeline | **0.18** | 0.016 | **11× faster** | `upper \| trunc \| trimSuffix \| repeat \| quote` |
+| Control flow | **0.14** | 0.015 | **10× faster** | nested `if`/`else if`/`else`, `with`, `range … else` |
+| List / dict | **0.15** | 0.028 | **5.5× faster** | `dict`, `keys`, `sortAlpha`, `index`, `join`, `len` |
+| Composition | **0.11** | 0.023 | **5× faster** | `define` + `template` per row |
+| Large output | **0.024** | 0.012 | **2× faster** | 200-element loop (writer-stress) |
+| `printf` | 0.007 | **0.013** | 0.5× (Go wins) | `printf "%s=%d (%.2f%%)"` — format-parse dominates |
+
+gotmpl4j beats native Go+Sprig 2–11× across the Sprig/control-flow surface (JVM JIT vs the Go
+interpreter), except `printf` where Go is ~2× faster (gotmpl4j re-parses the format per call).
 
 ### Optimization history (before → after)
 
@@ -107,6 +112,7 @@ express — for tracking gotmpl4j's own performance, not ranking it:
 | `GoFmt.floatString` without `BigDecimal` (#60) | Table 1000 | — | 1,394,849 → 1,038,586 (−26%) |
 | `floatString` without intermediate substrings (#77) | Table 1000 | — | 1,038,586 → 771,716 (−26%) |
 | Unsync writer + per-thread float scratch (#78) | Table 1000 | — | 771,716 → 644,082 (−17%) |
+| Drop per-call arg `subList` wrapper, ArrayList `CommandNode` (#80) | Sprig pipeline | — | 3,488 → 2,912 (−16%) |
 
 Cumulative on the table render: per-render allocation dropped **~two-thirds** vs the original
 baseline (n=1000: 2.05 MB → 0.64 MB, −69%). Every win was found with jvmlens (JFR → LLM-ready
