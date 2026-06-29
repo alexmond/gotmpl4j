@@ -6,6 +6,13 @@ All notable changes to gotmpl4j are documented here. The format follows
 
 ## [Unreleased]
 
+### Performance
+- Lexer: replace four `input.indexOf(delim, pos) == pos` "starts-at" checks with `startsWith`,
+  removing a per-`{{` scan of the whole remaining template (an O(n²) cost). Parsing a
+  Helm-chart-shaped template is **~5× faster** (6.9 ms → 1.3 ms in `ParseBenchmark`), which the
+  jhelm chart-render workload pays on every render. Allocation unchanged; parse output identical
+  (conformance green). ([#95])
+
 ### Added
 - New module **`gotmpl4j-spring`** — template functions that read the running Spring
   application ([#90]): `msg` (i18n via `MessageSource`), `env` (Spring `Environment`),
@@ -117,6 +124,7 @@ the Spring Boot starter, the conformance tooling, and Maven Central publishing e
 [1.1.1]: https://github.com/alexmond/gotmpl4j/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/alexmond/gotmpl4j/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/alexmond/gotmpl4j/releases/tag/1.0.0
+[#95]: https://github.com/alexmond/gotmpl4j/issues/95
 [#94]: https://github.com/alexmond/gotmpl4j/pull/94
 [#92]: https://github.com/alexmond/gotmpl4j/pull/92
 [#91]: https://github.com/alexmond/gotmpl4j/pull/91

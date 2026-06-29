@@ -193,8 +193,11 @@ public class Lexer {
 			}
 		}
 
-		int n = input.indexOf(leftComment, pos);
-		boolean hasComment = n >= 0 && n == pos; // Must start immediately after delim
+		// Only whether the comment marker starts AT pos matters; startsWith checks just
+		// there
+		// instead of scanning the whole remaining template — the per-{{ lexer hot spot
+		// (#95).
+		boolean hasComment = input.startsWith(leftComment, pos);
 		if (hasComment) {
 			moveStartToPos();
 			return this::parseComment;
@@ -727,7 +730,7 @@ public class Lexer {
 			return false;
 		}
 
-		if (input.indexOf(leftDelimiter, pos) != pos) {
+		if (!input.startsWith(leftDelimiter, pos)) {
 			return false;
 		}
 
@@ -743,7 +746,7 @@ public class Lexer {
 			return false;
 		}
 
-		return TRIM_MARKER == input.charAt(pos) && input.indexOf(rightDelimiter, pos + 1) == pos + 1;
+		return TRIM_MARKER == input.charAt(pos) && input.startsWith(rightDelimiter, pos + 1);
 	}
 
 	private boolean isPosAtRightDelimWithoutTrimMarker() {
@@ -754,7 +757,7 @@ public class Lexer {
 		// We're at a right delimiter without trim if:
 		// 1. The delimiter is at current position
 		// 2. There's no trim marker at current position
-		return input.indexOf(rightDelimiter, pos) == pos && (pos >= input.length() || input.charAt(pos) != TRIM_MARKER);
+		return input.startsWith(rightDelimiter, pos) && (pos >= input.length() || input.charAt(pos) != TRIM_MARKER);
 	}
 
 	private boolean isPosAtWordTerminator() {
