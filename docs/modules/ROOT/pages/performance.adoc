@@ -7,10 +7,11 @@ the `gotmpl4j-benchmarks` module and how to reproduce it.
 
 [NOTE]
 ====
-Numbers below are *indicative* — measured with JMH (2 forks × 5 iterations) on a single
-developer workstation (JDK 17). Throughput is hardware- and JVM-specific; always re-run on your
-own box before quoting. The point of the table is the *relative* standing of the engines, not
-the absolute figures.
+Numbers below are *indicative* — measured with JMH (2 forks × 100 measurement iterations, so the
+error bands are ±1–2 %) on an otherwise-idle developer workstation (JDK 17). A single short run
+is noise-dominated and not quotable; always use multiple forks and ~100 iterations, and re-run
+on your own box. Throughput is hardware- and JVM-specific — the point is the *relative* standing
+of the engines, not the absolute figures.
 ====
 
 == What's compared
@@ -43,19 +44,19 @@ this measures the hot render path, not compile cost.
 [cols="2,>1,>1,>1,>1,>1,>1",options="header"]
 |===
 | Workload | gotmpl4j | FreeMarker | Thymeleaf | Mustache | Pebble | Go (ref)
-| Interpolation (`Hello <name>`) | 3.16 | 1.78 | 0.17 | *4.18* | 2.46 | 0.94
-| Table, 10 rows                 | *0.058* | 0.051 | 0.010 | *0.058* | 0.054 | 0.020
-| Table, 100 rows                | 0.0059 | 0.0055 | 0.0013 | *0.0060* | 0.0055 | 0.0023
-| Table, 1000 rows               | 0.00060 | 0.00053 | 0.00013 | 0.00060 | 0.00056 | 0.00021
+| Interpolation (`Hello <name>`) | 3.20 | 1.84 | 0.19 | *4.25* | 2.69 | 1.08
+| Table, 10 rows                 | 0.061 | 0.053 | 0.012 | *0.062* | 0.056 | 0.021
+| Table, 100 rows                | 0.0060 | 0.0058 | 0.0013 | *0.0064* | 0.0060 | 0.0021
+| Table, 1000 rows               | 0.00060 | 0.00053 | 0.00013 | *0.00070* | 0.00060 | 0.00021
 |===
 
 === Reading the numbers
 
-* *gotmpl4j leads the interpreter pack on the table.* On the loop-and-conditional stocks
-  workload it *ties logic-less Mustache* for the top spot and edges out Pebble and FreeMarker —
-  a notable result for a full Go-template + Sprig interpreter. The float-formatting and
-  render-allocation optimizations (see _Optimization history_) land squarely on this workload,
-  which formats two doubles per row.
+* *gotmpl4j is in the top tier on the table.* On the loop-and-conditional stocks workload it is
+  neck-and-neck with Pebble, ahead of FreeMarker, far ahead of Thymeleaf, and a hair behind only
+  logic-less Mustache — a strong result for a full Go-template + Sprig interpreter. The
+  float-formatting and render-allocation optimizations (see _Optimization history_) land squarely
+  on this workload, which formats two doubles per row.
 * *On interpolation* gotmpl4j is second only to Mustache (the thinnest possible render path),
   well ahead of Pebble, FreeMarker, and far ahead of Thymeleaf.
 * *gotmpl4j out-throughputs native Go* `text/template` on the JVM, rendering the same template
@@ -83,22 +84,21 @@ gotmpl4j against native Go+Sprig — the most direct apples-to-apples there is.
 [cols="2,>1,>1,>1,3",options="header"]
 |===
 | Workload | gotmpl4j | Go+Sprig (ref) | gotmpl4j is | What it exercises
-| Sprig pipeline | *0.20* | 0.016 | *12× faster* | `{{ . \| upper \| trunc 5 \| trimSuffix "X" \| repeat 2 \| quote }}`
-| Control flow | *0.14* | 0.015 | *9× faster* | nested `if`/`else if`/`else`, `with`, `range … else`
-| List / dict | *0.16* | 0.027 | *6× faster* | `dict`, `keys`, `sortAlpha`, `index`, `join`, `len`
-| Composition | *0.12* | 0.022 | *5× faster* | `define` + `template` invocation per row
-| Large output | *0.025* | 0.013 | *2× faster* | 200-element loop, a paragraph each (writer-stress)
-| `printf` | 0.011 | *0.0135* | 0.8× (Go ~1.2×) | `printf "%s=%d (%.2f%%)"` per row
+| Sprig pipeline | *0.24* | 0.015 | *16× faster* | `{{ . \| upper \| trunc 5 \| trimSuffix "X" \| repeat 2 \| quote }}`
+| Control flow | *0.16* | 0.012 | *14× faster* | nested `if`/`else if`/`else`, `with`, `range … else`
+| List / dict | *0.17* | 0.019 | *9× faster* | `dict`, `keys`, `sortAlpha`, `index`, `join`, `len`
+| Composition | *0.13* | 0.020 | *6.7× faster* | `define` + `template` invocation per row
+| Large output | *0.027* | 0.012 | *2.2× faster* | 200-element loop, a paragraph each (writer-stress)
+| `printf` | *0.013* | 0.011 | *1.2× faster* | `printf "%s=%d (%.2f%%)"` per row
 |===
 
-gotmpl4j **out-throughputs native Go+Sprig 2–12×** across the Sprig and control-flow surface —
-the JVM JIT versus the Go interpreter, the same dynamic as the table. The lone hold-out is
-`printf`, where Go is still a touch faster (~1.2×): gotmpl4j re-parses the format string's verbs
-on every call. Pre-compiling its rewrite patterns (a per-call `Pattern.compile` was the cost)
-cut that allocation by two-thirds and lifted throughput +57% — closing the gap from ~2× to
-~1.2×; the residual is the per-call verb scan + `String.format`. (As with the table, the Go
-column writes to `io.Discard` while gotmpl4j materialises a `String`, so Go does less work —
-yet still loses on everything but `printf`.)
+gotmpl4j **out-throughputs native Go+Sprig on every feature workload** — 6–16× across the Sprig
+and control-flow surface (the JVM JIT versus the Go interpreter, the same dynamic as the table),
+and now *ahead* on `printf` too. `printf` used to be the one place Go won (~2×); pre-compiling
+its rewrite patterns (a per-call `Pattern.compile` was the cost) cut that allocation by
+two-thirds and lifted throughput +57 %, flipping it from a ~2× loss to a ~1.2× win. (As with
+the table, the Go column writes to `io.Discard` while gotmpl4j materialises a `String`, so Go
+does strictly less work — yet still loses on all six.)
 
 == Where gotmpl4j sits in the wider field
 
@@ -122,12 +122,13 @@ The benchmarks live in the (unpublished) `gotmpl4j-benchmarks` module:
 # Build the shaded JMH runner
 ./mvnw -q -pl gotmpl4j-benchmarks -am package
 
-# Run everything (2 forks recommended for anything you'd quote)
-java -jar gotmpl4j-benchmarks/target/benchmarks.jar -f 2 -wi 3 -i 5
+# Run everything — multiple forks + ~100 iterations for a quotable number
+# (a single short run is noise-dominated; quote the JMH error band, not the bare score)
+java -jar gotmpl4j-benchmarks/target/benchmarks.jar -f 2 -wi 5 -i 100
 
 # Just the cross-engine comparison, or just gotmpl4j's feature suite
-java -jar gotmpl4j-benchmarks/target/benchmarks.jar "InterpolationBenchmark|TableBenchmark"
-java -jar gotmpl4j-benchmarks/target/benchmarks.jar FeatureBenchmark
+java -jar gotmpl4j-benchmarks/target/benchmarks.jar "InterpolationBenchmark|TableBenchmark" -f 2 -wi 5 -i 100
+java -jar gotmpl4j-benchmarks/target/benchmarks.jar FeatureBenchmark -f 2 -wi 5 -i 100
 
 # One class, with allocation profiling
 java -jar gotmpl4j-benchmarks/target/benchmarks.jar TableBenchmark -prof gc

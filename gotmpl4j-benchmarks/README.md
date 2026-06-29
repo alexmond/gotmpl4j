@@ -12,12 +12,28 @@ Not published (no Maven Central deploy); excluded from the lint/coverage gates.
 
 ```bash
 ./mvnw -q -pl gotmpl4j-benchmarks -am package   # produces target/benchmarks.jar (shaded)
-java -jar gotmpl4j-benchmarks/target/benchmarks.jar            # run everything
+# Quotable run: multiple forks + ~100 iterations (a single short run is noise-dominated)
+java -jar gotmpl4j-benchmarks/target/benchmarks.jar -f 2 -wi 5 -i 100        # run everything
 java -jar gotmpl4j-benchmarks/target/benchmarks.jar TableBenchmark -prof gc   # one class + alloc profiling
 java -jar gotmpl4j-benchmarks/target/benchmarks.jar -l         # list benchmarks
 ```
 
 Common flags: `-f <forks> -wi <warmup-iters> -i <measure-iters> -p n=100` (table size).
+
+### Methodology (always run this way)
+
+**A single short run is not a quotable number.** Throughput here is noise-dominated — especially
+under machine load — so any figure published or compared must come from a high-fidelity run:
+
+- **Multiple forks** (`-f 2`+; `-f 3` for headline comparisons) so cross-fork variance is real.
+- **~100 measurement iterations** (`-i 100`) on an *otherwise-idle* box, until the JMH error
+  band is ±1–2 %. Quote the band, not just the score.
+- Re-measure the **Go reference in the same session** (`go test -bench … -benchtime 3s -count 2`)
+  so both runtimes see the same machine state.
+
+Treat anything noisier (`-i 5`, single fork, machine busy) as a *smoke test* only. This bit us
+once: numbers measured under build load understated gotmpl4j ~20 % and wrongly showed Go winning
+`printf` — a clean `-i 100` run corrected both.
 
 ## What's measured
 
@@ -56,22 +72,23 @@ Cross-runtime (JVM vs Go) — read as *indicative* ("within N× of native"), not
 
 ## Results (indicative)
 
-Render throughput, **ops/µs (higher is better)**, JMH 2 forks × 5 iterations on a dev
-workstation (JDK 17) — re-run on your own hardware before quoting:
+Render throughput, **ops/µs (higher is better)**, JMH **2 forks × 100 measurement iterations**
+(±1–2 % bands) on an otherwise-idle dev workstation (JDK 17) — re-run on your own hardware
+before quoting. A single short run is noise-dominated; see *Methodology* below.
 
 | Workload | gotmpl4j | FreeMarker | Thymeleaf | Mustache | Pebble | Go `text/template` (ref) |
 |---|---|---|---|---|---|---|
-| Interpolation   | 3.16  | 1.78  | 0.17  | **4.18** | 2.46  | 0.94 |
-| Table, 10 rows  | **0.058** | 0.051 | 0.010 | **0.058** | 0.054 | 0.020 |
-| Table, 100 rows | 0.0059 | 0.0055 | 0.0013 | **0.0060** | 0.0055 | 0.0023 |
-| Table, 1000 rows | 0.00060 | 0.00053 | 0.00013 | 0.00060 | 0.00056 | 0.00021 |
+| Interpolation   | 3.20  | 1.84  | 0.19  | **4.25** | 2.69  | 1.08 |
+| Table, 10 rows  | 0.061 | 0.053 | 0.012 | **0.062** | 0.056 | 0.021 |
+| Table, 100 rows | 0.0060 | 0.0058 | 0.0013 | **0.0064** | 0.0060 | 0.0021 |
+| Table, 1000 rows | 0.00060 | 0.00053 | 0.00013 | **0.00070** | 0.00060 | 0.00021 |
 
-**gotmpl4j leads the interpreter pack on the table** — it *ties logic-less Mustache* for the
-top spot and edges out Pebble and FreeMarker on the loop-and-conditional stocks workload, a
-strong result for a full Go-template + Sprig interpreter (the float-formatting + allocation
-optimizations land right on this two-doubles-per-row workload). On interpolation it's second
-only to Mustache (thinnest render path), well ahead of Pebble/FreeMarker and far ahead of
-Thymeleaf. The headline: gotmpl4j is the **only** engine here that speaks Go `text/template` +
+**gotmpl4j sits in the top tier on the table** — neck-and-neck with Pebble, ahead of FreeMarker,
+far ahead of Thymeleaf, and a hair behind only logic-less Mustache on the loop-and-conditional
+stocks workload, a strong result for a full Go-template + Sprig interpreter (the float-formatting
++ allocation optimizations land right on this two-doubles-per-row workload). On interpolation
+it's second only to Mustache (thinnest render path), well ahead of Pebble/FreeMarker and far
+ahead of Thymeleaf. The headline: gotmpl4j is the **only** engine here that speaks Go `text/template` +
 Sprig, and it pays no throughput penalty for that — it renders the *same* template Go does,
 faster than native Go on the JVM. **Fairness note:** all five JVM engines materialise the
 output (a `String`/`StringWriter`), so those columns are apples-to-apples; the Go bench writes
@@ -93,16 +110,16 @@ implementation, **native Go `text/template` + Masterminds/sprig**, on the same t
 
 | Workload | gotmpl4j | Go+Sprig (ref) | gotmpl4j is | Exercises |
 |---|--:|--:|---|---|
-| Sprig pipeline | **0.20** | 0.016 | **12× faster** | `upper \| trunc \| trimSuffix \| repeat \| quote` |
-| Control flow | **0.14** | 0.015 | **9× faster** | nested `if`/`else if`/`else`, `with`, `range … else` |
-| List / dict | **0.16** | 0.027 | **6× faster** | `dict`, `keys`, `sortAlpha`, `index`, `join`, `len` |
-| Composition | **0.12** | 0.022 | **5× faster** | `define` + `template` per row |
-| Large output | **0.025** | 0.013 | **2× faster** | 200-element loop (writer-stress) |
-| `printf` | 0.011 | **0.0135** | 0.8× (Go ~1.2×) | `printf "%s=%d (%.2f%%)"` — verb-parse dominates |
+| Sprig pipeline | **0.24** | 0.015 | **16× faster** | `upper \| trunc \| trimSuffix \| repeat \| quote` |
+| Control flow | **0.16** | 0.012 | **14× faster** | nested `if`/`else if`/`else`, `with`, `range … else` |
+| List / dict | **0.17** | 0.019 | **9× faster** | `dict`, `keys`, `sortAlpha`, `index`, `join`, `len` |
+| Composition | **0.13** | 0.020 | **6.7× faster** | `define` + `template` per row |
+| Large output | **0.027** | 0.012 | **2.2× faster** | 200-element loop (writer-stress) |
+| `printf` | **0.013** | 0.011 | **1.2× faster** | `printf "%s=%d (%.2f%%)"` — verb-parse dominates |
 
-gotmpl4j beats native Go+Sprig 2–12× across the Sprig/control-flow surface (JVM JIT vs the Go
-interpreter). `printf` is the lone hold-out — Go ~1.2× faster, narrowed from ~2× by
-pre-compiling printf's rewrite patterns (#83: −67% alloc, +57% throughput).
+gotmpl4j beats native Go+Sprig on **every** feature workload — 6–16× across the Sprig/control-flow
+surface, and now **ahead on `printf`** too (Go's old ~2× win flipped to a ~1.2× win by #83:
+−67 % alloc, +57 % throughput).
 
 ### Optimization history (before → after)
 
