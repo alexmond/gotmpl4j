@@ -6,6 +6,13 @@ All notable changes to gotmpl4j are documented here. The format follows
 
 ## [Unreleased]
 
+### Docs
+- `ParseBenchmark` now measures cold parse/compile cost across the same engines as the render
+  suite (gotmpl4j, FreeMarker, Mustache, Pebble; Mustache/Pebble forced to re-parse rather than
+  hit their template caches). Added a cross-engine *Parse / compile cost* table to the
+  Performance page: gotmpl4j parses ~3× faster than FreeMarker and slower than the leaner
+  Mustache/Pebble grammars, with parse a one-time cost amortised across renders.
+
 ## [1.2.0] — 2026-06-29
 
 ### Added
