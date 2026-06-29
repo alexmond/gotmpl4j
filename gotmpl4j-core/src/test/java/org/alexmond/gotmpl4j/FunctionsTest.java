@@ -1,5 +1,6 @@
 package org.alexmond.gotmpl4j;
 
+import java.io.StringWriter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -138,6 +139,38 @@ class FunctionsTest {
 		Function printf = Functions.GO_BUILTINS.get("printf");
 		assertEquals("%!d(string=4Gi)", printf.invoke(new Object[] { "%d", "4Gi" }));
 		assertEquals("port=%!d(string=7000)", printf.invoke(new Object[] { "port=%d", "7000" }));
+	}
+
+	@Test
+	void testPrintfTypeVerbEmitsGoTypeName() {
+		// Go's %T prints the argument's TYPE, not its value. Charts type-switch on this
+		// (e.g. signoz's renderEnv: `eq (printf "%T" $v) "string"` to splice a valueFrom
+		// block vs a plain `value:`).
+		Function printf = Functions.GO_BUILTINS.get("printf");
+		assertEquals("string", printf.invoke(new Object[] { "%T", "hello" }));
+		assertEquals("int", printf.invoke(new Object[] { "%T", 5L }));
+		assertEquals("bool", printf.invoke(new Object[] { "%T", true }));
+		assertEquals("float64", printf.invoke(new Object[] { "%T", 1.5 }));
+		assertEquals("map[string]interface {}", printf.invoke(new Object[] { "%T", new java.util.HashMap<>() }));
+		assertEquals("[]interface {}", printf.invoke(new Object[] { "%T", new java.util.ArrayList<>() }));
+		assertEquals("type=string", printf.invoke(new Object[] { "type=%T", "x" }));
+	}
+
+	@Test
+	void testPrintfTypeVerbDrivesTemplateTypeSwitch() throws Exception {
+		// End-to-end: the signoz renderEnv pattern type-switches on printf "%T".
+		String tmpl = "{{- if eq (printf \"%T\" .v) \"string\" }}STR"
+				+ "{{- else if eq (printf \"%T\" .v) \"map[string]interface {}\" }}MAP{{- else }}OTHER{{- end }}";
+		assertEquals("STR", renderTemplate(tmpl, Map.of("v", "valueFrom:\n  x")));
+		assertEquals("MAP", renderTemplate(tmpl, Map.of("v", Map.of("a", 1))));
+	}
+
+	private String renderTemplate(String template, Map<String, Object> data) throws Exception {
+		GoTemplate tmpl = new GoTemplate();
+		tmpl.parse("test", template);
+		StringWriter writer = new StringWriter();
+		tmpl.execute(data, writer);
+		return writer.toString();
 	}
 
 	@Test
