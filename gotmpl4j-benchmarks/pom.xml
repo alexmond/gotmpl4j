@@ -72,6 +72,16 @@
 
     <build>
         <plugins>
+            <!-- This throwaway harness must NOT be published. maven.deploy.skip only stops the
+                 maven-deploy-plugin; the central-publishing-maven-plugin (active in the release
+                 profile) has its own skip and would otherwise bundle this module to Central. -->
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <configuration>
+                    <skipPublishing>true</skipPublishing>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
