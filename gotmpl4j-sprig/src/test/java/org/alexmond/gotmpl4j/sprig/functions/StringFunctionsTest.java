@@ -59,6 +59,12 @@ class StringFunctionsTest {
 					"{{ title \"hello-world\" }}                    | Hello-World",
 					"{{ repeat 3 \"ab\" }}                          | ababab",
 					"{{ substr 0 5 \"Hello World\" }}               | Hello",
+					// Masterminds semantics: negative/out-of-range end slices to the end
+					// of
+					// the string (#85), negative start slices from the beginning.
+					"{{ substr 1 -1 \"pod\" }}                      | od",
+					"{{ substr 6 -1 \"Hello World\" }}             | World",
+					"{{ substr -1 5 \"Hello World\" }}             | Hello",
 					"{{ trim \"  hello  \" }}                       | hello",
 					"{{ trimAll \"$\" \"$5.00\" }}                  | 5.00",
 					"{{ trimPrefix \"hello \" \"hello world\" }}    | world",
