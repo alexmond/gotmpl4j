@@ -31,6 +31,9 @@ breakdown.
 | `org.alexmond:gotmpl4j-sprig`
 | The Sprig function library, auto-discovered when on the classpath.
 
+| `org.alexmond:gotmpl4j-spring`
+| Spring-context template functions — `msg` (i18n), `env` (config), `bean`, and Spring Security helpers. See xref:spring-functions.adoc[Spring context functions].
+
 | `org.alexmond:gotmpl4j-spring-boot-starter`
 | Spring Boot auto-configuration: engine bean, configuration properties, compile cache, function beans, and an optional `ViewResolver`.
 |===

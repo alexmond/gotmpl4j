@@ -4,6 +4,7 @@
 * xref:sprig-functions.adoc[Sprig functions]
 * xref:extending-functions.adoc[Extending functions]
 * xref:spring-boot-starter.adoc[Spring Boot starter]
+* xref:spring-functions.adoc[Spring context functions]
 * xref:configuration.adoc[Configuration]
 * xref:architecture.adoc[Architecture]
 * xref:conformance.adoc[Conformance]

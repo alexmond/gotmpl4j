@@ -1,0 +1,108 @@
+= Spring context functions
+
+The `gotmpl4j-spring` module lets a template read from the *running Spring application* — i18n
+messages, the `Environment`/config, Spring beans, and the Security context — the way Thymeleaf's
+Spring dialect does (`#{...}`, `${@bean}`, `sec:authorize`), but as Go-template functions and
+without any Spring dependency leaking into `gotmpl4j-core`.
+
+[NOTE]
+====
+These functions target *developer-authored* (trusted) templates. The `bean` function in
+particular is a server-side template-injection vector if a template is ever built from untrusted
+input — it is **off by default**.
+====
+
+== Getting it
+
+`gotmpl4j-spring` ships with the Spring Boot starter, so a Boot application gets these functions
+automatically:
+
+[source,xml,subs="attributes"]
+----
+<dependency>
+    <groupId>org.alexmond</groupId>
+    <artifactId>gotmpl4j-spring-boot-starter</artifactId>
+    <version>{page-component-version}</version>
+</dependency>
+----
+
+The module carries a Spring Boot auto-configuration that registers a `FunctionProvider` bean
+wired to the live context; the engine picks it up automatically. It is also usable standalone
+(add `gotmpl4j-spring` directly) — for example to render a Go/Helm-style config template against
+the application's own `Environment`, with no web layer.
+
+== Functions
+
+=== `msg` — messages / i18n
+
+Resolves a message through Spring's `MessageSource` using the request locale
+(`LocaleContextHolder`). Arguments after the code are the message arguments; a missing key
+renders the code itself (it never throws mid-render). Always on.
+
+[source,gotemplate]
+----
+{{ msg "greeting.hello" .name }}      ⟶  Hello, Ada!   (greeting.hello=Hello, {0}!)
+{{ msg "no.such.key" }}               ⟶  no.such.key
+----
+
+=== `env` — Environment / config
+
+Reads a property from the Spring `Environment`, with an optional default. Always on. Pairs well
+with gotmpl4j's Helm-style config rendering.
+
+[source,gotemplate]
+----
+{{ env "app.title" }}
+{{ env "feature.flag" "off" }}
+----
+
+=== `bean` — application beans (opt-in)
+
+Resolves a bean from the `ApplicationContext`; combine with field/method access to read from it.
+*Off by default* — enable with `gotmpl4j.spring.expose-beans=true`, and prefer to narrow it with
+an allow-list.
+
+[source,gotemplate]
+----
+{{ (bean "catalog").FeaturedItem }}
+{{ $u := bean "userService" }}{{ $u.CurrentUser.Name }}
+----
+
+=== Spring Security (when on the classpath)
+
+When `spring-security-core` is present, security functions are registered too — the
+`thymeleaf-extras-springsecurity` equivalent. They read the current `Authentication` from
+`SecurityContextHolder`. `spring-security-core` is an *optional* dependency, so apps without
+Spring Security pull nothing extra and these functions simply don't appear.
+
+[cols="2,3",options="header"]
+|===
+| Function | Meaning
+| `{{ isAuthenticated }}` | `true` for a non-anonymous, authenticated principal
+| `{{ hasRole "ADMIN" }}` | authority check, `ROLE_` prefix added (Spring convention)
+| `{{ hasAnyRole "EDITOR" "ADMIN" }}` | any of the roles
+| `{{ hasAuthority "SCOPE_read" }}` | exact authority, no prefix
+| `{{ username }}` / `{{ principal }}` | the authenticated name / the principal object
+|===
+
+[source,gotemplate]
+----
+{{ if isAuthenticated }}Signed in as {{ username }}{{ else }}Please sign in{{ end }}
+{{ if hasRole "ADMIN" }}<a href="/admin">Admin</a>{{ end }}
+----
+
+== Configuration
+
+[cols="3,1,4",options="header"]
+|===
+| Property | Default | Description
+| `gotmpl4j.spring.enabled` | `true` | Master switch for the Spring-context functions.
+| `gotmpl4j.spring.expose-beans` | `false` | Allow the `bean` function to resolve from the context.
+| `gotmpl4j.spring.allowed-beans` | _(empty)_ | Optional allow-list of bean names `bean` may resolve (empty = any, when `expose-beans` is on).
+|===
+
+== Priority
+
+These functions register at priority 300 — above Sprig (100) and Helm (200) — so on a name
+clash the Spring-context function wins. They contribute new names, so clashes are unlikely in
+practice.
