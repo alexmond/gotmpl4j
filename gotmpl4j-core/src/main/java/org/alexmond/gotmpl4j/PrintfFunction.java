@@ -17,6 +17,29 @@ import java.util.regex.Pattern;
  */
 final class PrintfFunction {
 
+	// Go-verb → Java-verb rewrite patterns, compiled once. printf() applied these via
+	// String.replaceAll(String, …) which recompiles the regex on every call — the
+	// dominant
+	// cost of printf (Pattern compilation: int[] program + Pattern + Matcher per call).
+	private static final Pattern VERB_V = Pattern.compile("%#?v");
+
+	private static final Pattern VERB_TYPE = Pattern.compile("%T");
+
+	private static final Pattern VERB_POINTER = Pattern.compile("%p");
+
+	private static final Pattern VERB_BOOL = Pattern.compile("%t");
+
+	private static final Pattern VERB_G = Pattern.compile("(?<!%)%([gG])(?![0-9a-zA-Z.])");
+
+	private static final Pattern VERB_QUOTE = Pattern.compile("%q");
+
+	// A %-specifier capturing its trailing verb letter (extractVerbs,
+	// fillMissingSpecifiers).
+	private static final Pattern SPEC_WITH_VERB = Pattern.compile("%[^%]*?([a-zA-Z])");
+
+	// A %-specifier without the capture group (forceSpecifiersToString).
+	private static final Pattern SPEC = Pattern.compile("%[^%]*?[a-zA-Z]");
+
 	private PrintfFunction() {
 	}
 
@@ -30,18 +53,17 @@ final class PrintfFunction {
 			// way Go does (it keys the marker off the original verb, e.g. %v vs %s).
 			List<Character> origVerbs = extractVerbs(format);
 
-			// Translate Go format verbs to Java equivalents
-			format = format.replaceAll("%#?v", "%s"); // %v and %#(v) -> %s
-			format = format.replaceAll("%T", "%s"); // %(T) -> %s
-			format = format.replaceAll("%p", "%s"); // %(p) -> %s
-			format = format.replaceAll("%t", "%b"); // Go bool verb %t -> Java %b (Java %t
-													// is dates)
+			// Translate Go format verbs to Java equivalents (pre-compiled patterns)
+			format = VERB_V.matcher(format).replaceAll("%s"); // %v and %#(v) -> %s
+			format = VERB_TYPE.matcher(format).replaceAll("%s"); // %(T) -> %s
+			format = VERB_POINTER.matcher(format).replaceAll("%s"); // %(p) -> %s
+			format = VERB_BOOL.matcher(format).replaceAll("%b"); // Go bool %t -> Java %b
 			// A bare %g/%G prints the shortest float64 in Go, but Java's %g uses fixed
 			// precision (3.5 -> "3.50000"). Route it through %s, which formats a float
 			// via
 			// GoFmt (Go's shortest %g). Specifiers with flags/precision (%.3g) are
 			// untouched.
-			format = format.replaceAll("(?<!%)%([gG])(?![0-9a-zA-Z.])", "%s");
+			format = VERB_G.matcher(format).replaceAll("%s");
 			// %q is kept for now — unlike %s it double-quotes its argument (Go strconv.
 			// Quote), so the corresponding arg is quoted below before %q -> %s.
 
@@ -57,7 +79,7 @@ final class PrintfFunction {
 			Set<Integer> markerSlots = new HashSet<>();
 			Object[] realArgs = buildPrintfArgs(args, specTypes, origVerbs, markerSlots);
 			// The %q arguments are now pre-quoted strings, so render them with %s.
-			format = format.replaceAll("%q", "%s");
+			format = VERB_QUOTE.matcher(format).replaceAll("%s");
 			if (!markerSlots.isEmpty()) {
 				format = forceSpecifiersToString(format, markerSlots);
 			}
@@ -110,7 +132,15 @@ final class PrintfFunction {
 			char spec = (i < specTypes.size()) ? specTypes.get(i) : '\0';
 			char ov = (i < origVerbs.size()) ? origVerbs.get(i) : spec;
 			Object raw = args[i + 1];
-			if (raw == null) {
+			if (ov == 'T') {
+				// Go's %T prints the argument's TYPE name (e.g. "string",
+				// "map[string]interface {}"), not its value. The verb was already
+				// rewritten to %s, so emit the type name as the string argument. Charts
+				// type-switch on this (e.g. signoz's renderEnv: eq (printf "%T" $v)
+				// "string").
+				realArgs[i] = (raw != null) ? goTypeName(raw) : "<nil>";
+			}
+			else if (raw == null) {
 				// Go prints a bad-verb marker for a nil argument: %v -> <nil>, every
 				// other
 				// verb -> %!verb(<nil>). We only have a plain-string slot here (spec 's',
@@ -143,7 +173,7 @@ final class PrintfFunction {
 	 * @return the verbs in left-to-right order
 	 */
 	private static List<Character> extractVerbs(String format) {
-		Matcher m = Pattern.compile("%[^%]*?([a-zA-Z])").matcher(format);
+		Matcher m = SPEC_WITH_VERB.matcher(format);
 		List<Character> verbs = new ArrayList<>();
 		while (m.find()) {
 			verbs.add(m.group(1).charAt(0));
@@ -196,7 +226,7 @@ final class PrintfFunction {
 	 * @return the format with those specifiers replaced by {@code %s}
 	 */
 	private static String forceSpecifiersToString(String format, Set<Integer> positions) {
-		Matcher m = Pattern.compile("%[^%]*?[a-zA-Z]").matcher(format);
+		Matcher m = SPEC.matcher(format);
 		StringBuilder sb = new StringBuilder(format.length());
 		int idx = 0;
 		while (m.find()) {
@@ -251,7 +281,7 @@ final class PrintfFunction {
 	 * @return the format string with surplus verbs turned into literal MISSING markers
 	 */
 	private static String fillMissingSpecifiers(String format, int argCount) {
-		Matcher m = Pattern.compile("%[^%]*?([a-zA-Z])").matcher(format);
+		Matcher m = SPEC_WITH_VERB.matcher(format);
 		StringBuilder sb = new StringBuilder(format.length());
 		int idx = 0;
 		while (m.find()) {
