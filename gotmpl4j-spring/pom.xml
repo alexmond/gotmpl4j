@@ -43,6 +43,13 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
+        <!-- Spring Security is optional: the hasRole/isAuthenticated/principal functions are
+             only auto-configured when it is on the application's classpath. -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+            <optional>true</optional>
+        </dependency>
 
         <!-- Tests. -->
         <dependency>
