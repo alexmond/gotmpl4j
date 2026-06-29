@@ -32,6 +32,8 @@ public class ParseBenchmark {
 
 	private String gotmplSource;
 
+	private String gotmplLargeSource;
+
 	private String freemarkerSource;
 
 	private Configuration freemarkerConfig;
@@ -39,15 +41,44 @@ public class ParseBenchmark {
 	@Setup
 	public void setup() {
 		this.gotmplSource = Templates.load("table.gotmpl");
+		this.gotmplLargeSource = largeChartTemplate();
 		this.freemarkerSource = Templates.load("table.ftl");
 		this.freemarkerConfig = new Configuration(Configuration.VERSION_2_3_32);
 		this.freemarkerConfig.setLogTemplateExceptions(false);
+	}
+
+	// A Helm-chart-shaped template: multi-KB of YAML text with hundreds of {{ … }}
+	// actions and
+	// no comments — the shape where the lexer's per-{{ work (delimiter/comment scanning)
+	// dominates, as profiled in the jhelm chart-render workload (#95).
+	private static String largeChartTemplate() {
+		StringBuilder sb = new StringBuilder(16384);
+		for (int i = 0; i < 60; i++) {
+			sb.append("apiVersion: apps/v1\nkind: Deployment\nmetadata:\n");
+			sb.append("  name: {{ .Values.name").append(i).append(" }}\n");
+			sb.append("  labels:\n    app: {{ .Values.app }}\n    release: {{ .Release.Name }}\n");
+			sb.append("spec:\n  replicas: {{ .Values.replicas").append(i).append(" }}\n");
+			sb.append("  template:\n    spec:\n      containers:\n      - name: {{ .Values.container }}\n");
+			sb.append("        image: {{ .Values.image }}:{{ .Values.tag }}\n");
+			sb.append("        {{- if .Values.resources }}\n        resources:\n          limits:\n");
+			sb.append("            cpu: {{ .Values.cpu }}\n            memory: {{ .Values.mem }}\n");
+			sb.append("        {{- end }}\n        env:\n        {{- range $k, $v := .Values.env }}\n");
+			sb.append("        - name: {{ $k }}\n          value: {{ $v | quote }}\n        {{- end }}\n---\n");
+		}
+		return sb.toString();
 	}
 
 	@Benchmark
 	public GoTemplate gotmpl4jParse() {
 		GoTemplate t = new GoTemplate();
 		t.parse("table", this.gotmplSource);
+		return t;
+	}
+
+	@Benchmark
+	public GoTemplate gotmpl4jParseLargeChart() {
+		GoTemplate t = new GoTemplate();
+		t.parse("chart", this.gotmplLargeSource);
 		return t;
 	}
 
