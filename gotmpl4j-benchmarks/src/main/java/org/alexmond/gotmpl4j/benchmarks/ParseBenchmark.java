@@ -3,8 +3,12 @@ package org.alexmond.gotmpl4j.benchmarks;
 import java.io.StringReader;
 import java.util.concurrent.TimeUnit;
 
+import com.github.mustachejava.DefaultMustacheFactory;
+import com.github.mustachejava.Mustache;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
+import io.pebbletemplates.pebble.PebbleEngine;
+import io.pebbletemplates.pebble.template.PebbleTemplate;
 import org.alexmond.gotmpl4j.GoTemplate;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -18,9 +22,13 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
 
 /**
- * Parse/compile cost of the table template (cold, per template). Thymeleaf is omitted:
- * its public API ({@code TemplateEngine.process}) does not cleanly separate parse from
- * render, so a comparable parse-only measurement isn't available.
+ * Parse/compile cost of the table template (cold, per template), measured across the same
+ * engines as the render suite. Each engine re-parses on every invocation: Mustache via a
+ * fresh {@code DefaultMustacheFactory} (its compiled-template cache lives on the factory)
+ * and Pebble via a {@code cacheActive(false)} engine, so the number is a real parse, not
+ * a cache lookup. Thymeleaf is omitted: its public API ({@code TemplateEngine.process})
+ * does not cleanly separate parse from render, so a comparable parse-only measurement
+ * isn't available.
  */
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
@@ -38,6 +46,12 @@ public class ParseBenchmark {
 
 	private Configuration freemarkerConfig;
 
+	private String mustacheSource;
+
+	private String pebbleSource;
+
+	private PebbleEngine pebbleEngine;
+
 	@Setup
 	public void setup() {
 		this.gotmplSource = Templates.load("table.gotmpl");
@@ -45,6 +59,12 @@ public class ParseBenchmark {
 		this.freemarkerSource = Templates.load("table.ftl");
 		this.freemarkerConfig = new Configuration(Configuration.VERSION_2_3_32);
 		this.freemarkerConfig.setLogTemplateExceptions(false);
+		this.mustacheSource = Templates.load("table.mustache");
+		this.pebbleSource = Templates.load("table.pebble");
+		// cacheActive(false) makes getLiteralTemplate re-parse every call (else it caches
+		// by
+		// the literal source and we'd be timing a map lookup, not a parse).
+		this.pebbleEngine = new PebbleEngine.Builder().autoEscaping(false).cacheActive(false).build();
 	}
 
 	// A Helm-chart-shaped template: multi-KB of YAML text with hundreds of {{ … }}
@@ -85,6 +105,16 @@ public class ParseBenchmark {
 	@Benchmark
 	public Template freemarkerParse() throws Exception {
 		return new Template("table", new StringReader(this.freemarkerSource), this.freemarkerConfig);
+	}
+
+	@Benchmark
+	public Mustache mustacheParse() {
+		return new DefaultMustacheFactory().compile(new StringReader(this.mustacheSource), "table");
+	}
+
+	@Benchmark
+	public PebbleTemplate pebbleParse() {
+		return this.pebbleEngine.getLiteralTemplate(this.pebbleSource);
 	}
 
 }

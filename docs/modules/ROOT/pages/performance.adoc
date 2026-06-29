@@ -100,6 +100,37 @@ two-thirds and lifted throughput +57 %, flipping it from a ~2× loss to a ~1.2×
 the table, the Go column writes to `io.Discard` while gotmpl4j materialises a `String`, so Go
 does strictly less work — yet still loses on all six.)
 
+== Parse / compile cost
+
+Render is the hot path (it runs per request), but a template is also parsed once — `helm
+template`-style one-shot workloads pay it on every invocation. `ParseBenchmark` measures that
+cold parse across the same engines, using the identical `table` template each renders. Each
+engine is made to re-parse on every call (Mustache via a fresh `DefaultMustacheFactory`, Pebble
+via a `cacheActive(false)` engine), so the number is a real parse, not a cached-template lookup.
+Thymeleaf is omitted — its API doesn't separate parse from render.
+
+[cols="2,>1,>1,3",options="header"]
+|===
+| Engine | µs/op | Alloc (B/op) | Grammar parsed
+| Mustache | *16.8* | 9,936 | logic-less tags only
+| Pebble | 69.7 | 76,955 | expressions + filters
+| *gotmpl4j* | *123.0* | 81,956 | full Go actions — pipelines, `if`/`range`/`with`, `{{- -}}` trim, `define`/`template`
+| FreeMarker | 384.5 | 68,187 | full directive language
+|===
+
+The ordering tracks **grammar richness, not engine quality**: Mustache parses fastest because it
+has almost nothing to parse (logic-less tags), while gotmpl4j parses Go's entire action grammar.
+gotmpl4j parses ~3× faster than FreeMarker (the other full-feature engine) and slower than the
+leaner Mustache/Pebble. Parse is a *one-time* cost amortised across every render — the render
+tables above are the fair head-to-head. gotmpl4j is also the heaviest table-parser on allocation
+(a `Token` object plus a substring value per token, inherent to the token-list model); the
+xref:performance.adoc#_parse_path[#96/#97 work] trimmed the secondary allocation, and the
+remaining bulk would need an offset-based token redesign.
+
+A second benchmark, `gotmpl4jParseLargeChart`, parses a Helm-chart-shaped template (multi-KB of
+YAML, hundreds of actions) at *1,169 µs/op* and *1.25 MB/op* — the workload where the #96 lexer
+fix turned an O(n²) scan into a ~5× speedup. See _Optimization history → Parse path_ below.
+
 == Where gotmpl4j sits in the wider field
 
 The engines above are all *interpreters* (they walk an AST at render time). A separate tier of
