@@ -130,6 +130,9 @@ java -jar gotmpl4j-benchmarks/target/benchmarks.jar -f 2 -wi 5 -i 100
 java -jar gotmpl4j-benchmarks/target/benchmarks.jar "InterpolationBenchmark|TableBenchmark" -f 2 -wi 5 -i 100
 java -jar gotmpl4j-benchmarks/target/benchmarks.jar FeatureBenchmark -f 2 -wi 5 -i 100
 
+# Parse/compile cost (incl. the Helm-chart-shaped large template)
+java -jar gotmpl4j-benchmarks/target/benchmarks.jar ParseBenchmark -f 2 -wi 5 -i 100 -prof gc
+
 # One class, with allocation profiling
 java -jar gotmpl4j-benchmarks/target/benchmarks.jar TableBenchmark -prof gc
 
@@ -162,3 +165,24 @@ per-class property accessor map (amortising JavaBeans introspection across rende
 with no intermediate substrings, reusing per-thread scratch buffers for that formatting, and
 replacing the synchronized `StringWriter` output sink with an unsynchronized `StringBuilder`.
 Each was found and verified with jvmlens plus a multi-fork JMH `gc.alloc.rate.norm` A/B.
+
+=== Parse path
+
+The lexer/parser is exercised separately by `ParseBenchmark`, including a Helm-chart-shaped
+template (multi-KB of YAML with hundreds of `+{{ … }}+` actions) — the shape where parse cost,
+not render cost, dominates a `helm template` run.
+
+[cols="3,2,2",options="header"]
+|===
+| Change | Workload | Result
+| Lexer "starts-at" checks via `startsWith`, not an `indexOf` rest-of-template scan | Parse large chart | 6.9 ms → 1.3 ms (≈*5× faster*)
+| `ArrayList` `PipeNode`/`ChainNode` + presized token list | Parse large chart | 1,267,634 → 1,248,089 B/op (−1.5%)
+|===
+
+The lexer win was a genuine O(n²): each `+{{+` re-scanned the entire remaining template to test
+whether a delimiter/comment _started_ at the cursor, so cost grew with template length × action
+count. Replacing the four `input.indexOf(delim, pos) == pos` checks with `startsWith(delim, pos)`
+makes each check local — parse output is byte-identical (conformance green) and allocation is
+unchanged; it is pure CPU. The follow-up `ArrayList` node lists trim a small, deterministic slice
+of parse allocation; the dominant remaining cost (a `Token` object plus a substring value per
+token) is inherent to the token-list model and would need an offset-based token redesign to move.

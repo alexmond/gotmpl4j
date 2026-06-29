@@ -10,6 +10,7 @@ asciidoc:
     # version is derived by Antora from the tag the hub pins, so it needs no manual bump.
     api-core: 'https://javadoc.io/page/org.alexmond/gotmpl4j-core'
     api-sprig: 'https://javadoc.io/page/org.alexmond/gotmpl4j-sprig'
+    api-spring: 'https://javadoc.io/page/org.alexmond/gotmpl4j-spring'
     api-starter: 'https://javadoc.io/page/org.alexmond/gotmpl4j-spring-boot-starter'
     toc: left
     sectnums: ''

@@ -57,6 +57,7 @@ lets you jump between releases):
 
 * {api-core}/{page-component-version}/index.html[`gotmpl4j-core` API^] — the engine, `GoTemplate`, the function SPI.
 * {api-sprig}/{page-component-version}/index.html[`gotmpl4j-sprig` API^] — the Sprig function library.
+* {api-spring}/{page-component-version}/index.html[`gotmpl4j-spring` API^] — Spring-context template functions (messages, config, beans, security, web).
 * {api-starter}/{page-component-version}/index.html[`gotmpl4j-spring-boot-starter` API^] — the Spring Boot integration.
 
 == License
