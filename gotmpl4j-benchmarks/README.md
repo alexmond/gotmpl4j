@@ -93,15 +93,16 @@ implementation, **native Go `text/template` + Masterminds/sprig**, on the same t
 
 | Workload | gotmpl4j | Go+Sprig (ref) | gotmpl4j is | Exercises |
 |---|--:|--:|---|---|
-| Sprig pipeline | **0.18** | 0.016 | **11× faster** | `upper \| trunc \| trimSuffix \| repeat \| quote` |
-| Control flow | **0.14** | 0.015 | **10× faster** | nested `if`/`else if`/`else`, `with`, `range … else` |
-| List / dict | **0.15** | 0.028 | **5.5× faster** | `dict`, `keys`, `sortAlpha`, `index`, `join`, `len` |
-| Composition | **0.11** | 0.023 | **5× faster** | `define` + `template` per row |
-| Large output | **0.024** | 0.012 | **2× faster** | 200-element loop (writer-stress) |
-| `printf` | 0.007 | **0.013** | 0.5× (Go wins) | `printf "%s=%d (%.2f%%)"` — format-parse dominates |
+| Sprig pipeline | **0.20** | 0.016 | **12× faster** | `upper \| trunc \| trimSuffix \| repeat \| quote` |
+| Control flow | **0.14** | 0.015 | **9× faster** | nested `if`/`else if`/`else`, `with`, `range … else` |
+| List / dict | **0.16** | 0.027 | **6× faster** | `dict`, `keys`, `sortAlpha`, `index`, `join`, `len` |
+| Composition | **0.12** | 0.022 | **5× faster** | `define` + `template` per row |
+| Large output | **0.025** | 0.013 | **2× faster** | 200-element loop (writer-stress) |
+| `printf` | 0.011 | **0.0135** | 0.8× (Go ~1.2×) | `printf "%s=%d (%.2f%%)"` — verb-parse dominates |
 
-gotmpl4j beats native Go+Sprig 2–11× across the Sprig/control-flow surface (JVM JIT vs the Go
-interpreter), except `printf` where Go is ~2× faster (gotmpl4j re-parses the format per call).
+gotmpl4j beats native Go+Sprig 2–12× across the Sprig/control-flow surface (JVM JIT vs the Go
+interpreter). `printf` is the lone hold-out — Go ~1.2× faster, narrowed from ~2× by
+pre-compiling printf's rewrite patterns (#83: −67% alloc, +57% throughput).
 
 ### Optimization history (before → after)
 
@@ -113,6 +114,7 @@ interpreter), except `printf` where Go is ~2× faster (gotmpl4j re-parses the fo
 | `floatString` without intermediate substrings (#77) | Table 1000 | — | 1,038,586 → 771,716 (−26%) |
 | Unsync writer + per-thread float scratch (#78) | Table 1000 | — | 771,716 → 644,082 (−17%) |
 | Drop per-call arg `subList` wrapper, ArrayList `CommandNode` (#80) | Sprig pipeline | — | 3,488 → 2,912 (−16%) |
+| Pre-compile `printf` regex patterns (#83) | printf | 0.007 → 0.011 ops/µs | 123,136 → 40,288 (−67%) |
 
 Cumulative on the table render: per-render allocation dropped **~two-thirds** vs the original
 baseline (n=1000: 2.05 MB → 0.64 MB, −69%). Every win was found with jvmlens (JFR → LLM-ready

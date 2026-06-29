@@ -83,18 +83,20 @@ gotmpl4j against native Go+Sprig — the most direct apples-to-apples there is.
 [cols="2,>1,>1,>1,3",options="header"]
 |===
 | Workload | gotmpl4j | Go+Sprig (ref) | gotmpl4j is | What it exercises
-| Sprig pipeline | *0.18* | 0.016 | *11× faster* | `{{ . \| upper \| trunc 5 \| trimSuffix "X" \| repeat 2 \| quote }}`
-| Control flow | *0.14* | 0.015 | *10× faster* | nested `if`/`else if`/`else`, `with`, `range … else`
-| List / dict | *0.15* | 0.028 | *5.5× faster* | `dict`, `keys`, `sortAlpha`, `index`, `join`, `len`
-| Composition | *0.11* | 0.023 | *5× faster* | `define` + `template` invocation per row
-| Large output | *0.024* | 0.012 | *2× faster* | 200-element loop, a paragraph each (writer-stress)
-| `printf` | 0.007 | *0.013* | 0.5× (Go wins) | `printf "%s=%d (%.2f%%)"` per row
+| Sprig pipeline | *0.20* | 0.016 | *12× faster* | `{{ . \| upper \| trunc 5 \| trimSuffix "X" \| repeat 2 \| quote }}`
+| Control flow | *0.14* | 0.015 | *9× faster* | nested `if`/`else if`/`else`, `with`, `range … else`
+| List / dict | *0.16* | 0.027 | *6× faster* | `dict`, `keys`, `sortAlpha`, `index`, `join`, `len`
+| Composition | *0.12* | 0.022 | *5× faster* | `define` + `template` invocation per row
+| Large output | *0.025* | 0.013 | *2× faster* | 200-element loop, a paragraph each (writer-stress)
+| `printf` | 0.011 | *0.0135* | 0.8× (Go ~1.2×) | `printf "%s=%d (%.2f%%)"` per row
 |===
 
-gotmpl4j **out-throughputs native Go+Sprig 2–11×** across the Sprig and control-flow surface —
-the JVM JIT versus the Go interpreter, the same dynamic as the table. The one exception is
-`printf`, where Go is ~2× faster: gotmpl4j re-parses the format string on every call (its
-~123 KB/op), an honest weakness and a clear future optimization. (As with the table, the Go
+gotmpl4j **out-throughputs native Go+Sprig 2–12×** across the Sprig and control-flow surface —
+the JVM JIT versus the Go interpreter, the same dynamic as the table. The lone hold-out is
+`printf`, where Go is still a touch faster (~1.2×): gotmpl4j re-parses the format string's verbs
+on every call. Pre-compiling its rewrite patterns (a per-call `Pattern.compile` was the cost)
+cut that allocation by two-thirds and lifted throughput +57% — closing the gap from ~2× to
+~1.2×; the residual is the per-call verb scan + `String.format`. (As with the table, the Go
 column writes to `io.Discard` while gotmpl4j materialises a `String`, so Go does less work —
 yet still loses on everything but `printf`.)
 
@@ -149,6 +151,7 @@ LLM-ready hot-path/allocation summary) and tuned along the way:
 | `floatString` without intermediate substrings | Table 1000 | — | 1,038,586 → 771,716 (−26%)
 | Unsync writer + per-thread float-format scratch | Table 1000 | — | 771,716 → 644,082 (−17%)
 | Drop per-call arg `subList` wrapper (ArrayList `CommandNode`) | Sprig pipeline | — | 3,488 → 2,912 (−16%)
+| Pre-compile `printf` regex patterns (static `Pattern`) | printf | 0.007 → 0.011 ops/µs | 123,136 → 40,288 (−67%)
 |===
 
 Cumulatively, per-render allocation on the table workload dropped by roughly *two-thirds* versus
