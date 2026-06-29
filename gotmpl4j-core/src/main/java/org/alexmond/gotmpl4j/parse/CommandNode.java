@@ -1,6 +1,6 @@
 package org.alexmond.gotmpl4j.parse;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
@@ -8,7 +8,12 @@ import lombok.Getter;
 @Getter
 public class CommandNode implements Node {
 
-	private final List<Node> arguments = new LinkedList<>();
+	// Append-only during parse, then random-accessed by index at render (executeFunction
+	// /
+	// executeArguments). An ArrayList makes those get(i) lookups O(1) instead of a
+	// LinkedList
+	// node-walk — the per-argument quadratic that dominated function-heavy templates.
+	private final List<Node> arguments = new ArrayList<>();
 
 	public void append(Node node) {
 		arguments.add(node);

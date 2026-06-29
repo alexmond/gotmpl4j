@@ -11,7 +11,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -834,10 +833,10 @@ public class Executor {
 		// Evaluate the method arguments (skip the first arg which is the node itself).
 		// In a chained pipeline the upstream value is passed as the method's final
 		// argument (Go: "arg | .Method x" calls Method(x, arg)).
-		List<Node> argNodes = cmdArgNodes.subList(1, cmdArgNodes.size());
+		int argCount = cmdArgNodes.size() - 1;
 		int extra = (pipelineValue != NO_PIPELINE) ? 1 : 0;
-		Object[] args = new Object[argNodes.size() + extra];
-		executeArguments(data, beanInfo, argNodes, args);
+		Object[] args = new Object[argCount + extra];
+		executeArguments(data, beanInfo, cmdArgNodes, 1, args);
 		if (extra == 1) {
 			args[args.length - 1] = pipelineValue;
 		}
@@ -881,9 +880,11 @@ public class Executor {
 				throw new TemplateExecutionException("call of null for " + identifier);
 			}
 
-			// Fix potential IndexOutOfBoundsException by checking size before subList
-			List<Node> functionArgNodes = (cmdArgNodes.size() > 1) ? cmdArgNodes.subList(1, cmdArgNodes.size())
-					: Collections.emptyList();
+			// Arguments are cmdArgNodes[1..] (index 0 is the function name); evaluate
+			// them
+			// directly from that offset so the hot call path allocates no subList
+			// wrapper.
+			int argCount = cmdArgNodes.size() - 1;
 
 			Object[] functionArgs;
 			if (finalValue != NO_PIPELINE) {
@@ -895,13 +896,13 @@ public class Executor {
 				// when implementing functions like 'default', for example.) The value is
 				// threaded even when it is null — Go passes a nil pipeline value through.
 
-				functionArgs = new Object[functionArgNodes.size() + 1];
-				executeArguments(data, beanInfo, functionArgNodes, functionArgs);
-				functionArgs[functionArgNodes.size()] = finalValue;
+				functionArgs = new Object[argCount + 1];
+				executeArguments(data, beanInfo, cmdArgNodes, 1, functionArgs);
+				functionArgs[argCount] = finalValue;
 			}
 			else {
-				functionArgs = new Object[functionArgNodes.size()];
-				executeArguments(data, beanInfo, functionArgNodes, functionArgs);
+				functionArgs = new Object[argCount];
+				executeArguments(data, beanInfo, cmdArgNodes, 1, functionArgs);
 			}
 
 			return function.invoke(functionArgs);
@@ -918,11 +919,10 @@ public class Executor {
 	 */
 	private Object executeAndOr(boolean isAnd, List<Node> cmdArgNodes, Object data, BeanInfo beanInfo,
 			Object finalValue) throws TemplateExecutionException {
-		List<Node> argNodes = (cmdArgNodes.size() > 1) ? cmdArgNodes.subList(1, cmdArgNodes.size())
-				: Collections.emptyList();
 		Object result = Boolean.FALSE;
-		for (Node node : argNodes) {
-			result = executeArgument(node, data, beanInfo);
+		// Operands are cmdArgNodes[1..]; iterate from that offset (no subList wrapper).
+		for (int i = 1; i < cmdArgNodes.size(); i++) {
+			result = executeArgument(cmdArgNodes.get(i), data, beanInfo);
 			if (isTrue(result) != isAnd) {
 				return result;
 			}
@@ -933,11 +933,15 @@ public class Executor {
 		return result;
 	}
 
-	private void executeArguments(Object data, BeanInfo beanInfo, List<Node> args, Object[] argumentValues)
+	// Evaluates args[from..] into argumentValues[0..]. Takes a start index rather than a
+	// subList view so the hot function-call path allocates no AbstractList$SubList
+	// wrapper;
+	// with CommandNode backed by ArrayList, get(i) is O(1).
+	private void executeArguments(Object data, BeanInfo beanInfo, List<Node> args, int from, Object[] argumentValues)
 			throws TemplateExecutionException {
-		for (int i = 0; i < args.size(); i++) {
-			Object value = executeArgument(args.get(i), data, beanInfo);
-			argumentValues[i] = value;
+		int size = args.size();
+		for (int i = from; i < size; i++) {
+			argumentValues[i - from] = executeArgument(args.get(i), data, beanInfo);
 		}
 	}
 
