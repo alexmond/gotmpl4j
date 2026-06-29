@@ -244,16 +244,28 @@ public final class StringFunctions {
 			int start = ((Number) args[0]).intValue();
 			int end = ((Number) args[1]).intValue();
 			String s = String.valueOf(args[2]);
+			int len = s.length();
+			// Masterminds/sprig semantics: a negative START means "from the beginning"
+			// (s[:end]); a negative or out-of-range END means "to the end" (s[start:]).
+			// So `substr 1 -1 "pod"` -> "od", not "" as a naive start>end check produced.
+			int from;
+			int to;
 			if (start < 0) {
-				start = 0;
+				from = 0;
+				to = end;
 			}
-			if (end > s.length()) {
-				end = s.length();
+			else if (end < 0 || end > len) {
+				from = start;
+				to = len;
 			}
-			if (start > end) {
-				return "";
+			else {
+				from = start;
+				to = end;
 			}
-			return s.substring(start, end);
+			// Clamp defensively so Java's substring never throws.
+			from = Math.max(0, Math.min(from, len));
+			to = Math.max(0, Math.min(to, len));
+			return (from < to) ? s.substring(from, to) : "";
 		};
 	}
 
