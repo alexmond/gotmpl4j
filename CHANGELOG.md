@@ -6,6 +6,14 @@ All notable changes to gotmpl4j are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- New module **`gotmpl4j-spring`** — template functions that read the running Spring
+  application ([#90]): `msg` (i18n via `MessageSource`), `env` (Spring `Environment`),
+  `bean` (`ApplicationContext` lookup, opt-in via `gotmpl4j.spring.expose-beans`), and Spring
+  Security helpers (`hasRole`/`hasAnyRole`/`hasAuthority`/`isAuthenticated`/`username`/
+  `principal`) when `spring-security-core` is on the classpath (an optional dependency). Auto-
+  configured; ships with the Spring Boot starter. ([#91], [#92])
+
 ## [1.1.5] — 2026-06-29
 
 ### Fixed
@@ -107,6 +115,9 @@ the Spring Boot starter, the conformance tooling, and Maven Central publishing e
 [1.1.1]: https://github.com/alexmond/gotmpl4j/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/alexmond/gotmpl4j/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/alexmond/gotmpl4j/releases/tag/1.0.0
+[#92]: https://github.com/alexmond/gotmpl4j/pull/92
+[#91]: https://github.com/alexmond/gotmpl4j/pull/91
+[#90]: https://github.com/alexmond/gotmpl4j/issues/90
 [#89]: https://github.com/alexmond/gotmpl4j/pull/89
 [#85]: https://github.com/alexmond/gotmpl4j/issues/85
 [#83]: https://github.com/alexmond/gotmpl4j/pull/83

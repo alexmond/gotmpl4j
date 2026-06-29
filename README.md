@@ -26,6 +26,7 @@ engine and Sprig funcmap for ground truth.
 |---|---|
 | `org.alexmond:gotmpl4j-core` | The engine: lexer → parser → AST → executor. Go builtins only; functions are pluggable via `ServiceLoader`. |
 | `org.alexmond:gotmpl4j-sprig` | The Sprig function library (strings, lists, dicts, math, crypto, date, semver, encoding, …), auto-discovered when on the classpath. |
+| `org.alexmond:gotmpl4j-spring` | Spring-context template functions — `msg` (i18n), `env` (config), `bean`, and Spring Security helpers (`hasRole`/`isAuthenticated`/…). Auto-configured; ships with the starter. |
 | `org.alexmond:gotmpl4j-spring-boot-starter` | Spring Boot auto-configuration: a ready-to-inject template engine, configuration properties, a compile cache, function beans, and an optional MVC `ViewResolver`. |
 
 ## Quick start
