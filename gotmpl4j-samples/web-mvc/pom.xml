@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.alexmond</groupId>
+        <artifactId>gotmpl4j-samples</artifactId>
+        <version>1.2.1-SNAPSHOT</version>
+    </parent>
+    <artifactId>gotmpl4j-sample-web-mvc</artifactId>
+
+    <name>gotmpl4j Sample — Spring Boot WebMVC</name>
+    <description>A single-page Spring Boot MVC app: a controller returns a view name and the
+        gotmpl4j starter's servlet ViewResolver renders templates/&lt;name&gt;.gotmpl.</description>
+
+    <properties>
+        <automatic.module.name>org.alexmond.gotmpl4j.samples.webmvc</automatic.module.name>
+    </properties>
+
+    <dependencies>
+        <!-- Spring MVC. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!-- The gotmpl4j starter: engine bean + auto-configured ViewResolver. -->
+        <dependency>
+            <groupId>org.alexmond</groupId>
+            <artifactId>gotmpl4j-spring-boot-starter</artifactId>
+        </dependency>
+        <!-- Sprig functions, usable inside the views. -->
+        <dependency>
+            <groupId>org.alexmond</groupId>
+            <artifactId>gotmpl4j-sprig</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- ./mvnw -pl gotmpl4j-samples/web-mvc -am spring-boot:run -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

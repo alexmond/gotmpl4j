@@ -1,0 +1,3 @@
+# Registers the sample provider for ServiceLoader auto-discovery. Sprig ships the same file in
+# its own jar; both are discovered and merged by priority.
+org.alexmond.gotmpl4j.samples.functions.SampleFunctionProvider

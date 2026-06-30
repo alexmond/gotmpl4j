@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.alexmond</groupId>
+        <artifactId>gotmpl4j-samples</artifactId>
+        <version>1.2.1-SNAPSHOT</version>
+    </parent>
+    <artifactId>gotmpl4j-sample-quickstart</artifactId>
+
+    <name>gotmpl4j Sample — Quickstart (core API)</name>
+    <description>The 5-minute API tour: parse and render Go templates from plain Java, with and
+        without Sprig, with and without html auto-escaping. No Spring.</description>
+
+    <properties>
+        <automatic.module.name>org.alexmond.gotmpl4j.samples.quickstart</automatic.module.name>
+    </properties>
+
+    <dependencies>
+        <!-- The engine. -->
+        <dependency>
+            <groupId>org.alexmond</groupId>
+            <artifactId>gotmpl4j-core</artifactId>
+        </dependency>
+        <!-- Drop Sprig on the classpath and its functions auto-register via ServiceLoader. -->
+        <dependency>
+            <groupId>org.alexmond</groupId>
+            <artifactId>gotmpl4j-sprig</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- ./mvnw -pl gotmpl4j-samples/quickstart exec:java -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>org.alexmond.gotmpl4j.samples.quickstart.QuickstartSample</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

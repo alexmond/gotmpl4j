@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.alexmond</groupId>
+        <artifactId>gotmpl4j-samples</artifactId>
+        <version>1.2.1-SNAPSHOT</version>
+    </parent>
+    <artifactId>gotmpl4j-sample-spring-context</artifactId>
+
+    <name>gotmpl4j Sample — Spring context functions</name>
+    <description>Shows the gotmpl4j-spring module end to end: msg (i18n), env (config), and the
+        security (hasRole/username/isAuthenticated) and web (param/csrf) functions, rendering a
+        page that changes by authenticated role and request locale.</description>
+
+    <properties>
+        <automatic.module.name>org.alexmond.gotmpl4j.samples.context</automatic.module.name>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!-- Brings spring-security-core onto the classpath, which switches on the security
+             functions (hasRole/isAuthenticated/username/...) in gotmpl4j-spring. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <!-- The starter (engine + ViewResolver). -->
+        <dependency>
+            <groupId>org.alexmond</groupId>
+            <artifactId>gotmpl4j-spring-boot-starter</artifactId>
+        </dependency>
+        <!-- The context-functions module: msg/env/bean + the auto-configured security/web sets. -->
+        <dependency>
+            <groupId>org.alexmond</groupId>
+            <artifactId>gotmpl4j-spring</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.alexmond</groupId>
+            <artifactId>gotmpl4j-sprig</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

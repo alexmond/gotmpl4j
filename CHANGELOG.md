@@ -7,6 +7,12 @@ All notable changes to gotmpl4j are documented here. The format follows
 ## [Unreleased]
 
 ### Docs
+- New (unpublished) **`gotmpl4j-samples`** aggregator with five runnable examples of how to use
+  the library: `quickstart` (core API from plain Java), `web-mvc` and `web-flux` (the Spring Boot
+  starter's servlet/reactive ViewResolvers), `custom-functions` (the `FunctionProvider`
+  extension SPI via ServiceLoader + priority override), and `spring-context` (the gotmpl4j-spring
+  `msg`/`env`/security/web functions, rendering a page that changes by role and locale). Not
+  deployed to Maven Central.
 - `ParseBenchmark` now measures cold parse/compile cost across the same engines as the render
   suite (gotmpl4j, FreeMarker, Mustache, Pebble; Mustache/Pebble forced to re-parse rather than
   hit their template caches). Added a cross-engine *Parse / compile cost* table to the
