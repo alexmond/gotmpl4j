@@ -1,0 +1,11 @@
+gotmpl4j:
+  # classpath:/templates/<view>.gotmpl — these are the defaults, shown here for clarity.
+  prefix: "classpath:/templates/"
+  suffix: ".gotmpl"
+  # HTML mode turns on contextual html/template auto-escaping for the rendered views.
+  mode: HTML
+  # Disable the compile cache in dev so edited templates re-render without a restart.
+  cache: false
+
+server:
+  port: 8080

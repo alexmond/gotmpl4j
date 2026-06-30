@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>{{ msg "app.title" }}</title>
+</head>
+<body>
+	<h1>{{ msg "app.title" }}</h1>
+	<p>{{ msg "greeting" }}</p>
+
+	<!-- env reads the Spring Environment; the second arg is a fallback for a missing key. -->
+	<p>app.name = <code>{{ env "app.name" }}</code>,
+	   missing = <code>{{ env "does.not.exist" "fallback" }}</code></p>
+
+	{{ if isAuthenticated }}
+		<p>{{ msg "signedin.as" }} <strong>{{ username }}</strong>.</p>
+		{{ if hasRole "ADMIN" }}<p>&#128296; {{ msg "admin.panel" }}</p>{{ end }}
+		<form method="post" action="/logout">
+			<input type="hidden" name="_csrf" value="{{ csrf }}">
+			<button type="submit">{{ msg "logout" }}</button>
+		</form>
+	{{ else }}
+		<p><a href="/login">{{ msg "login" }}</a></p>
+	{{ end }}
+
+	<!-- with renders only when the request param is non-empty: try /?q=hello -->
+	{{ with param "q" }}<p>{{ msg "searched.for" }} <em>{{ . }}</em></p>{{ end }}
+</body>
+</html>

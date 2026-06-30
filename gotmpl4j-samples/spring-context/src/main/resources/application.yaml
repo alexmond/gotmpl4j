@@ -1,0 +1,17 @@
+gotmpl4j:
+  prefix: "classpath:/templates/"
+  suffix: ".gotmpl"
+  mode: HTML
+  cache: false
+
+# Read by the template's {{ env "app.name" }}.
+app:
+  name: "context-demo"
+
+spring:
+  messages:
+    # messages.properties + messages_es.properties; locale follows the Accept-Language header.
+    basename: messages
+
+server:
+  port: 8082

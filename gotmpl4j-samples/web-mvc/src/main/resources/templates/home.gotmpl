@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>{{ .Title }}</title>
+</head>
+<body>
+	<h1>{{ .Title }}</h1>
+	<p>Welcome, {{ .User }}.</p>
+
+	<h2>{{ len .Items }} services</h2>
+	<ul>
+	{{- range .Items }}
+		<li><strong>{{ .Name | upper }}</strong> &mdash; port {{ .Port }}</li>
+	{{- end }}
+	</ul>
+
+	<footer>
+		<small>Rendered by gotmpl4j {{ "html/template" | quote }} mode (auto-escaping on).</small>
+	</footer>
+</body>
+</html>

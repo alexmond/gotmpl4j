@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.alexmond</groupId>
+        <artifactId>gotmpl4j-samples</artifactId>
+        <version>1.2.1-SNAPSHOT</version>
+    </parent>
+    <artifactId>gotmpl4j-sample-custom-functions</artifactId>
+
+    <name>gotmpl4j Sample — Custom functions (extension SPI)</name>
+    <description>How to add your own template functions: implement FunctionProvider, register it
+        via META-INF/services for ServiceLoader auto-discovery, and use priority to override
+        functions from lower-priority providers (e.g. Sprig).</description>
+
+    <properties>
+        <automatic.module.name>org.alexmond.gotmpl4j.samples.functions</automatic.module.name>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.alexmond</groupId>
+            <artifactId>gotmpl4j-core</artifactId>
+        </dependency>
+        <!-- On the classpath so we can show our provider (priority 300) overriding a Sprig
+             function (priority 100) on a name clash. -->
+        <dependency>
+            <groupId>org.alexmond</groupId>
+            <artifactId>gotmpl4j-sprig</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>org.alexmond.gotmpl4j.samples.functions.CustomFunctionsSample</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

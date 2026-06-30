@@ -1,0 +1,9 @@
+gotmpl4j:
+  prefix: "classpath:/templates/"
+  suffix: ".gotmpl"
+  mode: HTML
+  cache: false
+
+server:
+  # A different port than web-mvc so both samples can run side by side.
+  port: 8081
