@@ -174,7 +174,11 @@ cd benchmarks/go && go test -bench . -benchmem
 == Optimization history
 
 The interpreter has been profiled with https://github.com/alexmond/jvmlens[jvmlens] (JFR →
-LLM-ready hot-path/allocation summary) and tuned along the way:
+LLM-ready hot-path/allocation summary) and tuned along the way. The `floatString` row below is
+written up step-by-step — profile → fix → prove byte-identical → guard — as the
+https://www.alexmond.org/jvmlens/current/case-study-floatstring.html[jvmlens floatString case
+study], and the inline JMH `keep=`/`baseline=` A/B loop used here is documented on the
+https://www.alexmond.org/jvmlens/current/usage.html[jvmlens usage page].
 
 [cols="3,2,2,2",options="header"]
 |===
