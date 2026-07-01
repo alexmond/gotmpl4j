@@ -1,4 +1,5 @@
 = gotmpl4j
+:description: Pure-Java implementation of Go's text/template plus Sprig functions — byte-for-byte parity, no Go toolchain. Render Helm, Hugo, and Go templates on the JVM.
 
 A pure-Java implementation of Go's https://pkg.go.dev/text/template[`text/template`] engine,
 with the https://masterminds.github.io/sprig/[Sprig] function library and an optional Spring
