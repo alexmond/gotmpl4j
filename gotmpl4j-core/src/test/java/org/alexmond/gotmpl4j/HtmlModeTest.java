@@ -59,10 +59,8 @@ class HtmlModeTest {
 	@Test
 	void htmlModeReportsNonTextEndContext() {
 		GoTemplate t = GoTemplate.builder().htmlEscaping().build();
-		assertThrows(EscapeError.class, () -> {
-			t.parse("doc", "<a href=\"{{.}}");
-			render(t, "doc", "x");
-		});
+		t.parse("doc", "<a href=\"{{.}}");
+		assertThrows(EscapeError.class, () -> render(t, "doc", "x"));
 	}
 
 }

@@ -499,7 +499,6 @@ class ParserTest {
 	@Test
 	void testParseZero() throws TemplateParseException {
 		Token token = new Token(TokenType.NUMBER, "0", 0, 0, 0);
-		Parser parser = new Parser();
 		NumberNode numberNode = NumberParser.parse(token);
 		assertTrue(numberNode.isInt(), String.format("invalid number: %s", "0"));
 		assertTrue(numberNode.isFloat(), String.format("invalid number: %s", "0"));
@@ -558,10 +557,8 @@ class ParserTest {
 				new NumberTest("0xef", true, true, false), };
 
 		for (NumberTest test : tests) {
-			Parser parser = new Parser();
-
 			String text = test.text;
-			NumberNode numberNode = new NumberNode(text);
+			NumberNode numberNode;
 
 			TokenType type = TokenType.NUMBER;
 			if (text.charAt(0) == '\'') {

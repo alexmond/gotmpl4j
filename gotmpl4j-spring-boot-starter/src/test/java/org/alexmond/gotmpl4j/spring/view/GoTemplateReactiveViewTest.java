@@ -60,8 +60,8 @@ class GoTemplateReactiveViewTest {
 		GoTemplateReactiveView view = view("does-not-exist");
 		MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/"));
 
-		assertThrows(GoTemplateException.class,
-				() -> view.renderInternal(Map.of(), MediaType.TEXT_HTML, exchange).block());
+		var rendered = view.renderInternal(Map.of(), MediaType.TEXT_HTML, exchange);
+		assertThrows(GoTemplateException.class, rendered::block);
 	}
 
 }

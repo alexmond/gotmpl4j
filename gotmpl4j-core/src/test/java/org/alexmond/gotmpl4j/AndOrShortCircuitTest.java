@@ -38,8 +38,8 @@ class AndOrShortCircuitTest {
 	@Test
 	void andEvaluatesDecidingOperand() {
 		// First operand truthy -> Go evaluates the second, which errors.
-		assertThrows(TemplateExecutionException.class,
-				() -> render("{{and true (index .s 99)}}", Map.of("s", List.of())));
+		Map<String, Object> data = Map.of("s", List.of());
+		assertThrows(TemplateExecutionException.class, () -> render("{{and true (index .s 99)}}", data));
 	}
 
 	@Test

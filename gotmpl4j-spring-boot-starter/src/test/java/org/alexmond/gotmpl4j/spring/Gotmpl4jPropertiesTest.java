@@ -17,7 +17,7 @@ class Gotmpl4jPropertiesTest {
 		Gotmpl4jProperties properties = new Gotmpl4jProperties();
 
 		assertTrue(properties.isEnabled());
-		assertEquals("classpath:/templates/", properties.getTemplateLocation());
+		assertEquals("classpath:/templates/", properties.getPrefix());
 		assertEquals(".gotmpl", properties.getSuffix());
 		assertEquals(StandardCharsets.UTF_8, properties.getCharset());
 		assertTrue(properties.isCache());
@@ -30,7 +30,7 @@ class Gotmpl4jPropertiesTest {
 		Gotmpl4jProperties properties = new Gotmpl4jProperties();
 
 		properties.setEnabled(false);
-		properties.setTemplateLocation("file:/srv/views/");
+		properties.setPrefix("file:/srv/views/");
 		properties.setSuffix(".tmpl");
 		properties.setCharset(StandardCharsets.ISO_8859_1);
 		properties.setCache(false);
@@ -38,7 +38,7 @@ class Gotmpl4jPropertiesTest {
 		properties.setOrder(5);
 
 		assertFalse(properties.isEnabled());
-		assertEquals("file:/srv/views/", properties.getTemplateLocation());
+		assertEquals("file:/srv/views/", properties.getPrefix());
 		assertEquals(".tmpl", properties.getSuffix());
 		assertEquals(StandardCharsets.ISO_8859_1, properties.getCharset());
 		assertFalse(properties.isCache());

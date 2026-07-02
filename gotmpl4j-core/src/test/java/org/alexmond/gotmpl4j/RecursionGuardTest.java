@@ -18,7 +18,8 @@ class RecursionGuardTest {
 	void selfReferentialTemplateThrowsExecutionExceptionNotStackOverflow() throws TemplateParseException {
 		GoTemplate template = new GoTemplate();
 		template.parse("main", "{{define \"x\"}}{{template \"x\" .}}{{end}}{{template \"x\" .}}");
-		assertThrows(TemplateExecutionException.class, () -> template.execute("main", Map.of(), new StringWriter()));
+		StringWriter w = new StringWriter();
+		assertThrows(TemplateExecutionException.class, () -> template.execute("main", Map.of(), w));
 	}
 
 	@Test
@@ -33,7 +34,8 @@ class RecursionGuardTest {
 			sb.append("{{end}}");
 		}
 		String deeplyNested = sb.toString();
-		assertThrows(TemplateParseException.class, () -> new GoTemplate().parse("deep", deeplyNested));
+		GoTemplate t = new GoTemplate();
+		assertThrows(TemplateParseException.class, () -> t.parse("deep", deeplyNested));
 	}
 
 }
