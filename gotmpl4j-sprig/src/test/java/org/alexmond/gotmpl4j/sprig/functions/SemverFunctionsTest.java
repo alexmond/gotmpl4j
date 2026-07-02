@@ -207,6 +207,48 @@ class SemverFunctionsTest {
 	}
 
 	@Test
+	void testSemverCompareGreaterThanFalse() throws IOException, TemplateException {
+		StringWriter writer = new StringWriter();
+		execute("test", "{{ semverCompare \">2.0.0\" \"1.2.3\" }}", new HashMap<>(), writer);
+		assertEquals("false", writer.toString());
+	}
+
+	@Test
+	void testSemverCompareLessThanFalse() throws IOException, TemplateException {
+		StringWriter writer = new StringWriter();
+		execute("test", "{{ semverCompare \"<1.0.0\" \"1.2.3\" }}", new HashMap<>(), writer);
+		assertEquals("false", writer.toString());
+	}
+
+	@Test
+	void testSemverCompareLessOrEqualAboveFalse() throws IOException, TemplateException {
+		StringWriter writer = new StringWriter();
+		execute("test", "{{ semverCompare \"<=1.2.3\" \"1.2.4\" }}", new HashMap<>(), writer);
+		assertEquals("false", writer.toString());
+	}
+
+	@Test
+	void testSemverCompareNotEqualWhenEqualFalse() throws IOException, TemplateException {
+		StringWriter writer = new StringWriter();
+		execute("test", "{{ semverCompare \"!=1.2.3\" \"1.2.3\" }}", new HashMap<>(), writer);
+		assertEquals("false", writer.toString());
+	}
+
+	@Test
+	void testSemverCompareTildeOutOfRangeFalse() throws IOException, TemplateException {
+		StringWriter writer = new StringWriter();
+		execute("test", "{{ semverCompare \"~1.2.3\" \"1.3.0\" }}", new HashMap<>(), writer);
+		assertEquals("false", writer.toString());
+	}
+
+	@Test
+	void testSemverCompareCaretOutOfRangeFalse() throws IOException, TemplateException {
+		StringWriter writer = new StringWriter();
+		execute("test", "{{ semverCompare \"^1.2.3\" \"2.0.0\" }}", new HashMap<>(), writer);
+		assertEquals("false", writer.toString());
+	}
+
+	@Test
 	void testSemverCompareMultipleConstraintsPass() throws IOException, TemplateException {
 		StringWriter writer = new StringWriter();
 		execute("test", "{{ semverCompare \">1.0.0 <3.0.0\" \"1.5.0\" }}", new HashMap<>(), writer);
