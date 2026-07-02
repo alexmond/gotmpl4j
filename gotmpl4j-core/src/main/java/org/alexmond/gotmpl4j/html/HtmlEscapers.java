@@ -13,28 +13,34 @@ import org.alexmond.gotmpl4j.html.Content.Stringified;
  */
 final class HtmlEscapers {
 
+	private static final String QUOT_ENTITY = "&#34;";
+
+	private static final String APOS_ENTITY = "&#39;";
+
+	private static final String PLUS_ENTITY = "&#43;";
+
 	// Runes to escape inside a quoted attribute value or text node.
-	private static final Map<Integer, String> HTML_REPLACEMENT = Map.of(0, "�", (int) '"', "&#34;", (int) '&', "&amp;",
-			(int) '\'', "&#39;", (int) '+', "&#43;", (int) '<', "&lt;", (int) '>', "&gt;");
+	private static final Map<Integer, String> HTML_REPLACEMENT = Map.of(0, "�", (int) '"', QUOT_ENTITY, (int) '&',
+			"&amp;", (int) '\'', APOS_ENTITY, (int) '+', PLUS_ENTITY, (int) '<', "&lt;", (int) '>', "&gt;");
 
 	// Like HTML_REPLACEMENT but without '&', to avoid over-encoding existing entities.
-	private static final Map<Integer, String> HTML_NORM_REPLACEMENT = Map.of(0, "�", (int) '"', "&#34;", (int) '\'',
-			"&#39;", (int) '+', "&#43;", (int) '<', "&lt;", (int) '>', "&gt;");
+	private static final Map<Integer, String> HTML_NORM_REPLACEMENT = Map.of(0, "�", (int) '"', QUOT_ENTITY, (int) '\'',
+			APOS_ENTITY, (int) '+', PLUS_ENTITY, (int) '<', "&lt;", (int) '>', "&gt;");
 
 	// Runes to escape inside an unquoted attribute value (HTML specials +
 	// browser-derived).
 	private static final Map<Integer, String> HTML_NOSPACE_REPLACEMENT = Map.ofEntries(Map.entry(0, "&#xfffd;"),
 			Map.entry((int) '\t', "&#9;"), Map.entry((int) '\n', "&#10;"), Map.entry(0x0b, "&#11;"),
 			Map.entry((int) '\f', "&#12;"), Map.entry((int) '\r', "&#13;"), Map.entry((int) ' ', "&#32;"),
-			Map.entry((int) '"', "&#34;"), Map.entry((int) '&', "&amp;"), Map.entry((int) '\'', "&#39;"),
-			Map.entry((int) '+', "&#43;"), Map.entry((int) '<', "&lt;"), Map.entry((int) '=', "&#61;"),
+			Map.entry((int) '"', QUOT_ENTITY), Map.entry((int) '&', "&amp;"), Map.entry((int) '\'', APOS_ENTITY),
+			Map.entry((int) '+', PLUS_ENTITY), Map.entry((int) '<', "&lt;"), Map.entry((int) '=', "&#61;"),
 			Map.entry((int) '>', "&gt;"), Map.entry((int) '`', "&#96;"));
 
 	// Like HTML_NOSPACE_REPLACEMENT but without '&'.
 	private static final Map<Integer, String> HTML_NOSPACE_NORM_REPLACEMENT = Map.ofEntries(Map.entry(0, "&#xfffd;"),
 			Map.entry((int) '\t', "&#9;"), Map.entry((int) '\n', "&#10;"), Map.entry(0x0b, "&#11;"),
 			Map.entry((int) '\f', "&#12;"), Map.entry((int) '\r', "&#13;"), Map.entry((int) ' ', "&#32;"),
-			Map.entry((int) '"', "&#34;"), Map.entry((int) '\'', "&#39;"), Map.entry((int) '+', "&#43;"),
+			Map.entry((int) '"', QUOT_ENTITY), Map.entry((int) '\'', APOS_ENTITY), Map.entry((int) '+', PLUS_ENTITY),
 			Map.entry((int) '<', "&lt;"), Map.entry((int) '=', "&#61;"), Map.entry((int) '>', "&gt;"),
 			Map.entry((int) '`', "&#96;"));
 

@@ -38,6 +38,8 @@ import org.openjdk.jmh.annotations.Warmup;
 @State(Scope.Thread)
 public class ParseBenchmark {
 
+	private static final String TABLE = "table";
+
 	private String gotmplSource;
 
 	private String gotmplLargeSource;
@@ -91,7 +93,7 @@ public class ParseBenchmark {
 	@Benchmark
 	public GoTemplate gotmpl4jParse() {
 		GoTemplate t = new GoTemplate();
-		t.parse("table", this.gotmplSource);
+		t.parse(TABLE, this.gotmplSource);
 		return t;
 	}
 
@@ -104,12 +106,12 @@ public class ParseBenchmark {
 
 	@Benchmark
 	public Template freemarkerParse() throws Exception {
-		return new Template("table", new StringReader(this.freemarkerSource), this.freemarkerConfig);
+		return new Template(TABLE, new StringReader(this.freemarkerSource), this.freemarkerConfig);
 	}
 
 	@Benchmark
 	public Mustache mustacheParse() {
-		return new DefaultMustacheFactory().compile(new StringReader(this.mustacheSource), "table");
+		return new DefaultMustacheFactory().compile(new StringReader(this.mustacheSource), TABLE);
 	}
 
 	@Benchmark

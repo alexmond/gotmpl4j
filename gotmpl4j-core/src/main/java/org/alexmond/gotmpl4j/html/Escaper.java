@@ -48,24 +48,33 @@ import org.alexmond.gotmpl4j.parse.WithNode;
  */
 public final class Escaper {
 
+	private static final String URLQUERY = "urlquery";
+
+	private static final String ATTR_ESCAPER = "_html_template_attrescaper";
+
+	private static final String HTML_ESCAPER = "_html_template_htmlescaper";
+
+	private static final String URL_ESCAPER = "_html_template_urlescaper";
+
+	private static final String URL_NORMALIZER = "_html_template_urlnormalizer";
+
+	private static final String RANGE = "range";
+
 	private static final byte[] LT_BYTES = Bytes.utf8("&lt;");
 
 	private static final byte[] DOCTYPE = Bytes.utf8("<!DOCTYPE");
 
 	private static final Pattern SPECIAL_SCRIPT_TAG = Pattern.compile("(?i)<(script|/script|!--)");
 
-	private static final Set<String> PREDEFINED_ESCAPERS = Set.of("html", "urlquery");
+	private static final Set<String> PREDEFINED_ESCAPERS = Set.of("html", URLQUERY);
 
-	private static final Map<String, String> EQUIV_ESCAPERS = Map.of("_html_template_attrescaper", "html",
-			"_html_template_htmlescaper", "html", "_html_template_rcdataescaper", "html", "_html_template_urlescaper",
-			"urlquery", "_html_template_urlnormalizer", "urlquery");
+	private static final Map<String, String> EQUIV_ESCAPERS = Map.of(ATTR_ESCAPER, "html", HTML_ESCAPER, "html",
+			"_html_template_rcdataescaper", "html", URL_ESCAPER, URLQUERY, URL_NORMALIZER, URLQUERY);
 
 	private static final Map<String, Set<String>> REDUNDANT_FUNCS = Map.of("_html_template_commentescaper",
-			Set.of("_html_template_attrescaper", "_html_template_htmlescaper"), "_html_template_cssescaper",
-			Set.of("_html_template_attrescaper"), "_html_template_jsregexpescaper",
-			Set.of("_html_template_attrescaper"), "_html_template_jsstrescaper", Set.of("_html_template_attrescaper"),
-			"_html_template_jstmpllitescaper", Set.of("_html_template_attrescaper"), "_html_template_urlescaper",
-			Set.of("_html_template_urlnormalizer"));
+			Set.of(ATTR_ESCAPER, HTML_ESCAPER), "_html_template_cssescaper", Set.of(ATTR_ESCAPER),
+			"_html_template_jsregexpescaper", Set.of(ATTR_ESCAPER), "_html_template_jsstrescaper", Set.of(ATTR_ESCAPER),
+			"_html_template_jstmpllitescaper", Set.of(ATTR_ESCAPER), URL_ESCAPER, Set.of(URL_NORMALIZER));
 
 	private final Map<String, Node> templates;
 
@@ -144,7 +153,7 @@ public final class Escaper {
 			return escapeList(c, ln);
 		}
 		if (n instanceof RangeNode rn) {
-			return escapeBranch(c, rn, "range");
+			return escapeBranch(c, rn, RANGE);
 		}
 		if (n instanceof TemplateNode tn) {
 			return escapeTemplate(c, tn);
@@ -176,9 +185,10 @@ public final class Escaper {
 		}
 		switch (c.delim) {
 			case NONE -> {
+				// No delimiter: no attribute escaper is appended.
 			}
 			case SPACE_OR_TAG_END -> s.add("_html_template_nospaceescaper");
-			default -> s.add("_html_template_attrescaper");
+			default -> s.add(ATTR_ESCAPER);
 		}
 		editActionNode(n, s);
 		return c;
@@ -206,7 +216,7 @@ public final class Escaper {
 			case JS_TMPL_LIT -> s.add("_html_template_jstmpllitescaper");
 			case JS_REGEXP -> s.add("_html_template_jsregexpescaper");
 			case CSS -> s.add("_html_template_cssvaluefilter");
-			case TEXT -> s.add("_html_template_htmlescaper");
+			case TEXT -> s.add(HTML_ESCAPER);
 			case RCDATA -> s.add("_html_template_rcdataescaper");
 			case ATTR_NAME, TAG -> {
 				c.state = State.ATTR_NAME;
@@ -232,7 +242,7 @@ public final class Escaper {
 				addUrlPreQuery(c, s);
 			}
 			case PRE_QUERY -> addUrlPreQuery(c, s);
-			case QUERY_OR_FRAG -> s.add("_html_template_urlescaper");
+			case QUERY_OR_FRAG -> s.add(URL_ESCAPER);
 			case UNKNOWN -> {
 				return errCtx(EscapeErrorCode.ERR_AMBIG_CONTEXT, n, 0,
 						n + " appears in an ambiguous context within a URL");
@@ -246,7 +256,7 @@ public final class Escaper {
 			s.add("_html_template_cssescaper");
 		}
 		else {
-			s.add("_html_template_urlnormalizer");
+			s.add(URL_NORMALIZER);
 		}
 	}
 
@@ -272,7 +282,7 @@ public final class Escaper {
 	}
 
 	private Context escapeBranch(Context c, BranchNode n, String nodeName) {
-		boolean isRange = nodeName.equals("range");
+		boolean isRange = nodeName.equals(RANGE);
 		if (isRange) {
 			this.rangeContext = new RangeContext(this.rangeContext);
 		}
@@ -308,13 +318,13 @@ public final class Escaper {
 
 	private Context joinRange(Context c0, RangeContext rc) {
 		for (Context cb : rc.breaks) {
-			c0 = join(c0, cb, cb.n, "range");
+			c0 = join(c0, cb, cb.n, RANGE);
 			if (c0.state == State.ERROR) {
 				return c0;
 			}
 		}
 		for (Context cc : rc.continues) {
-			c0 = join(c0, cc, cc.n, "range");
+			c0 = join(c0, cc, cc.n, RANGE);
 			if (c0.state == State.ERROR) {
 				return c0;
 			}
@@ -479,6 +489,7 @@ public final class Escaper {
 			case JS_BLOCK_CMT -> b.write(containsNewline(s, written, i1) ? '\n' : ' ');
 			case CSS_BLOCK_CMT -> b.write(' ');
 			default -> {
+				// Other comment states need no whitespace normalization.
 			}
 		}
 		return i1;
@@ -680,6 +691,7 @@ public final class Escaper {
 				c.attr = Attr.NONE;
 			}
 			default -> {
+				// Other states need no nudging.
 			}
 		}
 		return c;

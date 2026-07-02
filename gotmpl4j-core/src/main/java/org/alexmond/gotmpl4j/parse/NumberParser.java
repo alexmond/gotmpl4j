@@ -36,6 +36,8 @@ final class NumberParser {
 				return;
 			}
 			catch (NumberFormatException ignored) {
+				// Not a valid complex literal; fall through to integer/float parsing
+				// below.
 			}
 		}
 
@@ -49,6 +51,8 @@ final class NumberParser {
 				return;
 			}
 			catch (NumberFormatException ignored) {
+				// Not a valid complex literal; fall through to integer/float parsing
+				// below.
 			}
 		}
 

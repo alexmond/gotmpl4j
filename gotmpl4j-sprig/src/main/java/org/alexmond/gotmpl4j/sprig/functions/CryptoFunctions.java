@@ -68,6 +68,8 @@ public final class CryptoFunctions {
 
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
+	private static final String LOCALHOST = "localhost";
+
 	/**
 	 * BCrypt-hashes a password into the {@code $2y$} modular-crypt format with a random
 	 * 16-byte salt, matching Sprig/Helm's {@code bcrypt}/{@code htpasswd}. Uses
@@ -228,7 +230,7 @@ public final class CryptoFunctions {
 			if (args.length < 5) {
 				return "";
 			}
-			long counter = (args[0] instanceof Number) ? ((Number) args[0]).longValue() : 1L;
+			long counter = (args[0] instanceof Number number) ? number.longValue() : 1L;
 			String passwordType = String.valueOf(args[1]);
 			String[] templates = PASSWORD_TYPE_TEMPLATES.get(passwordType);
 			if (templates == null) {
@@ -346,7 +348,7 @@ public final class CryptoFunctions {
 	 */
 	private static Function genSelfSignedCert() {
 		return (args) -> {
-			String cn = (args.length > 0) ? String.valueOf(args[0]) : "localhost";
+			String cn = (args.length > 0) ? String.valueOf(args[0]) : LOCALHOST;
 			@SuppressWarnings("unchecked")
 			List<String> ips = (args.length > 1 && args[1] instanceof List) ? (List<String>) args[1] : List.of();
 			@SuppressWarnings("unchecked")
@@ -374,7 +376,7 @@ public final class CryptoFunctions {
 	 */
 	private static Function genSignedCert() {
 		return (args) -> {
-			String cn = (args.length > 0) ? String.valueOf(args[0]) : "localhost";
+			String cn = (args.length > 0) ? String.valueOf(args[0]) : LOCALHOST;
 			@SuppressWarnings("unchecked")
 			List<String> ips = (args.length > 1 && args[1] instanceof List) ? (List<String>) args[1] : List.of();
 			@SuppressWarnings("unchecked")
@@ -510,7 +512,7 @@ public final class CryptoFunctions {
 
 	private static Function genSelfSignedCertWithKey() {
 		return (args) -> {
-			String cn = (args.length > 0) ? String.valueOf(args[0]) : "localhost";
+			String cn = (args.length > 0) ? String.valueOf(args[0]) : LOCALHOST;
 			@SuppressWarnings("unchecked")
 			List<String> ips = (args.length > 1 && args[1] instanceof List) ? (List<String>) args[1] : List.of();
 			@SuppressWarnings("unchecked")
@@ -536,7 +538,7 @@ public final class CryptoFunctions {
 
 	private static Function genSignedCertWithKey() {
 		return (args) -> {
-			String cn = (args.length > 0) ? String.valueOf(args[0]) : "localhost";
+			String cn = (args.length > 0) ? String.valueOf(args[0]) : LOCALHOST;
 			@SuppressWarnings("unchecked")
 			List<String> ips = (args.length > 1 && args[1] instanceof List) ? (List<String>) args[1] : List.of();
 			@SuppressWarnings("unchecked")

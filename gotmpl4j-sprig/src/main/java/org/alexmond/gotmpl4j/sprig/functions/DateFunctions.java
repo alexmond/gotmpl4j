@@ -289,8 +289,8 @@ public final class DateFunctions {
 				return "0s";
 			}
 			long seconds;
-			if (args[0] instanceof Number) {
-				seconds = ((Number) args[0]).longValue();
+			if (args[0] instanceof Number number) {
+				seconds = number.longValue();
 			}
 			else {
 				try {
@@ -319,8 +319,8 @@ public final class DateFunctions {
 			Object durationObj = args[0];
 
 			long seconds;
-			if (durationObj instanceof Duration) {
-				seconds = ((Duration) durationObj).getSeconds();
+			if (durationObj instanceof Duration duration) {
+				seconds = duration.getSeconds();
 			}
 			else {
 				try {
@@ -442,15 +442,15 @@ public final class DateFunctions {
 	 * Converts various types to Date object.
 	 */
 	private static Date convertToDate(Object dateObj) {
-		if (dateObj instanceof Date) {
-			return (Date) dateObj;
+		if (dateObj instanceof Date date) {
+			return date;
 		}
-		else if (dateObj instanceof Number) {
+		else if (dateObj instanceof Number number) {
 			// Helm/Sprig unix timestamps are seconds since the epoch (Go time.Unix).
-			return new Date(((Number) dateObj).longValue() * 1000L);
+			return new Date(number.longValue() * 1000L);
 		}
-		else if (dateObj instanceof Instant) {
-			return Date.from((Instant) dateObj);
+		else if (dateObj instanceof Instant instant) {
+			return Date.from(instant);
 		}
 		return null;
 	}

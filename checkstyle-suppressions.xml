@@ -28,10 +28,11 @@
     <suppress checks="JavadocType" files=".*\.java"/>
     <suppress checks="SpringJavadoc" files=".*\.java"/>
 
-    <!-- Lexer, Parser and Executor are state machines/dispatchers — long methods/files are an inherent property of the pattern -->
+    <!-- Lexer, Parser, Executor and Escaper are state machines/dispatchers — long methods/files are an inherent property of the pattern -->
     <suppress checks="MethodLength|FileLength" files="Parser\.java"/>
     <suppress checks="MethodLength" files="Lexer\.java"/>
     <suppress checks="FileLength" files="Executor\.java"/>
+    <suppress checks="FileLength" files="Escaper\.java"/>
 
     <!-- StringFunctions is a flat registry of the ~80 Sprig string functions — long by nature -->
     <suppress checks="FileLength" files="StringFunctions\.java"/>
