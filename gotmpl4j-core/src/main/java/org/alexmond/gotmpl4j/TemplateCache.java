@@ -1,5 +1,6 @@
 package org.alexmond.gotmpl4j;
 
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
@@ -34,7 +35,7 @@ public class TemplateCache {
 
 	private final ReentrantLock lock = new ReentrantLock();
 
-	private volatile GoTemplate cached;
+	private final AtomicReference<GoTemplate> cached = new AtomicReference<>();
 
 	/**
 	 * Creates a caching holder (caching enabled).
@@ -69,14 +70,14 @@ public class TemplateCache {
 		if (!this.enabled) {
 			return this.compiler.get();
 		}
-		GoTemplate result = this.cached;
+		GoTemplate result = this.cached.get();
 		if (result == null) {
 			this.lock.lock();
 			try {
-				result = this.cached;
+				result = this.cached.get();
 				if (result == null) {
 					result = this.compiler.get();
-					this.cached = result;
+					this.cached.set(result);
 				}
 			}
 			finally {
@@ -91,7 +92,7 @@ public class TemplateCache {
 	 * no-op when caching is disabled.
 	 */
 	public void invalidate() {
-		this.cached = null;
+		this.cached.set(null);
 	}
 
 	/**

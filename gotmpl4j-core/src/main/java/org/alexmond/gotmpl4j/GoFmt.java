@@ -27,11 +27,21 @@ public final class GoFmt {
 	// A double's shortest decimal has <= 17 significant digits, so 32 chars never grows
 	// in
 	// practice; reusing them across the (very hot) per-value float formatting avoids a
-	// char[] + StringBuilder allocation on every call. floatString is non-reentrant, so
-	// the
-	// two buffers are safe to reuse within a single call.
+	// char[]
+	// + StringBuilder allocation on every call. floatString is non-reentrant, so the two
+	// buffers are safe to reuse within a single call.
+	//
+	// S5164 (ThreadLocal not cleaned up) is suppressed by design: this is a bounded,
+	// reused
+	// scratch (one small buffer per thread), not per-request state that accumulates.
+	// Measured:
+	// dropping it for per-call allocation cost +27.5% render allocation on the table
+	// workload
+	// (the char[] escapes into renderDigits, so the JIT does not scalar-replace it).
+	@SuppressWarnings("java:S5164")
 	private static final ThreadLocal<char[]> DIGIT_SCRATCH = ThreadLocal.withInitial(() -> new char[32]);
 
+	@SuppressWarnings("java:S5164")
 	private static final ThreadLocal<StringBuilder> OUT_SCRATCH = ThreadLocal.withInitial(() -> new StringBuilder(32));
 
 	private GoFmt() {
