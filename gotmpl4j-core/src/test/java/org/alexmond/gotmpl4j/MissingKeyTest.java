@@ -45,8 +45,9 @@ class MissingKeyTest {
 
 	@Test
 	void unrecognizedOptionThrows() {
-		assertThrows(IllegalArgumentException.class, () -> new GoTemplate().option("missingkey=bogus"));
-		assertThrows(IllegalArgumentException.class, () -> new GoTemplate().option("colors=on"));
+		GoTemplate t = new GoTemplate();
+		assertThrows(IllegalArgumentException.class, () -> t.option("missingkey=bogus"));
+		assertThrows(IllegalArgumentException.class, () -> t.option("colors=on"));
 	}
 
 	@Test
@@ -56,7 +57,8 @@ class MissingKeyTest {
 
 	@Test
 	void builderRejectsUnknownOptionAtBuild() {
-		assertThrows(IllegalArgumentException.class, () -> GoTemplate.builder().option("missingkey=bogus").build());
+		var b = GoTemplate.builder().option("missingkey=bogus");
+		assertThrows(IllegalArgumentException.class, b::build);
 	}
 
 }

@@ -66,9 +66,10 @@ class GoTemplateViewTest {
 	@Test
 	void propagatesRenderErrors() {
 		GoTemplateView view = view("does-not-exist");
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		MockHttpServletResponse response = new MockHttpServletResponse();
 
-		assertThrows(GoTemplateException.class, () -> view.renderMergedTemplateModel(Map.of(),
-				new MockHttpServletRequest(), new MockHttpServletResponse()));
+		assertThrows(GoTemplateException.class, () -> view.renderMergedTemplateModel(Map.of(), request, response));
 	}
 
 }

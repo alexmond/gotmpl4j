@@ -57,7 +57,7 @@ class ListNodeTest {
 	@Test
 	void testRemoveLastOnEmptyList() {
 		ListNode listNode = new ListNode();
-		assertDoesNotThrow(() -> listNode.removeLast());
+		assertDoesNotThrow(listNode::removeLast);
 		assertNull(listNode.getLast());
 	}
 

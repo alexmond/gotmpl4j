@@ -28,12 +28,14 @@ class ExceptionHierarchyTest {
 
 	@Test
 	void parseFailureIsCatchableAsTheRoot() {
-		assertThrows(GoTemplateException.class, () -> new GoTemplate().parse("oops", "{{ .x "));
+		GoTemplate t = new GoTemplate();
+		assertThrows(GoTemplateException.class, () -> t.parse("oops", "{{ .x "));
 	}
 
 	@Test
 	void missingTemplateIsCatchableAsTheRoot() {
-		assertThrows(GoTemplateException.class, () -> new GoTemplate().render("absent", Map.of()));
+		GoTemplate t = new GoTemplate();
+		assertThrows(GoTemplateException.class, () -> t.render("absent", Map.of()));
 	}
 
 	@Test
@@ -43,7 +45,8 @@ class ExceptionHierarchyTest {
 		};
 		GoTemplate t = new GoTemplate(Map.of("boom", boom));
 		t.parse("t", "{{ boom }}");
-		assertThrows(GoTemplateException.class, () -> t.execute("t", Map.of(), new StringWriter()));
+		StringWriter w = new StringWriter();
+		assertThrows(GoTemplateException.class, () -> t.execute("t", Map.of(), w));
 	}
 
 }

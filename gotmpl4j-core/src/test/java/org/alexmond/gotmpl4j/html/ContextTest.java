@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -66,7 +67,7 @@ class ContextTest {
 		js.state = State.JS;
 		Context url = new Context();
 		url.state = State.URL;
-		assertFalse(js.mangle("view").equals(url.mangle("view")));
+		assertNotEquals(js.mangle("view"), url.mangle("view"));
 		assertTrue(js.mangle("view").startsWith("view$htmltemplate_"));
 	}
 
