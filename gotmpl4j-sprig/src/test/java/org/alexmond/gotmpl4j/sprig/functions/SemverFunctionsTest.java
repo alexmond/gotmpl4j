@@ -78,10 +78,10 @@ class SemverFunctionsTest {
 	}
 
 	@Test
-	void testSemverCompareVersion() throws IOException, TemplateException {
+	void testSemverCompareGreaterOrEqualBelowFalse() throws IOException, TemplateException {
 		StringWriter writer = new StringWriter();
-		execute("test", "{{ semverCompare \">=1.0.0\" \"1.2.3\" }}", new HashMap<>(), writer);
-		assertEquals("true", writer.toString());
+		execute("test", "{{ semverCompare \">=2.0.0\" \"1.2.3\" }}", new HashMap<>(), writer);
+		assertEquals("false", writer.toString());
 	}
 
 	// Additional basic tests
@@ -186,10 +186,10 @@ class SemverFunctionsTest {
 	}
 
 	@Test
-	void testSemverCompareExactVersion() throws IOException, TemplateException {
+	void testSemverCompareExactVersionNonMatch() throws IOException, TemplateException {
 		StringWriter writer = new StringWriter();
-		execute("test", "{{ semverCompare \"=1.2.3\" \"1.2.3\" }}", new HashMap<>(), writer);
-		assertEquals("true", writer.toString());
+		execute("test", "{{ semverCompare \"=1.2.3\" \"1.2.4\" }}", new HashMap<>(), writer);
+		assertEquals("false", writer.toString());
 	}
 
 	@Test
