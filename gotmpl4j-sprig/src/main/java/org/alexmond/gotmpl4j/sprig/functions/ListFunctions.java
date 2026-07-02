@@ -98,8 +98,7 @@ public final class ListFunctions {
 			if (obj.getClass().isArray()) {
 				return (Array.getLength(obj) > 0) ? Array.get(obj, 0) : null;
 			}
-			if (obj instanceof String) {
-				String s = (String) obj;
+			if (obj instanceof String s) {
 				return (s.isEmpty()) ? "" : String.valueOf(s.charAt(0));
 			}
 			return null;
@@ -266,8 +265,7 @@ public final class ListFunctions {
 					result.add(Array.get(obj, i));
 				}
 			}
-			else if (obj instanceof String) {
-				String s = (String) obj;
+			else if (obj instanceof String s) {
 				return new StringBuilder(s).reverse().toString();
 			}
 			else {
@@ -351,7 +349,7 @@ public final class ListFunctions {
 			if (haystack instanceof Collection) {
 				return ((Collection<?>) haystack).contains(needle);
 			}
-			return haystack instanceof String && ((String) haystack).contains(String.valueOf(needle));
+			return haystack instanceof String string && string.contains(String.valueOf(needle));
 		};
 	}
 

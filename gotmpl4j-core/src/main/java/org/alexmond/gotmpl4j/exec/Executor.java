@@ -178,8 +178,8 @@ public class Executor {
 		if (node == null) {
 			return;
 		}
-		if (node instanceof ListNode) {
-			writeList(writer, (ListNode) node, data, beanInfo);
+		if (node instanceof ListNode listNode) {
+			writeList(writer, listNode, data, beanInfo);
 		}
 		else if (node instanceof ActionNode actionNode) {
 			writeAction(writer, actionNode, data, beanInfo);
@@ -574,9 +574,8 @@ public class Executor {
 			}
 			return executeField(fieldNode, data);
 		}
-		if (firstArgument instanceof IdentifierNode) {
-			return executeFunction((IdentifierNode) firstArgument, command.getArguments(), data, beanInfo,
-					currentPipelineValue);
+		if (firstArgument instanceof IdentifierNode identifierNode) {
+			return executeFunction(identifierNode, command.getArguments(), data, beanInfo, currentPipelineValue);
 		}
 		if (firstArgument instanceof ChainNode chainNode) {
 			// Go templates: (.pipe).Method arg or .X.Y.Method arg → method call
@@ -606,14 +605,13 @@ public class Executor {
 		if (firstArgument instanceof DotNode) {
 			return data;
 		}
-		if (firstArgument instanceof StringNode) {
-			return ((StringNode) firstArgument).getText();
+		if (firstArgument instanceof StringNode stringNode) {
+			return stringNode.getText();
 		}
-		if (firstArgument instanceof BoolNode) {
-			return ((BoolNode) firstArgument).isValue();
+		if (firstArgument instanceof BoolNode boolNode) {
+			return boolNode.isValue();
 		}
-		if (firstArgument instanceof NumberNode) {
-			NumberNode numberNode = (NumberNode) firstArgument;
+		if (firstArgument instanceof NumberNode numberNode) {
 			if (numberNode.isInt()) {
 				return numberNode.getIntValue();
 			}
@@ -626,8 +624,8 @@ public class Executor {
 			return null;
 		}
 
-		if (firstArgument instanceof PipeNode) {
-			return executePipe((PipeNode) firstArgument, data, beanInfo);
+		if (firstArgument instanceof PipeNode pipeNode) {
+			return executePipe(pipeNode, data, beanInfo);
 		}
 
 		throw new TemplateExecutionException(String.format("can't evaluate command %s", firstArgument));
@@ -954,18 +952,15 @@ public class Executor {
 			return null;
 		}
 
-		if (argument instanceof BoolNode) {
-			BoolNode boolNode = (BoolNode) argument;
+		if (argument instanceof BoolNode boolNode) {
 			return boolNode.isValue();
 		}
 
-		if (argument instanceof StringNode) {
-			StringNode stringNode = (StringNode) argument;
+		if (argument instanceof StringNode stringNode) {
 			return stringNode.getText();
 		}
 
-		if (argument instanceof NumberNode) {
-			NumberNode numberNode = (NumberNode) argument;
+		if (argument instanceof NumberNode numberNode) {
 			if (numberNode.isInt()) {
 				return numberNode.getIntValue();
 			}
@@ -975,32 +970,27 @@ public class Executor {
 			return 0;
 		}
 
-		if (argument instanceof FieldNode) {
-			FieldNode fieldNode = (FieldNode) argument;
+		if (argument instanceof FieldNode fieldNode) {
 			return executeField(fieldNode, data);
 		}
 
-		if (argument instanceof ChainNode) {
-			ChainNode chainNode = (ChainNode) argument;
+		if (argument instanceof ChainNode chainNode) {
 			return executeChain(chainNode, data, beanInfo);
 		}
 
-		if (argument instanceof PipeNode) {
-			PipeNode pipeNode = (PipeNode) argument;
+		if (argument instanceof PipeNode pipeNode) {
 			return executePipe(pipeNode, data, beanInfo);
 		}
 
-		if (argument instanceof VariableNode) {
-			return executeVariable((VariableNode) argument);
+		if (argument instanceof VariableNode variableNode) {
+			return executeVariable(variableNode);
 		}
 
-		if (argument instanceof CommandNode) {
-			CommandNode commandNode = (CommandNode) argument;
+		if (argument instanceof CommandNode commandNode) {
 			return executeCommand(commandNode, data, beanInfo, NO_PIPELINE);
 		}
 
-		if (argument instanceof IdentifierNode) {
-			IdentifierNode identifierNode = (IdentifierNode) argument;
+		if (argument instanceof IdentifierNode identifierNode) {
 			String identifier = identifierNode.getIdentifier();
 			// Check if it's a function
 			if (functions.containsKey(identifier)) {

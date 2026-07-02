@@ -80,8 +80,8 @@ public final class MathFunctions {
 			if (args.length == 0 || args[0] == null) {
 				return 0;
 			}
-			if (args[0] instanceof Number) {
-				return ((Number) args[0]).intValue();
+			if (args[0] instanceof Number number) {
+				return number.intValue();
 			}
 			// Sprig's int is cast.ToInt: a bool coerces to 1/0 (gitlab's sidekiq uses
 			// `int .Values.memoryKiller.daemonMode`). Without this a Boolean falls
@@ -105,8 +105,8 @@ public final class MathFunctions {
 			if (args.length == 0 || args[0] == null) {
 				return 0L;
 			}
-			if (args[0] instanceof Number) {
-				return ((Number) args[0]).longValue();
+			if (args[0] instanceof Number number) {
+				return number.longValue();
 			}
 			// Sprig's int64 is cast.ToInt64: a bool coerces to 1/0, matching int above.
 			if (args[0] instanceof Boolean b) {
@@ -127,8 +127,8 @@ public final class MathFunctions {
 			if (args.length == 0 || args[0] == null) {
 				return 0.0;
 			}
-			if (args[0] instanceof Number) {
-				return ((Number) args[0]).doubleValue();
+			if (args[0] instanceof Number number) {
+				return number.doubleValue();
 			}
 			try {
 				return Double.parseDouble(String.valueOf(args[0]));

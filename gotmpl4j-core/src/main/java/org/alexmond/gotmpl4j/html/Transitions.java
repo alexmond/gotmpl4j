@@ -369,6 +369,7 @@ final class Transitions {
 					return new Result(c, i + 1);
 				}
 				default -> {
+					// Unreachable: indexAny only matches '`', '\\', or '$'.
 				}
 			}
 			k = i + 1;
@@ -521,6 +522,7 @@ final class Transitions {
 					return new Result(c, i + 1);
 				}
 				default -> {
+					// Unreachable: indexAny only matches '(', '/', '"', or '\''.
 				}
 			}
 			k = i + 1;
@@ -643,6 +645,7 @@ final class Transitions {
 					return new EatAttr(-1, err);
 				}
 				default -> {
+					// An ordinary attribute-name character; keep scanning.
 				}
 			}
 		}
@@ -653,6 +656,7 @@ final class Transitions {
 		for (int j = i; j < s.length; j++) {
 			switch (s[j]) {
 				case ' ', '\t', '\n', '\f', '\r' -> {
+					// Whitespace; keep scanning.
 				}
 				default -> {
 					return j;

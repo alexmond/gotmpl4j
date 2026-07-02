@@ -16,6 +16,12 @@ import org.alexmond.gotmpl4j.util.StringUtils;
  */
 public class Parser {
 
+	private static final String MISSING_TOKEN = "missing token";
+
+	private static final String UNEXPECTED_IN_CONTEXT = "unexpected '%s' in %s";
+
+	private static final String NON_EXECUTABLE_COMMAND = "non executable command in pipeline stage %d";
+
 	private final Map<String, Function> functions;
 
 	public Parser() {
@@ -184,12 +190,12 @@ public class Parser {
 
 		Token token = moveToNextNonSpaceToken(lexer, state);
 		if (token == null) {
-			throwUnexpectError("missing token", state);
+			throwUnexpectError(MISSING_TOKEN, state);
 		}
 
 		if (token.type() != TokenType.STRING && token.type() != TokenType.RAW_STRING) {
-			throw new TemplateParseException(String.format("unexpected '%s' in %s", token.value(), context),
-					token.line(), token.column());
+			throw new TemplateParseException(String.format(UNEXPECTED_IN_CONTEXT, token.value(), context), token.line(),
+					token.column());
 		}
 
 		String blockTemplateName = StringUtils.unquote(token.value());
@@ -221,24 +227,24 @@ public class Parser {
 
 		Token token = moveToNextNonSpaceToken(lexer, state);
 		if (token == null) {
-			throwUnexpectError("missing token", state);
+			throwUnexpectError(MISSING_TOKEN, state);
 		}
 
 		if (token.type() != TokenType.STRING && token.type() != TokenType.RAW_STRING) {
-			throw new TemplateParseException(String.format("unexpected '%s' in %s", token.value(), context),
-					token.line(), token.column());
+			throw new TemplateParseException(String.format(UNEXPECTED_IN_CONTEXT, token.value(), context), token.line(),
+					token.column());
 		}
 
 		String definitionTemplateName = StringUtils.unquote(token.value());
 
 		token = moveToNextNonSpaceToken(lexer, state);
 		if (token == null) {
-			throwUnexpectError("missing token", state);
+			throwUnexpectError(MISSING_TOKEN, state);
 		}
 
 		if (token.type() != TokenType.RIGHT_DELIM) {
-			throw new TemplateParseException(String.format("unexpected '%s' in %s", token.value(), context),
-					token.line(), token.column());
+			throw new TemplateParseException(String.format(UNEXPECTED_IN_CONTEXT, token.value(), context), token.line(),
+					token.column());
 		}
 
 		ListNode definitionListNode = new ListNode();
@@ -249,7 +255,7 @@ public class Parser {
 			definitionListNode.removeLast();
 		}
 		else {
-			throwUnexpectError(String.format("unexpected '%s' in %s", lastNode, context), state);
+			throwUnexpectError(String.format(UNEXPECTED_IN_CONTEXT, lastNode, context), state);
 			return;
 		}
 
@@ -259,7 +265,7 @@ public class Parser {
 	private void parseElse(ListNode listNode, Lexer lexer, State state) throws TemplateParseException {
 		Token token = moveToNextNonSpaceToken(lexer, state);
 		if (token == null) {
-			throwUnexpectError("missing token", state);
+			throwUnexpectError(MISSING_TOKEN, state);
 		}
 
 		switch (token.type()) {
@@ -285,7 +291,7 @@ public class Parser {
 	private void parseBreak(ListNode listNode, Lexer lexer, State state) throws TemplateParseException {
 		Token token = moveToNextNonSpaceToken(lexer, state);
 		if (token == null) {
-			throwUnexpectError("missing token", state);
+			throwUnexpectError(MISSING_TOKEN, state);
 		}
 
 		if (token.type() != TokenType.RIGHT_DELIM) {
@@ -297,7 +303,7 @@ public class Parser {
 	private void parseContinue(ListNode listNode, Lexer lexer, State state) throws TemplateParseException {
 		Token token = moveToNextNonSpaceToken(lexer, state);
 		if (token == null) {
-			throwUnexpectError("missing token", state);
+			throwUnexpectError(MISSING_TOKEN, state);
 		}
 
 		if (token.type() != TokenType.RIGHT_DELIM) {
@@ -309,7 +315,7 @@ public class Parser {
 	private void parseEnd(ListNode listNode, Lexer lexer, State state) throws TemplateParseException {
 		Token token = moveToNextNonSpaceToken(lexer, state);
 		if (token == null) {
-			throwUnexpectError("missing token", state);
+			throwUnexpectError(MISSING_TOKEN, state);
 		}
 
 		if (token.type() != TokenType.RIGHT_DELIM) {
@@ -341,12 +347,12 @@ public class Parser {
 
 		Token token = moveToNextNonSpaceToken(lexer, state);
 		if (token == null) {
-			throwUnexpectError("missing token", state);
+			throwUnexpectError(MISSING_TOKEN, state);
 		}
 
 		if (token.type() != TokenType.STRING && token.type() != TokenType.RAW_STRING) {
-			throw new TemplateParseException(String.format("unexpected '%s' in %s", token.value(), context),
-					token.line(), token.column());
+			throw new TemplateParseException(String.format(UNEXPECTED_IN_CONTEXT, token.value(), context), token.line(),
+					token.column());
 		}
 
 		String templateName = StringUtils.unquote(token.value());
@@ -354,7 +360,7 @@ public class Parser {
 
 		token = moveToNextNonSpaceToken(lexer, state);
 		if (token == null) {
-			throwUnexpectError("missing token", state);
+			throwUnexpectError(MISSING_TOKEN, state);
 		}
 
 		if (token.type() != TokenType.RIGHT_DELIM) {
@@ -400,7 +406,7 @@ public class Parser {
 			if (allowElseIf) {
 				Token token = lookNextNonSpaceToken(lexer, state);
 				if (token == null) {
-					throwUnexpectError("missing token", state);
+					throwUnexpectError(MISSING_TOKEN, state);
 				}
 
 				// {{else if}} / {{else with}} / {{else range}} chains share the outer
@@ -449,7 +455,7 @@ public class Parser {
 	private void parsePipe(PipeNode pipeNode, Lexer lexer, TokenType end, State state) throws TemplateParseException {
 		Token token = lookNextNonSpaceToken(lexer, state);
 		if (token == null) {
-			throwUnexpectError("missing token", state);
+			throwUnexpectError(MISSING_TOKEN, state);
 		}
 
 		if (token.type() == TokenType.VARIABLE) {
@@ -459,7 +465,7 @@ public class Parser {
 		while (true) {
 			token = moveToNextNonSpaceToken(lexer, state);
 			if (token == null) {
-				throwUnexpectError("missing token", state);
+				throwUnexpectError(MISSING_TOKEN, state);
 			}
 
 			if (token.type() == end) {
@@ -470,19 +476,19 @@ public class Parser {
 				for (int i = 1; i < commands.size(); i++) {
 					Node firstArgument = commands.get(i).getFirstArgument();
 					if (firstArgument instanceof BoolNode) {
-						throwUnexpectError(String.format("non executable command in pipeline stage %d", i + 1), state);
+						throwUnexpectError(String.format(NON_EXECUTABLE_COMMAND, i + 1), state);
 					}
 					else if (firstArgument instanceof DotNode) {
-						throwUnexpectError(String.format("non executable command in pipeline stage %d", i + 1), state);
+						throwUnexpectError(String.format(NON_EXECUTABLE_COMMAND, i + 1), state);
 					}
 					else if (firstArgument instanceof NilNode) {
-						throwUnexpectError(String.format("non executable command in pipeline stage %d", i + 1), state);
+						throwUnexpectError(String.format(NON_EXECUTABLE_COMMAND, i + 1), state);
 					}
 					else if (firstArgument instanceof NumberNode) {
-						throwUnexpectError(String.format("non executable command in pipeline stage %d", i + 1), state);
+						throwUnexpectError(String.format(NON_EXECUTABLE_COMMAND, i + 1), state);
 					}
 					else if (firstArgument instanceof StringNode) {
-						throwUnexpectError(String.format("non executable command in pipeline stage %d", i + 1), state);
+						throwUnexpectError(String.format(NON_EXECUTABLE_COMMAND, i + 1), state);
 					}
 				}
 				break;
@@ -519,7 +525,7 @@ public class Parser {
 		moveToNextNonSpaceToken(lexer, state);
 		Token nextToken = lookNextNonSpaceToken(lexer, state);
 		if (nextToken == null) {
-			throwUnexpectError("missing token", state);
+			throwUnexpectError(MISSING_TOKEN, state);
 		}
 
 		switch (nextToken.type()) {
@@ -544,7 +550,7 @@ public class Parser {
 					if ("range".equals(pipeNode.getContext()) && pipeNode.getVariableCount() < 2) {
 						nextToken = lookNextNonSpaceToken(lexer, state);
 						if (nextToken == null) {
-							throwUnexpectError("missing token", state);
+							throwUnexpectError(MISSING_TOKEN, state);
 						}
 
 						switch (nextToken.type()) {
@@ -575,7 +581,7 @@ public class Parser {
 
 			Token token = moveToNextNonSpaceToken(lexer, state);
 			if (token == null) {
-				throwUnexpectError("missing token", state);
+				throwUnexpectError(MISSING_TOKEN, state);
 			}
 
 			switch (token.type()) {

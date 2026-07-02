@@ -41,6 +41,8 @@ import org.thymeleaf.templateresolver.StringTemplateResolver;
 @State(Scope.Thread)
 public class InterpolationBenchmark {
 
+	private static final String HELLO = "hello";
+
 	private final Person person = new Person("World");
 
 	private GoTemplate gotmpl;
@@ -58,14 +60,14 @@ public class InterpolationBenchmark {
 	@Setup
 	public void setup() throws Exception {
 		this.gotmpl = new GoTemplate();
-		this.gotmpl.parse("hello", Templates.load("hello.gotmpl"));
+		this.gotmpl.parse(HELLO, Templates.load("hello.gotmpl"));
 
 		Configuration cfg = new Configuration(Configuration.VERSION_2_3_32);
 		cfg.setLogTemplateExceptions(false);
 		StringTemplateLoader loader = new StringTemplateLoader();
-		loader.putTemplate("hello", Templates.load("hello.ftl"));
+		loader.putTemplate(HELLO, Templates.load("hello.ftl"));
 		cfg.setTemplateLoader(loader);
-		this.freemarker = cfg.getTemplate("hello");
+		this.freemarker = cfg.getTemplate(HELLO);
 
 		StringTemplateResolver resolver = new StringTemplateResolver();
 		resolver.setTemplateMode(TemplateMode.TEXT);
@@ -76,8 +78,7 @@ public class InterpolationBenchmark {
 		// warm the parsed-template cache
 		thymeleafRender();
 
-		this.mustache = new DefaultMustacheFactory().compile(new StringReader(Templates.load("hello.mustache")),
-				"hello");
+		this.mustache = new DefaultMustacheFactory().compile(new StringReader(Templates.load("hello.mustache")), HELLO);
 		this.pebble = new PebbleEngine.Builder().autoEscaping(false)
 			.build()
 			.getLiteralTemplate(Templates.load("hello.pebble"));

@@ -46,6 +46,8 @@ import org.thymeleaf.templateresolver.StringTemplateResolver;
 @State(Scope.Thread)
 public class TableBenchmark {
 
+	private static final String TABLE = "table";
+
 	@Param({ "10", "100", "1000" })
 	private int n;
 
@@ -74,7 +76,7 @@ public class TableBenchmark {
 		this.itemsModel.put("items", this.stocks);
 
 		this.gotmpl = new GoTemplate();
-		this.gotmpl.parse("table", Templates.load("table.gotmpl"));
+		this.gotmpl.parse(TABLE, Templates.load("table.gotmpl"));
 		this.gotmplData = new HashMap<>();
 		this.gotmplData.put("Items", this.stocks);
 
@@ -82,9 +84,9 @@ public class TableBenchmark {
 		cfg.setLogTemplateExceptions(false);
 		cfg.setNumberFormat("computer");
 		StringTemplateLoader loader = new StringTemplateLoader();
-		loader.putTemplate("table", Templates.load("table.ftl"));
+		loader.putTemplate(TABLE, Templates.load("table.ftl"));
 		cfg.setTemplateLoader(loader);
-		this.freemarker = cfg.getTemplate("table");
+		this.freemarker = cfg.getTemplate(TABLE);
 
 		StringTemplateResolver resolver = new StringTemplateResolver();
 		resolver.setTemplateMode(TemplateMode.HTML);
@@ -94,8 +96,7 @@ public class TableBenchmark {
 		this.thymeleafSource = Templates.load("table.thymeleaf.html");
 		thymeleafRender();
 
-		this.mustache = new DefaultMustacheFactory().compile(new StringReader(Templates.load("table.mustache")),
-				"table");
+		this.mustache = new DefaultMustacheFactory().compile(new StringReader(Templates.load("table.mustache")), TABLE);
 		this.pebble = new PebbleEngine.Builder().autoEscaping(false)
 			.build()
 			.getLiteralTemplate(Templates.load("table.pebble"));
@@ -103,7 +104,7 @@ public class TableBenchmark {
 
 	@Benchmark
 	public String gotmpl4jRender() {
-		return this.gotmpl.render("table", this.gotmplData);
+		return this.gotmpl.render(TABLE, this.gotmplData);
 	}
 
 	@Benchmark

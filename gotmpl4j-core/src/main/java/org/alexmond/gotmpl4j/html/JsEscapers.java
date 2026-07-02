@@ -12,27 +12,43 @@ import org.alexmond.gotmpl4j.html.Content.Stringified;
  */
 final class JsEscapers {
 
+	private static final String ESC_U0000 = "\\u0000";
+
+	private static final String ESC_U000B = "\\u000b";
+
+	private static final String ESC_U0022 = "\\u0022";
+
+	private static final String ESC_U0026 = "\\u0026";
+
+	private static final String ESC_U0027 = "\\u0027";
+
+	private static final String ESC_U002B = "\\u002b";
+
+	private static final String ESC_U003C = "\\u003c";
+
+	private static final String ESC_U003E = "\\u003e";
+
 	// Control characters 0x00-0x1f always escaped (precedence over the per-context
 	// tables).
 	private static final Map<Integer, String> LOW_UNICODE = buildLowUnicode();
 
-	private static final Map<Integer, String> JS_STR = Map.ofEntries(Map.entry(0, "\\u0000"),
-			Map.entry((int) '\t', "\\t"), Map.entry((int) '\n', "\\n"), Map.entry(0x0b, "\\u000b"),
-			Map.entry((int) '\f', "\\f"), Map.entry((int) '\r', "\\r"), Map.entry((int) '"', "\\u0022"),
-			Map.entry((int) '`', "\\u0060"), Map.entry((int) '&', "\\u0026"), Map.entry((int) '\'', "\\u0027"),
-			Map.entry((int) '+', "\\u002b"), Map.entry((int) '/', "\\/"), Map.entry((int) '<', "\\u003c"),
-			Map.entry((int) '>', "\\u003e"), Map.entry((int) '\\', "\\\\"));
+	private static final Map<Integer, String> JS_STR = Map.ofEntries(Map.entry(0, ESC_U0000),
+			Map.entry((int) '\t', "\\t"), Map.entry((int) '\n', "\\n"), Map.entry(0x0b, ESC_U000B),
+			Map.entry((int) '\f', "\\f"), Map.entry((int) '\r', "\\r"), Map.entry((int) '"', ESC_U0022),
+			Map.entry((int) '`', "\\u0060"), Map.entry((int) '&', ESC_U0026), Map.entry((int) '\'', ESC_U0027),
+			Map.entry((int) '+', ESC_U002B), Map.entry((int) '/', "\\/"), Map.entry((int) '<', ESC_U003C),
+			Map.entry((int) '>', ESC_U003E), Map.entry((int) '\\', "\\\\"));
 
 	// Like JS_STR plus the JS template-literal specials $, {, }.
 	private static final Map<Integer, String> JS_BQ_STR = bqStr();
 
 	// Like JS_STR but without a backslash entry (does not over-encode existing escapes).
-	private static final Map<Integer, String> JS_STR_NORM = Map.ofEntries(Map.entry(0, "\\u0000"),
-			Map.entry((int) '\t', "\\t"), Map.entry((int) '\n', "\\n"), Map.entry(0x0b, "\\u000b"),
-			Map.entry((int) '\f', "\\f"), Map.entry((int) '\r', "\\r"), Map.entry((int) '"', "\\u0022"),
-			Map.entry((int) '&', "\\u0026"), Map.entry((int) '\'', "\\u0027"), Map.entry((int) '`', "\\u0060"),
-			Map.entry((int) '+', "\\u002b"), Map.entry((int) '/', "\\/"), Map.entry((int) '<', "\\u003c"),
-			Map.entry((int) '>', "\\u003e"));
+	private static final Map<Integer, String> JS_STR_NORM = Map.ofEntries(Map.entry(0, ESC_U0000),
+			Map.entry((int) '\t', "\\t"), Map.entry((int) '\n', "\\n"), Map.entry(0x0b, ESC_U000B),
+			Map.entry((int) '\f', "\\f"), Map.entry((int) '\r', "\\r"), Map.entry((int) '"', ESC_U0022),
+			Map.entry((int) '&', ESC_U0026), Map.entry((int) '\'', ESC_U0027), Map.entry((int) '`', "\\u0060"),
+			Map.entry((int) '+', ESC_U002B), Map.entry((int) '/', "\\/"), Map.entry((int) '<', ESC_U003C),
+			Map.entry((int) '>', ESC_U003E));
 
 	private static final Map<Integer, String> JS_REGEXP = jsRegexp();
 
@@ -185,25 +201,25 @@ final class JsEscapers {
 
 	private static Map<Integer, String> jsRegexp() {
 		Map<Integer, String> m = new HashMap<>();
-		m.put(0, "\\u0000");
+		m.put(0, ESC_U0000);
 		m.put((int) '\t', "\\t");
 		m.put((int) '\n', "\\n");
-		m.put(0x0b, "\\u000b");
+		m.put(0x0b, ESC_U000B);
 		m.put((int) '\f', "\\f");
 		m.put((int) '\r', "\\r");
-		m.put((int) '"', "\\u0022");
+		m.put((int) '"', ESC_U0022);
 		m.put((int) '$', "\\$");
-		m.put((int) '&', "\\u0026");
-		m.put((int) '\'', "\\u0027");
+		m.put((int) '&', ESC_U0026);
+		m.put((int) '\'', ESC_U0027);
 		m.put((int) '(', "\\(");
 		m.put((int) ')', "\\)");
 		m.put((int) '*', "\\*");
-		m.put((int) '+', "\\u002b");
+		m.put((int) '+', ESC_U002B);
 		m.put((int) '-', "\\-");
 		m.put((int) '.', "\\.");
 		m.put((int) '/', "\\/");
-		m.put((int) '<', "\\u003c");
-		m.put((int) '>', "\\u003e");
+		m.put((int) '<', ESC_U003C);
+		m.put((int) '>', ESC_U003E);
 		m.put((int) '?', "\\?");
 		m.put((int) '[', "\\[");
 		m.put((int) '\\', "\\\\");

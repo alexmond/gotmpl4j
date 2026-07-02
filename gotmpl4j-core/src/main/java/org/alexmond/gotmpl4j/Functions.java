@@ -100,8 +100,8 @@ public final class Functions {
 			if (o instanceof Map) {
 				return ((Map<?, ?>) o).size();
 			}
-			if (o instanceof String) {
-				return ((String) o).length();
+			if (o instanceof String string) {
+				return string.length();
 			}
 			if (o.getClass().isArray()) {
 				return Array.getLength(o);
@@ -133,8 +133,8 @@ public final class Functions {
 	}
 
 	private static boolean valuesEqual(Object a, Object b) {
-		if (a instanceof Number && b instanceof Number) {
-			return ((Number) a).doubleValue() == ((Number) b).doubleValue();
+		if (a instanceof Number n1 && b instanceof Number n2) {
+			return n1.doubleValue() == n2.doubleValue();
 		}
 		return Objects.equals(a, b);
 	}
@@ -170,9 +170,9 @@ public final class Functions {
 			}
 
 			// Handle numeric comparisons by converting to double
-			if (args[0] instanceof Number && args[1] instanceof Number) {
-				double v1 = ((Number) args[0]).doubleValue();
-				double v2 = ((Number) args[1]).doubleValue();
+			if (args[0] instanceof Number n1 && args[1] instanceof Number n2) {
+				double v1 = n1.doubleValue();
+				double v2 = n2.doubleValue();
 				return v1 < v2;
 			}
 
@@ -201,9 +201,9 @@ public final class Functions {
 			}
 
 			// Handle numeric comparisons by converting to double
-			if (args[0] instanceof Number && args[1] instanceof Number) {
-				double v1 = ((Number) args[0]).doubleValue();
-				double v2 = ((Number) args[1]).doubleValue();
+			if (args[0] instanceof Number n1 && args[1] instanceof Number n2) {
+				double v1 = n1.doubleValue();
+				double v2 = n2.doubleValue();
 				return v1 <= v2;
 			}
 
@@ -232,9 +232,9 @@ public final class Functions {
 			}
 
 			// Handle numeric comparisons by converting to double
-			if (args[0] instanceof Number && args[1] instanceof Number) {
-				double v1 = ((Number) args[0]).doubleValue();
-				double v2 = ((Number) args[1]).doubleValue();
+			if (args[0] instanceof Number n1 && args[1] instanceof Number n2) {
+				double v1 = n1.doubleValue();
+				double v2 = n2.doubleValue();
 				return v1 > v2;
 			}
 
@@ -263,9 +263,9 @@ public final class Functions {
 			}
 
 			// Handle numeric comparisons by converting to double
-			if (args[0] instanceof Number && args[1] instanceof Number) {
-				double v1 = ((Number) args[0]).doubleValue();
-				double v2 = ((Number) args[1]).doubleValue();
+			if (args[0] instanceof Number n1 && args[1] instanceof Number n2) {
+				double v1 = n1.doubleValue();
+				double v2 = n2.doubleValue();
 				return v1 >= v2;
 			}
 
@@ -454,14 +454,14 @@ public final class Functions {
 		if (arg == null) {
 			return false;
 		}
-		if (arg instanceof Boolean) {
-			return (Boolean) arg;
+		if (arg instanceof Boolean boolValue) {
+			return boolValue;
 		}
-		if (arg instanceof String) {
-			return !((String) arg).isEmpty();
+		if (arg instanceof String string) {
+			return !string.isEmpty();
 		}
-		if (arg instanceof Number) {
-			return ((Number) arg).doubleValue() != 0;
+		if (arg instanceof Number number) {
+			return number.doubleValue() != 0;
 		}
 		if (arg instanceof Collection) {
 			return !((Collection<?>) arg).isEmpty();

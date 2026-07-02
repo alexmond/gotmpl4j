@@ -573,6 +573,7 @@ class ParserTest {
 				type = TokenType.COMPLEX;
 			}
 			catch (NumberFormatException ignored) {
+				// ... not complex; leave the type as NUMBER/CHAR_CONSTANT
 			}
 
 			try {
