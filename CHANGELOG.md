@@ -6,6 +6,18 @@ All notable changes to gotmpl4j are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.2.1] — 2026-07-09
+
+### Fixed
+- Variadic method calls on values now work, matching Go's `text/template`. The executor
+  matched methods by exact parameter count and silently resolved a variadic method to nil; it
+  now packs the trailing arguments into the varargs array — in both the argument-bearing path
+  and the bare `{{ .obj.Variadic }}` (zero-arg) path — while still preferring a fixed-arity
+  overload. Method cases sit outside the conformance corpus, so a dedicated parity test guards
+  it. ([#111], closes [#110])
+- Thread-safe `TemplateCache` cached field; documented the `GoFmt` scratch `ThreadLocal`.
+  ([#103])
+
 ### Docs
 - New (unpublished) **`gotmpl4j-samples`** aggregator with five runnable examples of how to use
   the library: `quickstart` (core API from plain Java), `web-mvc` and `web-flux` (the Spring Boot
@@ -18,6 +30,10 @@ All notable changes to gotmpl4j are documented here. The format follows
   hit their template caches). Added a cross-engine *Parse / compile cost* table to the
   Performance page: gotmpl4j parses ~3× faster than FreeMarker and slower than the leaner
   Mustache/Pebble grammars, with parse a one-time cost amortised across renders.
+
+### Internal
+- SonarQube code-smell cleanup and a relaxed test-quality pass (rounding out semver
+  false-direction coverage). ([#105], [#106], [#107], [#109])
 
 ## [1.2.0] — 2026-06-29
 
@@ -134,7 +150,8 @@ Pre-1.0 development line: gotmpl4j extracted from
 [jhelm](https://github.com/alexmond/jhelm) into a standalone project, with the engine, Sprig,
 the Spring Boot starter, the conformance tooling, and Maven Central publishing established.
 
-[Unreleased]: https://github.com/alexmond/gotmpl4j/compare/1.2.0...HEAD
+[Unreleased]: https://github.com/alexmond/gotmpl4j/compare/1.2.1...HEAD
+[1.2.1]: https://github.com/alexmond/gotmpl4j/compare/1.2.0...1.2.1
 [1.2.0]: https://github.com/alexmond/gotmpl4j/compare/1.1.5...1.2.0
 [1.1.5]: https://github.com/alexmond/gotmpl4j/compare/1.1.4...1.1.5
 [1.1.4]: https://github.com/alexmond/gotmpl4j/compare/1.1.3...1.1.4
@@ -143,6 +160,13 @@ the Spring Boot starter, the conformance tooling, and Maven Central publishing e
 [1.1.1]: https://github.com/alexmond/gotmpl4j/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/alexmond/gotmpl4j/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/alexmond/gotmpl4j/releases/tag/1.0.0
+[#111]: https://github.com/alexmond/gotmpl4j/pull/111
+[#110]: https://github.com/alexmond/gotmpl4j/issues/110
+[#109]: https://github.com/alexmond/gotmpl4j/pull/109
+[#107]: https://github.com/alexmond/gotmpl4j/pull/107
+[#106]: https://github.com/alexmond/gotmpl4j/pull/106
+[#105]: https://github.com/alexmond/gotmpl4j/pull/105
+[#103]: https://github.com/alexmond/gotmpl4j/pull/103
 [#97]: https://github.com/alexmond/gotmpl4j/pull/97
 [#96]: https://github.com/alexmond/gotmpl4j/pull/96
 [#95]: https://github.com/alexmond/gotmpl4j/issues/95
