@@ -4,14 +4,16 @@ version: true
 start_page: ROOT:index.adoc
 asciidoc:
   attributes:
-    # javadoc.io serves versioned API docs for every published artifact; the /page/ form
-    # keeps the javadoc.io chrome + version switcher. Compose as
+    # javadoc.io serves versioned API docs for every published artifact. Use the /doc/ form:
+    # the /page/ form's base index resolves but its deep class-page paths 404 for these
+    # artifacts (a javadoc.io quirk — jhelm's /page/ links work), so the composed API links
+    # 404ed on the live site (#108). /doc/ serves the same deep paths. Compose as
     # {api-core}/{page-component-version}/<class path>.html in pages — the component
     # version is derived by Antora from the tag the hub pins, so it needs no manual bump.
-    api-core: 'https://javadoc.io/page/org.alexmond/gotmpl4j-core'
-    api-sprig: 'https://javadoc.io/page/org.alexmond/gotmpl4j-sprig'
-    api-spring: 'https://javadoc.io/page/org.alexmond/gotmpl4j-spring'
-    api-starter: 'https://javadoc.io/page/org.alexmond/gotmpl4j-spring-boot-starter'
+    api-core: 'https://javadoc.io/doc/org.alexmond/gotmpl4j-core'
+    api-sprig: 'https://javadoc.io/doc/org.alexmond/gotmpl4j-sprig'
+    api-spring: 'https://javadoc.io/doc/org.alexmond/gotmpl4j-spring'
+    api-starter: 'https://javadoc.io/doc/org.alexmond/gotmpl4j-spring-boot-starter'
     toc: left
     sectnums: ''
     keywords: 'Go template, text/template, Sprig, Java, Spring Boot, Helm, Hugo'
