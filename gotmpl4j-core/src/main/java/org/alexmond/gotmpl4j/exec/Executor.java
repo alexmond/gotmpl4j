@@ -722,14 +722,27 @@ public class Executor {
 	 */
 	private static Object invokeNoArgHelperMethod(Object target, String name) {
 		for (Method method : target.getClass().getMethods()) {
-			if (method.getParameterCount() == 0 && method.getName().equals(name)
-					&& !method.getDeclaringClass().getName().startsWith("java.")) {
-				try {
-					return method.invoke(target);
-				}
-				catch (ReflectiveOperationException ex) {
-					return NO_METHOD;
-				}
+			if (!method.getName().equals(name) || method.getDeclaringClass().getName().startsWith("java.")) {
+				continue;
+			}
+			// A no-arg method, or a purely-variadic method invoked with zero trailing
+			// arguments: Go calls a variadic method with an empty slice for a bare
+			// {{ .obj.Variadic }}, so mirror that with an empty varargs array.
+			Object[] invokeArgs;
+			if (method.getParameterCount() == 0) {
+				invokeArgs = new Object[0];
+			}
+			else if (method.isVarArgs() && method.getParameterCount() == 1) {
+				invokeArgs = new Object[] { Array.newInstance(method.getParameterTypes()[0].getComponentType(), 0) };
+			}
+			else {
+				continue;
+			}
+			try {
+				return method.invoke(target, invokeArgs);
+			}
+			catch (ReflectiveOperationException ex) {
+				return NO_METHOD;
 			}
 		}
 		return NO_METHOD;
@@ -839,22 +852,72 @@ public class Executor {
 			args[args.length - 1] = pipelineValue;
 		}
 
-		// Try to find a matching method via reflection
+		// First pass: an exact-arity, non-varargs match wins, so a fixed-arity overload
+		// is
+		// preferred over a variadic one (mirrors Go's method resolution).
 		for (Method m : receiver.getClass().getMethods()) {
-			if (m.getName().equals(methodName) && m.getParameterCount() == args.length) {
-				try {
-					return m.invoke(receiver, args);
+			if (m.getName().equals(methodName) && !m.isVarArgs() && m.getParameterCount() == args.length) {
+				Object result = invokeMethod(m, receiver, args, methodName);
+				if (result != INVOKE_NOT_FOUND) {
+					return result;
 				}
-				catch (IllegalAccessException | InvocationTargetException ex) {
-					if (log.isDebugEnabled()) {
-						log.debug("Method invocation failed: {}.{}(): {}", receiver.getClass().getSimpleName(),
-								methodName, ex.getMessage());
-					}
+			}
+		}
+
+		// Second pass: a variadic method matches once the fixed leading parameters are
+		// supplied; the trailing arguments are packed into the varargs array. Go's
+		// text/template supports variadic method calls on values (funcs.go evalCall,
+		// reflect.Type#IsVariadic), so this keeps method-call parity with the upstream
+		// engine. Method cases are dropped from the conformance corpus, so this path is
+		// guarded by hand-written parity tests rather than the Go oracle.
+		for (Method m : receiver.getClass().getMethods()) {
+			if (m.getName().equals(methodName) && m.isVarArgs() && args.length >= m.getParameterCount() - 1) {
+				Object result = invokeMethod(m, receiver, packVarargs(m, args), methodName);
+				if (result != INVOKE_NOT_FOUND) {
+					return result;
 				}
 			}
 		}
 
 		return INVOKE_NOT_FOUND;
+	}
+
+	/**
+	 * Reflectively invoke {@code method} on {@code receiver} with pre-arranged
+	 * {@code invokeArgs}, returning {@link #INVOKE_NOT_FOUND} (rather than throwing) when
+	 * the call cannot be made, so the caller can keep looking for a matching overload and
+	 * ultimately fall back to Go's nil-for-missing semantics.
+	 */
+	private Object invokeMethod(Method method, Object receiver, Object[] invokeArgs, String methodName) {
+		try {
+			return method.invoke(receiver, invokeArgs);
+		}
+		catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+			if (log.isDebugEnabled()) {
+				log.debug("Method invocation failed: {}.{}(): {}", receiver.getClass().getSimpleName(), methodName,
+						ex.getMessage());
+			}
+			return INVOKE_NOT_FOUND;
+		}
+	}
+
+	/**
+	 * Arrange evaluated arguments for a reflective varargs invocation: the fixed leading
+	 * arguments are passed positionally and the remaining arguments are packed into a
+	 * single array of the method's varargs component type.
+	 */
+	private static Object[] packVarargs(Method method, Object[] args) {
+		Class<?>[] paramTypes = method.getParameterTypes();
+		int fixed = paramTypes.length - 1;
+		Class<?> componentType = paramTypes[fixed].getComponentType();
+		Object varargsArray = Array.newInstance(componentType, args.length - fixed);
+		for (int i = fixed; i < args.length; i++) {
+			Array.set(varargsArray, i - fixed, args[i]);
+		}
+		Object[] invokeArgs = new Object[paramTypes.length];
+		System.arraycopy(args, 0, invokeArgs, 0, fixed);
+		invokeArgs[fixed] = varargsArray;
+		return invokeArgs;
 	}
 
 	private Object executeFunction(IdentifierNode identifierNode, List<Node> cmdArgNodes, Object data,
