@@ -6,6 +6,8 @@ All notable changes to gotmpl4j are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-07-09
+
 ### Added
 - Custom action delimiters via `GoTemplate.delims(left, right)` and
   `GoTemplate.builder().delims(left, right)`, mirroring Go's `Template.Delims` (defaults
@@ -148,7 +150,8 @@ First stable release. The public API is frozen under semantic versioning.
   engine, Sprig, the Spring Boot starter, the conformance tooling, and Maven Central publishing
   established.
 
-[Unreleased]: https://github.com/alexmond/gotmpl4j/compare/1.2.1...HEAD
+[Unreleased]: https://github.com/alexmond/gotmpl4j/compare/1.2.2...HEAD
+[1.2.2]: https://github.com/alexmond/gotmpl4j/compare/1.2.1...1.2.2
 [1.2.1]: https://github.com/alexmond/gotmpl4j/compare/1.2.0...1.2.1
 [1.2.0]: https://github.com/alexmond/gotmpl4j/compare/1.1.5...1.2.0
 [1.1.5]: https://github.com/alexmond/gotmpl4j/compare/1.1.4...1.1.5

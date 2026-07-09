@@ -35,7 +35,7 @@ engine and Sprig funcmap for ground truth.
 <dependency>
     <groupId>org.alexmond</groupId>
     <artifactId>gotmpl4j-sprig</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
 </dependency>
 ```
 
