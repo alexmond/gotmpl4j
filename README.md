@@ -7,7 +7,7 @@
 [![Java](https://img.shields.io/badge/Java-17%2B-blue.svg)](https://openjdk.org/)
 [![coverage](https://unitrack.alexmond.org/badge/37/coverage.svg)](https://unitrack.alexmond.org/projects/37)
 [![tests](https://unitrack.alexmond.org/badge/37/pass.svg)](https://unitrack.alexmond.org/projects/37)
-[![conformance](https://img.shields.io/badge/conformance-1305%20cases-brightgreen)](https://www.alexmond.org/gotmpl4j/current/conformance.html)
+[![conformance](https://img.shields.io/badge/conformance-1305%20cases-brightgreen)](https://www.alexmond.org/gotmpl4j/current/conformance/)
 
 A pure-Java implementation of Go's [`text/template`](https://pkg.go.dev/text/template)
 engine, with the [Sprig](https://masterminds.github.io/sprig/) function library and an
@@ -82,7 +82,7 @@ of "100% of Go's tests." Surviving cases become base64 TSV fixtures asserted by 
 conformance suites; `ConformanceCensusTest` re-derives the counts on every build and fails if
 coverage drops. Only a few intentional, pinned divergences (Helm `missingkey=zero`, Java regex
 vs RE2, float formatting) deviate — see the
-[Conformance docs](https://www.alexmond.org/gotmpl4j/current/conformance.html).
+[Conformance docs](https://www.alexmond.org/gotmpl4j/current/conformance/).
 
 ## Build
 
