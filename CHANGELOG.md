@@ -13,19 +13,9 @@ All notable changes to gotmpl4j are documented here. The format follows
   markers apply relative to the configured delimiters. Verified against Go's `TestDelims`
   pairs. ([#120])
 
-## [1.2.1] — 2026-07-09
+## [1.2.1] - 2026-07-09
 
-### Fixed
-- Variadic method calls on values now work, matching Go's `text/template`. The executor
-  matched methods by exact parameter count and silently resolved a variadic method to nil; it
-  now packs the trailing arguments into the varargs array — in both the argument-bearing path
-  and the bare `{{ .obj.Variadic }}` (zero-arg) path — while still preferring a fixed-arity
-  overload. Method cases sit outside the conformance corpus, so a dedicated parity test guards
-  it. ([#111], closes [#110])
-- Thread-safe `TemplateCache` cached field; documented the `GoFmt` scratch `ThreadLocal`.
-  ([#103])
-
-### Docs
+### Changed
 - New (unpublished) **`gotmpl4j-samples`** aggregator with five runnable examples of how to use
   the library: `quickstart` (core API from plain Java), `web-mvc` and `web-flux` (the Spring Boot
   starter's servlet/reactive ViewResolvers), `custom-functions` (the `FunctionProvider`
@@ -37,12 +27,20 @@ All notable changes to gotmpl4j are documented here. The format follows
   hit their template caches). Added a cross-engine *Parse / compile cost* table to the
   Performance page: gotmpl4j parses ~3× faster than FreeMarker and slower than the leaner
   Mustache/Pebble grammars, with parse a one-time cost amortised across renders.
-
-### Internal
 - SonarQube code-smell cleanup and a relaxed test-quality pass (rounding out semver
   false-direction coverage). ([#105], [#106], [#107], [#109])
 
-## [1.2.0] — 2026-06-29
+### Fixed
+- Variadic method calls on values now work, matching Go's `text/template`. The executor
+  matched methods by exact parameter count and silently resolved a variadic method to nil; it
+  now packs the trailing arguments into the varargs array — in both the argument-bearing path
+  and the bare `{{ .obj.Variadic }}` (zero-arg) path — while still preferring a fixed-arity
+  overload. Method cases sit outside the conformance corpus, so a dedicated parity test guards
+  it. ([#111], closes [#110])
+- Thread-safe `TemplateCache` cached field; documented the `GoFmt` scratch `ThreadLocal`.
+  ([#103])
+
+## [1.2.0] - 2026-06-29
 
 ### Added
 - New module **`gotmpl4j-spring`** — template functions that read the running Spring
@@ -54,7 +52,7 @@ All notable changes to gotmpl4j are documented here. The format follows
   (`spring-web` optional). Auto-configured; ships with the Spring Boot starter.
   ([#91], [#92], [#94]); documented in [#93].
 
-### Performance
+### Changed
 - Lexer: replace four `input.indexOf(delim, pos) == pos` "starts-at" checks with `startsWith`,
   removing a per-`{{` scan of the whole remaining template (an O(n²) cost). Parsing a
   Helm-chart-shaped template is **~5× faster** (6.9 ms → 1.3 ms in `ParseBenchmark`), which the
@@ -64,57 +62,49 @@ All notable changes to gotmpl4j are documented here. The format follows
   and presize the lexer token list to the template length — −1.5 % parse allocation, structural
   cleanup consistent with #67/#80. ([#97])
 
-## [1.1.5] — 2026-06-29
+## [1.1.5] - 2026-06-29
+
+### Changed
+- Parent POM `<description>` aligned with the 1,305-case parity positioning (the published
+  Maven Central description now carries the number). ([#76])
+- `gotmpl4j-benchmarks` is no longer published to Maven Central — `maven.deploy.skip` is a no-op
+  for `central-publishing-maven-plugin`, so the throwaway harness was being bundled on every
+  release; fixed with `<skipPublishing>true</skipPublishing>`. ([#82])
+- All benchmark numbers refreshed from a high-fidelity 100-iteration run (±1–2 % bands).
+  gotmpl4j now out-throughputs native Go+Sprig on **all six** feature workloads — `printf`
+  flipped from a ~2× loss to a ~1.2× win after the #83 regex pre-compile. Benchmark methodology
+  (always multiple forks + ~100 iterations) documented. ([#89])
 
 ### Fixed
 - `sprig` `substr`: a negative or out-of-range `end` now slices to the end of the string
   (Masterminds semantics — `substr 1 -1 "pod"` → `"od"`, was `""`); a negative `start` slices
   from the beginning. Indices are clamped defensively. ([#85])
 
+## [1.1.4] - 2026-06-29
+
 ### Changed
-- Parent POM `<description>` aligned with the 1,305-case parity positioning (the published
-  Maven Central description now carries the number). ([#76])
-
-### Build
-- `gotmpl4j-benchmarks` is no longer published to Maven Central — `maven.deploy.skip` is a no-op
-  for `central-publishing-maven-plugin`, so the throwaway harness was being bundled on every
-  release; fixed with `<skipPublishing>true</skipPublishing>`. ([#82])
-
-### Docs
-- All benchmark numbers refreshed from a high-fidelity 100-iteration run (±1–2 % bands).
-  gotmpl4j now out-throughputs native Go+Sprig on **all six** feature workloads — `printf`
-  flipped from a ~2× loss to a ~1.2× win after the #83 regex pre-compile. Benchmark methodology
-  (always multiple forks + ~100 iterations) documented. ([#89])
-
-## [1.1.4] — 2026-06-29
-
-### Performance
 - `printf`: pre-compile the verb-rewrite regex `Pattern`s to `static final` (they were
   recompiled on every call). −67 % allocation, +57 % throughput. ([#83])
 
-## [1.1.3] — 2026-06-29
+## [1.1.3] - 2026-06-29
 
-### Performance
+### Changed
 - Drop the per-function-call argument `subList` wrapper and back `CommandNode` with `ArrayList`
   (was `LinkedList`): −16 % allocation on Sprig-pipeline-heavy templates. ([#80])
-
-### Docs
 - Benchmark the gotmpl4j feature suite against its reference implementation, native Go
   `text/template` + Masterminds/sprig. ([#81])
 
-## [1.1.2] — 2026-06-29
+## [1.1.2] - 2026-06-29
 
-### Performance
+### Changed
 - `GoFmt.floatString`: format directly from the `Double.toString` digits with no intermediate
   substrings (−26 % render allocation). ([#77])
 - Unsynchronized `StringBuilder` render writer + per-thread float-format scratch reuse
   (−18 % render allocation). ([#78])
-
-### Docs
 - Enriched the cross-engine "stocks" table (conditional + computed ratio) and added the
   gotmpl4j-only feature benchmark suite. ([#79])
 
-## [1.1.1] — 2026-06-28
+## [1.1.1] - 2026-06-28
 
 ### Added
 - Quantified Go/Sprig conformance at **1,305 cases** and surfaced it in the docs/README; ported
@@ -122,27 +112,26 @@ All notable changes to gotmpl4j are documented here. The format follows
 - Expanded the benchmark to five JVM engines (FreeMarker, Thymeleaf, Mustache, Pebble) + a
   Performance docs page. ([#73])
 
-### Performance
+### Changed
 - Back `ListNode` with `ArrayList` and index-iterate the render loops (removes a per-render
   iterator-allocation hot spot). ([#67])
-
-### Build
 - CI: report tests/coverage + JMH perf to UniTrack; coverage/test badges. ([#70], [#68])
 
-## [1.1.0] — 2026-06-26
-
-### Performance
-- Cache per-class property accessors, shared across renders (amortise JavaBeans introspection). ([#62])
-- Format doubles without `BigDecimal` in the render hot path. ([#63])
-- Make `CharUtils.isAnyOf` allocation-free in the lexer hot loop. ([#64])
+## [1.1.0] - 2026-06-26
 
 ### Added
 - JMH benchmark module (`gotmpl4j-benchmarks`) + a Go `text/template` reference harness. ([#61])
 
-## [1.0.0] — 2026-06-25
+### Changed
+- Cache per-class property accessors, shared across renders (amortise JavaBeans introspection). ([#62])
+- Format doubles without `BigDecimal` in the render hot path. ([#63])
+- Make `CharUtils.isAnyOf` allocation-free in the lexer hot loop. ([#64])
+
+## [1.0.0] - 2026-06-25
 
 First stable release. The public API is frozen under semantic versioning.
 
+### Added
 - The full Go `text/template` engine (lexer → parser → AST → executor) + Go's built-in functions.
 - The Sprig function library (`gotmpl4j-sprig`, auto-discovered via `ServiceLoader`).
 - Contextual `html/template` auto-escaping (opt-in).
@@ -151,11 +140,13 @@ First stable release. The public API is frozen under semantic versioning.
 - Oracle-based conformance against Go's own `text/template`/`html/template` test tables and
   Sprig's `runt`/`runtv` suites.
 
-## 0.1.0 – 0.3.2 (2026-06-23 – 2026-06-24)
+## [0.3.2] - 2026-06-24
 
-Pre-1.0 development line: gotmpl4j extracted from
-[jhelm](https://github.com/alexmond/jhelm) into a standalone project, with the engine, Sprig,
-the Spring Boot starter, the conformance tooling, and Maven Central publishing established.
+### Added
+- Consolidated pre-1.0 development line (0.1.0 – 0.3.2, 2026-06-23 – 2026-06-24): gotmpl4j
+  extracted from [jhelm](https://github.com/alexmond/jhelm) into a standalone project, with the
+  engine, Sprig, the Spring Boot starter, the conformance tooling, and Maven Central publishing
+  established.
 
 [Unreleased]: https://github.com/alexmond/gotmpl4j/compare/1.2.1...HEAD
 [1.2.1]: https://github.com/alexmond/gotmpl4j/compare/1.2.0...1.2.1
@@ -166,7 +157,8 @@ the Spring Boot starter, the conformance tooling, and Maven Central publishing e
 [1.1.2]: https://github.com/alexmond/gotmpl4j/compare/1.1.1...1.1.2
 [1.1.1]: https://github.com/alexmond/gotmpl4j/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/alexmond/gotmpl4j/compare/1.0.0...1.1.0
-[1.0.0]: https://github.com/alexmond/gotmpl4j/releases/tag/1.0.0
+[1.0.0]: https://github.com/alexmond/gotmpl4j/compare/0.3.2...1.0.0
+[0.3.2]: https://github.com/alexmond/gotmpl4j/compare/0.3.1...0.3.2
 [#120]: https://github.com/alexmond/gotmpl4j/issues/120
 [#111]: https://github.com/alexmond/gotmpl4j/pull/111
 [#110]: https://github.com/alexmond/gotmpl4j/issues/110
