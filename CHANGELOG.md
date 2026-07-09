@@ -6,6 +6,13 @@ All notable changes to gotmpl4j are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- Custom action delimiters via `GoTemplate.delims(left, right)` and
+  `GoTemplate.builder().delims(left, right)`, mirroring Go's `Template.Delims` (defaults
+  `{{` / `}}`; an empty/`null` side resets that side to its default). Comments and trim
+  markers apply relative to the configured delimiters. Verified against Go's `TestDelims`
+  pairs. ([#120])
+
 ## [1.2.1] — 2026-07-09
 
 ### Fixed
@@ -160,6 +167,7 @@ the Spring Boot starter, the conformance tooling, and Maven Central publishing e
 [1.1.1]: https://github.com/alexmond/gotmpl4j/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/alexmond/gotmpl4j/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/alexmond/gotmpl4j/releases/tag/1.0.0
+[#120]: https://github.com/alexmond/gotmpl4j/issues/120
 [#111]: https://github.com/alexmond/gotmpl4j/pull/111
 [#110]: https://github.com/alexmond/gotmpl4j/issues/110
 [#109]: https://github.com/alexmond/gotmpl4j/pull/109
