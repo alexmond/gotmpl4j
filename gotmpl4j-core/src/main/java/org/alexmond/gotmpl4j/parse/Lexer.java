@@ -101,6 +101,24 @@ public class Lexer {
 		this(input, keepComments, DEFAULT_LEFT_DELIM, DEFAULT_RIGHT_DELIM, DEFAULT_LEFT_COMMENT, DEFAULT_RIGHT_COMMENT);
 	}
 
+	/**
+	 * Lex with custom action delimiters, mirroring Go's {@code Template.Delims}. A
+	 * {@code null} or empty delimiter falls back to the default for that side ({@code {{}
+	 * / {@code }}}), matching Go's treatment of an empty delimiter. Comment markers
+	 * ({@code /*} / {@code *}{@code /}) are unchanged and combine with the configured
+	 * delimiters.
+	 * @param input the template text
+	 * @param leftDelimiter the left action delimiter, or {@code null}/empty for the
+	 * default
+	 * @param rightDelimiter the right action delimiter, or {@code null}/empty for the
+	 * default
+	 */
+	public Lexer(String input, String leftDelimiter, String rightDelimiter) {
+		this(input, false, (leftDelimiter != null && !leftDelimiter.isEmpty()) ? leftDelimiter : DEFAULT_LEFT_DELIM,
+				(rightDelimiter != null && !rightDelimiter.isEmpty()) ? rightDelimiter : DEFAULT_RIGHT_DELIM,
+				DEFAULT_LEFT_COMMENT, DEFAULT_RIGHT_COMMENT);
+	}
+
 	public Lexer(String input, boolean keepComments, String leftDelimiter, String rightDelimiter, String leftComment,
 			String rightComment) {
 		if (input == null) {

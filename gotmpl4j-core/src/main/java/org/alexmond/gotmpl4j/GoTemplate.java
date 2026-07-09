@@ -93,6 +93,14 @@ public class GoTemplate {
 
 	private MissingKeyMode missingKey = MissingKeyMode.DEFAULT;
 
+	// Custom action delimiters (Go's Delims). null on a side means "use the default"
+	// ({{ / }}). They affect lexing, so they are read at parse() time.
+	@Getter(AccessLevel.NONE)
+	private String leftDelim;
+
+	@Getter(AccessLevel.NONE)
+	private String rightDelim;
+
 	@Getter(AccessLevel.NONE)
 	private Escaper escaper;
 
@@ -179,6 +187,7 @@ public class GoTemplate {
 			this.name = name;
 		}
 		Parser parser = new Parser(functions);
+		parser.setDelimiters(leftDelim, rightDelim);
 		try {
 			Map<String, Node> parsedNodes = parser.parse(name, text);
 			rootNodes.putAll(parsedNodes);
@@ -249,6 +258,22 @@ public class GoTemplate {
 		}
 		Executor executor = new Executor(rootNodes, functions, missingKey, beanInfoCache, accessorCache);
 		executor.execute(name, data, writer);
+	}
+
+	/**
+	 * Sets custom action delimiters, mirroring Go's {@code Template.Delims}. The defaults
+	 * are <code>{{</code> and <code>}}</code>; an empty (or {@code null}) delimiter on
+	 * either side resets that side to its default, so {@code delims("", "")} restores the
+	 * defaults. Delimiters affect lexing, so this must be called <em>before</em>
+	 * {@link #parse(String, String)}.
+	 * @param left the left delimiter, e.g. {@code "[["} ({@code null}/empty = default)
+	 * @param right the right delimiter, e.g. {@code "]]"} ({@code null}/empty = default)
+	 * @return this template, for chaining
+	 */
+	public GoTemplate delims(String left, String right) {
+		this.leftDelim = (left == null || left.isEmpty()) ? null : left;
+		this.rightDelim = (right == null || right.isEmpty()) ? null : right;
+		return this;
 	}
 
 	/**
@@ -409,6 +434,10 @@ public class GoTemplate {
 
 		private String[] options = new String[0];
 
+		private String leftDelim;
+
+		private String rightDelim;
+
 		Builder() {
 		}
 
@@ -432,6 +461,21 @@ public class GoTemplate {
 		 */
 		public Builder option(String... options) {
 			this.options = options.clone();
+			return this;
+		}
+
+		/**
+		 * Set custom action delimiters at build time, mirroring
+		 * {@link GoTemplate#delims(String, String)} (Go's {@code Template.Delims}). An
+		 * empty/{@code null} side resets to the default (<code>{{</code> /
+		 * <code>}}</code>).
+		 * @param left the left delimiter ({@code null}/empty = default)
+		 * @param right the right delimiter ({@code null}/empty = default)
+		 * @return this builder
+		 */
+		public Builder delims(String left, String right) {
+			this.leftDelim = left;
+			this.rightDelim = right;
 			return this;
 		}
 
@@ -513,6 +557,7 @@ public class GoTemplate {
 			}
 
 			template.option(options);
+			template.delims(leftDelim, rightDelim);
 
 			return template;
 		}

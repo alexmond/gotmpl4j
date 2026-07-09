@@ -24,12 +24,28 @@ public class Parser {
 
 	private final Map<String, Function> functions;
 
+	private String leftDelim;
+
+	private String rightDelim;
+
 	public Parser() {
 		this(Functions.GO_BUILTINS);
 	}
 
 	public Parser(Map<String, Function> functions) {
 		this.functions = functions;
+	}
+
+	/**
+	 * Set custom action delimiters (Go's {@code Delims}). A {@code null}/empty side falls
+	 * back to the default ({@code {{} / {@code }}}). Must be called before
+	 * {@link #parse}.
+	 * @param leftDelim the left delimiter, or {@code null}/empty for the default
+	 * @param rightDelim the right delimiter, or {@code null}/empty for the default
+	 */
+	public void setDelimiters(String leftDelim, String rightDelim) {
+		this.leftDelim = leftDelim;
+		this.rightDelim = rightDelim;
 	}
 
 	/**
@@ -43,7 +59,8 @@ public class Parser {
 		// Parse the template text, build a list node as the root node
 		ListNode listNode = new ListNode();
 
-		Lexer lexer = new Lexer(text);
+		Lexer lexer = (leftDelim != null || rightDelim != null) ? new Lexer(text, leftDelim, rightDelim)
+				: new Lexer(text);
 
 		State state = new State();
 		state.variables.add("$");
