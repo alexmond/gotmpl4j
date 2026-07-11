@@ -5,6 +5,7 @@ import java.util.Map;
 import org.alexmond.gotmpl4j.Function;
 import org.alexmond.gotmpl4j.FunctionProvider;
 import org.alexmond.gotmpl4j.GoTemplate;
+import org.alexmond.gotmpl4j.GoTemplateRegistry;
 
 /**
  * {@link FunctionProvider} that contributes all Sprig template functions.
@@ -35,6 +36,17 @@ public class SprigFunctionProvider implements FunctionProvider {
 	@Override
 	public String name() {
 		return "Sprig";
+	}
+
+	/**
+	 * Sprig functions are pure and ignore the {@code template} argument, so they can be
+	 * built once and shared across {@link GoTemplate} instances via a
+	 * {@link GoTemplateRegistry}.
+	 * @return {@code true}
+	 */
+	@Override
+	public boolean isTemplateIndependent() {
+		return true;
 	}
 
 }

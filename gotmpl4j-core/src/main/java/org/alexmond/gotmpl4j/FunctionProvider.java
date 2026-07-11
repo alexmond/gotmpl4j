@@ -45,4 +45,29 @@ public interface FunctionProvider {
 		return getClass().getSimpleName();
 	}
 
+	/**
+	 * Whether this provider's functions ignore the {@code template} argument passed to
+	 * {@link #getFunctions(GoTemplate)} — i.e. none of them captures the template
+	 * instance (as {@code include}/{@code tpl} do to execute sub-templates).
+	 *
+	 * <p>
+	 * When {@code true}, the provider's functions are template-independent and can be
+	 * built <em>once</em> and shared across many {@link GoTemplate} instances via a
+	 * {@link GoTemplateRegistry}; the registry may invoke
+	 * {@link #getFunctions(GoTemplate)} with a {@code null} template, so an independent
+	 * provider must not dereference it. Pure function libraries (e.g. Sprig) are
+	 * template-independent and should override this to {@code true}.
+	 *
+	 * <p>
+	 * The default is {@code false} (conservative): a provider is assumed to capture the
+	 * template, so it is re-invoked per instance and never shared. Overriding to
+	 * {@code true} is a correctness assertion — only do so if every returned function
+	 * ignores its {@code template} argument.
+	 * @return {@code true} if the provider's functions ignore the template argument
+	 * @since 1.3
+	 */
+	default boolean isTemplateIndependent() {
+		return false;
+	}
+
 }

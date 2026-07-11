@@ -79,13 +79,16 @@ public class GoTemplate {
 	private final Map<String, Node> rootNodes;
 
 	// Reflection caches shared across every Executor this template spawns, so
-	// introspection is
-	// done once per data class and reused across renders (not rebuilt per execution).
+	// introspection is done once per data class and reused across renders (not rebuilt
+	// per
+	// execution). When built from a GoTemplateRegistry these are the registry's caches,
+	// so
+	// they also stay warm across template instances.
 	@Getter(AccessLevel.NONE)
-	private final Map<Class<?>, BeanInfo> beanInfoCache = new ConcurrentHashMap<>();
+	private final Map<Class<?>, BeanInfo> beanInfoCache;
 
 	@Getter(AccessLevel.NONE)
-	private final Map<Class<?>, Map<String, Method>> accessorCache = new ConcurrentHashMap<>();
+	private final Map<Class<?>, Map<String, Method>> accessorCache;
 
 	private String name;
 
@@ -128,6 +131,8 @@ public class GoTemplate {
 	public GoTemplate(Map<String, Function> functions) {
 		this.functions = new LinkedHashMap<>(Functions.GO_BUILTINS);
 		this.rootNodes = new LinkedHashMap<>();
+		this.beanInfoCache = new ConcurrentHashMap<>();
+		this.accessorCache = new ConcurrentHashMap<>();
 
 		// Discover providers via ServiceLoader, sorted by priority
 		List<FunctionProvider> providers = new ArrayList<>();
@@ -148,11 +153,15 @@ public class GoTemplate {
 	}
 
 	/**
-	 * Internal constructor used by {@link Builder}.
+	 * Internal constructor used by {@link Builder}. A {@code registry} supplies shared
+	 * reflection caches (warm across instances); {@code null} gives this template its
+	 * own.
 	 */
-	GoTemplate(Map<String, Function> functions, boolean fromBuilder) {
+	GoTemplate(Map<String, Function> functions, GoTemplateRegistry registry) {
 		this.functions = new LinkedHashMap<>(functions);
 		this.rootNodes = new LinkedHashMap<>();
+		this.beanInfoCache = (registry != null) ? registry.beanInfoCache() : new ConcurrentHashMap<>();
+		this.accessorCache = (registry != null) ? registry.accessorCache() : new ConcurrentHashMap<>();
 	}
 
 	/**
@@ -428,6 +437,8 @@ public class GoTemplate {
 
 		private Map<String, Function> extraFunctions;
 
+		private GoTemplateRegistry registry;
+
 		private boolean autoDiscovery = true;
 
 		private boolean htmlEscaping;
@@ -510,41 +521,36 @@ public class GoTemplate {
 		}
 
 		/**
+		 * Build against a shared, pre-built {@link GoTemplateRegistry} instead of running
+		 * {@link ServiceLoader} and rebuilding the function map. The registry's
+		 * template-independent functions and reflection caches are reused across every
+		 * template built from it; template-dependent providers are re-bound to this
+		 * instance. When set, the registry is the provider source (auto-discovery is not
+		 * re-run); any {@link #withProvider(FunctionProvider) explicit providers} and
+		 * {@link #withFunctions(Map) raw functions} are applied per-instance on top.
+		 * @param registry the shared registry, or {@code null} for the default (discover
+		 * + build per instance)
+		 * @return this builder
+		 */
+		public Builder registry(GoTemplateRegistry registry) {
+			this.registry = registry;
+			return this;
+		}
+
+		/**
 		 * Build the {@link GoTemplate} instance.
 		 * @return a new GoTemplate with configured functions
 		 */
 		public GoTemplate build() {
-			// Start with Go builtins
-			LinkedHashMap<String, Function> allFunctions = new LinkedHashMap<>(Functions.GO_BUILTINS);
+			// Build the template first (providers may need the template ref); it also
+			// takes its reflection caches from the registry when one is set.
+			GoTemplate template = new GoTemplate(new LinkedHashMap<>(Functions.GO_BUILTINS), registry);
 
-			// Collect all providers: auto-discovered + explicit
-			List<FunctionProvider> allProviders = new ArrayList<>();
-			if (autoDiscovery) {
-				ServiceLoader<FunctionProvider> loader = ServiceLoader.load(FunctionProvider.class);
-				for (FunctionProvider discovered : loader) {
-					if (log.isDebugEnabled()) {
-						log.debug("Discovered FunctionProvider: {} (priority={})", discovered.name(),
-								discovered.priority());
-					}
-					allProviders.add(discovered);
-				}
+			if (registry != null) {
+				applyRegistry(template);
 			}
-			allProviders.addAll(providers);
-
-			// Sort by priority (lower first, higher overrides)
-			allProviders.sort(Comparator.comparingInt(FunctionProvider::priority));
-
-			// Build the template first (providers may need the factory ref)
-			GoTemplate template = new GoTemplate(allFunctions, true);
-
-			// Apply providers in priority order
-			for (FunctionProvider provider : allProviders) {
-				Map<String, Function> providerFunctions = provider.getFunctions(template);
-				template.functions.putAll(providerFunctions);
-				if (log.isDebugEnabled()) {
-					log.debug("Loaded {} functions from {} (priority={})", providerFunctions.size(), provider.name(),
-							provider.priority());
-				}
+			else {
+				applyDiscoveredProviders(template);
 			}
 
 			// Raw functions override everything
@@ -560,6 +566,36 @@ public class GoTemplate {
 			template.delims(leftDelim, rightDelim);
 
 			return template;
+		}
+
+		// Registry is the provider source: reuse its cached template-independent maps and
+		// re-bind template-dependent providers to this instance, then apply any explicit
+		// providers on top (per-instance).
+		private void applyRegistry(GoTemplate template) {
+			for (GoTemplateRegistry.Contribution contribution : registry.contributions()) {
+				Map<String, Function> functions = (contribution.cached() != null) ? contribution.cached()
+						: contribution.dependent().getFunctions(template);
+				template.functions.putAll(functions);
+			}
+			for (FunctionProvider provider : providers) {
+				template.functions.putAll(provider.getFunctions(template));
+			}
+		}
+
+		// Legacy path: discover + explicit providers, applied in priority order.
+		private void applyDiscoveredProviders(GoTemplate template) {
+			List<FunctionProvider> allProviders = new ArrayList<>();
+			if (autoDiscovery) {
+				for (FunctionProvider discovered : ServiceLoader.load(FunctionProvider.class)) {
+					allProviders.add(discovered);
+				}
+			}
+			allProviders.addAll(providers);
+			allProviders.sort(Comparator.comparingInt(FunctionProvider::priority));
+
+			for (FunctionProvider provider : allProviders) {
+				template.functions.putAll(provider.getFunctions(template));
+			}
 		}
 
 	}
