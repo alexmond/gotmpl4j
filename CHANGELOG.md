@@ -6,6 +6,18 @@ All notable changes to gotmpl4j are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- Shared function registry: `GoTemplateRegistry` + `GoTemplate.builder().registry(...)`. Build
+  the `ServiceLoader` result, the template-independent function set (e.g. Sprig's ~260 functions),
+  and the reflection caches **once**, then construct lightweight `GoTemplate` instances that reuse
+  them while keeping a clean per-instance template namespace and thread isolation. Adds
+  `FunctionProvider.isTemplateIndependent()` (default `false`; Sprig overrides to `true`) — an
+  additive, non-breaking SPI default. Template-dependent providers (`include`/`tpl`) are re-bound
+  per instance, so semantics are unchanged. Cuts per-construction allocation **~69 %**
+  (71.7 KB → 22.3 KB/op in `RegistryBenchmark`, `-prof gc`) for callers that build a template per
+  operation (e.g. jhelm rendering one chart per call). Thread-safe for concurrent construction and
+  execution. ([#119])
+
 ## [1.2.2] - 2026-07-09
 
 ### Added
@@ -163,6 +175,7 @@ First stable release. The public API is frozen under semantic versioning.
 [1.0.0]: https://github.com/alexmond/gotmpl4j/compare/0.3.2...1.0.0
 [0.3.2]: https://github.com/alexmond/gotmpl4j/compare/0.3.1...0.3.2
 [#120]: https://github.com/alexmond/gotmpl4j/issues/120
+[#119]: https://github.com/alexmond/gotmpl4j/issues/119
 [#111]: https://github.com/alexmond/gotmpl4j/pull/111
 [#110]: https://github.com/alexmond/gotmpl4j/issues/110
 [#109]: https://github.com/alexmond/gotmpl4j/pull/109
