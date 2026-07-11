@@ -36,6 +36,12 @@ All notable changes to gotmpl4j are documented here. The format follows
   once and stays warm — the shape jgomplate namespaces (`{{ strings.ToUpper }}`) hit constantly.
   Resolution semantics are unchanged (getter → Go-style name → field → method; JDK methods still
   skipped) and thread-safe (`ConcurrentHashMap`, deterministic resolution). ([#117])
+- Function dispatch does a single map lookup on the hot path instead of `containsKey` then `get`
+  (the present, non-null case invokes directly; the two error cases keep their distinct messages
+  off the hot path). Behaviour and error messages unchanged. Part of [#116]; caching the resolved
+  function on the AST node is intentionally deferred — jhelm cross-shares parsed nodes between
+  templates with different function maps (`tpl`), so a node-cached function reference is only safe
+  once the first-class template-sharing API ([#48]) replaces `getRootNodes()` sharing.
 
 ## [1.2.2] - 2026-07-09
 
@@ -197,6 +203,8 @@ First stable release. The public API is frozen under semantic versioning.
 [#119]: https://github.com/alexmond/gotmpl4j/issues/119
 [#114]: https://github.com/alexmond/gotmpl4j/issues/114
 [#117]: https://github.com/alexmond/gotmpl4j/issues/117
+[#116]: https://github.com/alexmond/gotmpl4j/issues/116
+[#48]: https://github.com/alexmond/gotmpl4j/issues/48
 [#111]: https://github.com/alexmond/gotmpl4j/pull/111
 [#110]: https://github.com/alexmond/gotmpl4j/issues/110
 [#109]: https://github.com/alexmond/gotmpl4j/pull/109
