@@ -6,6 +6,8 @@ All notable changes to gotmpl4j are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-07-11
+
 ### Added
 - Shared function registry: `GoTemplateRegistry` + `GoTemplate.builder().registry(...)`. Build
   the `ServiceLoader` result, the template-independent function set (e.g. Sprig's ~260 functions),
@@ -35,7 +37,10 @@ All notable changes to gotmpl4j are documented here. The format follows
   cache (per-instance, or across instances when built from a `GoTemplateRegistry`) so it warms
   once and stays warm — the shape jgomplate namespaces (`{{ strings.ToUpper }}`) hit constantly.
   Resolution semantics are unchanged (getter → Go-style name → field → method; JDK methods still
-  skipped) and thread-safe (`ConcurrentHashMap`, deterministic resolution). ([#117])
+  skipped) and thread-safe (`ConcurrentHashMap`, deterministic resolution). The pre-1.3
+  five-argument `Executor` cache-sharing constructor is retained as a delegating compatibility
+  overload, so the added `DispatchCache` constructor parameter is source- and binary-compatible.
+  ([#117])
 - Function dispatch does a single map lookup on the hot path instead of `containsKey` then `get`
   (the present, non-null case invokes directly; the two error cases keep their distinct messages
   off the hot path). Behaviour and error messages unchanged. Part of [#116]; caching the resolved
@@ -48,6 +53,14 @@ All notable changes to gotmpl4j are documented here. The format follows
   declaration-free scope-heavy render (`ScopeFrameBenchmark`) this is **−74 % allocation**
   (6.5 KB → 1.7 KB/op); variable-scoping semantics are unchanged (block-scoped `:=` still unwinds
   on block exit) and the `Executor` stays thread-confined. ([#115])
+- Bean property access no longer allocates a method reference per field access:
+  `Executor.accessorFor` used `computeIfAbsent(type, this::buildAccessors)`, whose bound
+  method reference was allocated on every call — including the steady-state cache hit — and was
+  not reliably elided by escape analysis. It now uses get-then-`putIfAbsent`, so the hot hit
+  path allocates nothing. **−9 to −12 % allocation** on POJO-field-access renders
+  (`TableBenchmark` −10 %, `controlFlow` −12 %, `-prof gc`), confirmed real by a same-JDK
+  before/after with zero-delta on no-field-access controls. Output byte-identical; the shared
+  `accessorCache` and resolution semantics are unchanged. ([#133])
 
 ## [1.2.2] - 2026-07-09
 
@@ -193,7 +206,8 @@ First stable release. The public API is frozen under semantic versioning.
   engine, Sprig, the Spring Boot starter, the conformance tooling, and Maven Central publishing
   established.
 
-[Unreleased]: https://github.com/alexmond/gotmpl4j/compare/1.2.2...HEAD
+[Unreleased]: https://github.com/alexmond/gotmpl4j/compare/1.3.0...HEAD
+[1.3.0]: https://github.com/alexmond/gotmpl4j/compare/1.2.2...1.3.0
 [1.2.2]: https://github.com/alexmond/gotmpl4j/compare/1.2.1...1.2.2
 [1.2.1]: https://github.com/alexmond/gotmpl4j/compare/1.2.0...1.2.1
 [1.2.0]: https://github.com/alexmond/gotmpl4j/compare/1.1.5...1.2.0
@@ -205,6 +219,7 @@ First stable release. The public API is frozen under semantic versioning.
 [1.1.0]: https://github.com/alexmond/gotmpl4j/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/alexmond/gotmpl4j/compare/0.3.2...1.0.0
 [0.3.2]: https://github.com/alexmond/gotmpl4j/compare/0.3.1...0.3.2
+[#133]: https://github.com/alexmond/gotmpl4j/pull/133
 [#120]: https://github.com/alexmond/gotmpl4j/issues/120
 [#119]: https://github.com/alexmond/gotmpl4j/issues/119
 [#114]: https://github.com/alexmond/gotmpl4j/issues/114

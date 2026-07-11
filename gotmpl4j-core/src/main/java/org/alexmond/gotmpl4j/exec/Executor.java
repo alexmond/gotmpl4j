@@ -141,6 +141,22 @@ public class Executor {
 	}
 
 	/**
+	 * Binary-compatibility overload for callers of the pre-1.3 five-argument
+	 * cache-sharing constructor (the {@link DispatchCache} parameter was added in 1.3).
+	 * Delegates with a fresh dispatch cache; prefer the six-argument constructor to share
+	 * one.
+	 * @param rootNodes the parsed template set
+	 * @param functions the function table
+	 * @param missingKey how a nil/absent value renders
+	 * @param beanInfoCache shared {@code Class -> BeanInfo} cache
+	 * @param accessorCache shared {@code Class -> (name -> read method)} cache
+	 */
+	public Executor(Map<String, Node> rootNodes, Map<String, Function> functions, MissingKeyMode missingKey,
+			Map<Class<?>, BeanInfo> beanInfoCache, Map<Class<?>, Map<String, Method>> accessorCache) {
+		this(rootNodes, functions, missingKey, beanInfoCache, accessorCache, new DispatchCache());
+	}
+
+	/**
 	 * Creates an executor that shares the engine-owned reflection caches, so
 	 * introspection is amortised across every render of the owning template rather than
 	 * rebuilt per execution.
