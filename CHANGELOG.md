@@ -42,6 +42,12 @@ All notable changes to gotmpl4j are documented here. The format follows
   function on the AST node is intentionally deferred — jhelm cross-shares parsed nodes between
   templates with different function maps (`tpl`), so a node-cached function reference is only safe
   once the first-class template-sharing API ([#48]) replaces `getRootNodes()` sharing.
+- Scope frames are allocated lazily: every `{{ if }}` / `{{ with }}` / range iteration pushed a
+  fresh `ArrayList` undo-journal even when the block declared no variable. It now pushes a shared
+  immutable empty frame and promotes it to a real list only on the first `:=` declaration. On a
+  declaration-free scope-heavy render (`ScopeFrameBenchmark`) this is **−74 % allocation**
+  (6.5 KB → 1.7 KB/op); variable-scoping semantics are unchanged (block-scoped `:=` still unwinds
+  on block exit) and the `Executor` stays thread-confined. ([#115])
 
 ## [1.2.2] - 2026-07-09
 
@@ -203,6 +209,7 @@ First stable release. The public API is frozen under semantic versioning.
 [#119]: https://github.com/alexmond/gotmpl4j/issues/119
 [#114]: https://github.com/alexmond/gotmpl4j/issues/114
 [#117]: https://github.com/alexmond/gotmpl4j/issues/117
+[#115]: https://github.com/alexmond/gotmpl4j/issues/115
 [#116]: https://github.com/alexmond/gotmpl4j/issues/116
 [#48]: https://github.com/alexmond/gotmpl4j/issues/48
 [#111]: https://github.com/alexmond/gotmpl4j/pull/111
