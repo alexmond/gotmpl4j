@@ -1163,7 +1163,20 @@ public class Executor {
 	 * @return the matching read method, or {@code null} if no property matches
 	 */
 	private Method accessorFor(Class<?> type, String identifier) {
-		return accessorCache.computeIfAbsent(type, this::buildAccessors).get(identifier);
+		// get-then-putIfAbsent instead of computeIfAbsent: the method reference
+		// this::buildAccessors is allocated on every call to computeIfAbsent (even on a
+		// cache hit, the steady-state case) unless escape analysis elides it. The plain
+		// get() hot path allocates nothing; buildAccessors is idempotent, so the rare
+		// double-build on a concurrent first-miss is harmless.
+		Map<String, Method> accessors = accessorCache.get(type);
+		if (accessors == null) {
+			accessors = buildAccessors(type);
+			Map<String, Method> existing = accessorCache.putIfAbsent(type, accessors);
+			if (existing != null) {
+				accessors = existing;
+			}
+		}
+		return accessors.get(identifier);
 	}
 
 	private Map<String, Method> buildAccessors(Class<?> type) {
