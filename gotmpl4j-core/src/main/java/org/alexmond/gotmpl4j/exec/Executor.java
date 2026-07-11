@@ -944,12 +944,11 @@ public class Executor {
 			return executeAndOr("and".equals(identifier), cmdArgNodes, data, beanInfo, finalValue);
 		}
 
-		if (functions.containsKey(identifier)) {
-			Function function = functions.get(identifier);
-			if (function == null) {
-				throw new TemplateExecutionException("call of null for " + identifier);
-			}
-
+		// Single map lookup on the hot path: a present, non-null function invokes
+		// directly. The two error cases (present-but-null vs absent) do the extra
+		// containsKey off the hot path so both keep their distinct messages.
+		Function function = functions.get(identifier);
+		if (function != null) {
 			// Arguments are cmdArgNodes[1..] (index 0 is the function name); evaluate
 			// them
 			// directly from that offset so the hot call path allocates no subList
@@ -978,6 +977,9 @@ public class Executor {
 			return function.invoke(functionArgs);
 		}
 
+		if (functions.containsKey(identifier)) {
+			throw new TemplateExecutionException("call of null for " + identifier);
+		}
 		throw new TemplateExecutionException(String.format("%s is not a defined function", identifier));
 	}
 
@@ -1064,14 +1066,13 @@ public class Executor {
 
 		if (argument instanceof IdentifierNode identifierNode) {
 			String identifier = identifierNode.getIdentifier();
-			// Check if it's a function
-			if (functions.containsKey(identifier)) {
-				Function function = functions.get(identifier);
-				if (function != null) {
-					return function.invoke(new Object[0]);
-				}
+			// A defined (non-null) function is invoked; otherwise the bare identifier is
+			// returned as a string. Single map lookup — a null result covers both the
+			// absent and the present-but-null cases, which both fall through.
+			Function function = functions.get(identifier);
+			if (function != null) {
+				return function.invoke(new Object[0]);
 			}
-			// Otherwise just return the identifier as a string
 			return identifier;
 		}
 
