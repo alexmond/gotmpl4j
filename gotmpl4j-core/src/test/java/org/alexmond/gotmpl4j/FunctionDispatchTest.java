@@ -44,6 +44,18 @@ class FunctionDispatchTest {
 	}
 
 	@Test
+	void identifierFunctionAsArgumentIsInvoked() {
+		Map<String, Function> functions = new HashMap<>();
+		functions.put("answer", (args) -> "42");
+		GoTemplate t = GoTemplate.builder().withFunctions(functions).build();
+		// `answer` is a defined no-arg function used as a bare argument, so it is
+		// invoked.
+		t.parse("t", "{{ print answer }}");
+
+		assertEquals("42", t.render(null));
+	}
+
+	@Test
 	void nullMappedIdentifierArgumentFallsThroughToString() {
 		Map<String, Function> functions = new HashMap<>();
 		functions.put("nullid", null);
