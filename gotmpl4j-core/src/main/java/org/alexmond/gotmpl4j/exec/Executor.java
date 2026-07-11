@@ -72,14 +72,17 @@ public class Executor {
 	private final Map<Class<?>, Map<String, Method>> accessorCache;
 
 	// Variable storage for template execution context
-	private final Map<String, Object> variables = new HashMap<>();
+	// Not final: writeTemplate swaps in fresh empty scope state for a callee and restores
+	// the caller's by reference (see #114), so these are per-render mutable references on
+	// the thread-confined Executor.
+	private Map<String, Object> variables = new HashMap<>();
 
 	// Block-scope undo logs. Each {{if}}/{{with}}/range-iteration pushes a frame; a `:=`
 	// declaration inside records how to undo itself, so the declaration is unwound when
 	// the
 	// block exits (Go scopes `:=` to its block). `=` assignments are not logged and
 	// persist.
-	private final java.util.Deque<List<ScopeUndo>> scopeStack = new java.util.ArrayDeque<>();
+	private java.util.Deque<List<ScopeUndo>> scopeStack = new java.util.ArrayDeque<>();
 
 	private void pushScope() {
 		scopeStack.push(new ArrayList<>());
@@ -485,23 +488,22 @@ public class Executor {
 
 		Object value = executePipe(templateNode.getPipeNode(), data, beanInfo);
 		BeanInfo valueBeanInfo = (value != null) ? getBeanInfo(value) : null;
-		// Go resets $ and clears outer variables when entering a nested template; its
-		// block
-		// scopes belong to the callee, so swap in a fresh scope stack too.
-		Map<String, Object> savedVariables = new HashMap<>(this.variables);
-		java.util.Deque<List<ScopeUndo>> savedScopes = new java.util.ArrayDeque<>(this.scopeStack);
-		this.variables.clear();
-		this.scopeStack.clear();
+		// Go resets $ and does not inherit the caller's variables when entering a nested
+		// template; its block scopes belong to the callee. Swap in fresh, empty scope
+		// state and restore the caller's by reference on return — no O(size) copy of the
+		// variable map or scope deque per include/template call (#114).
+		Map<String, Object> callerVariables = this.variables;
+		java.util.Deque<List<ScopeUndo>> callerScopes = this.scopeStack;
+		this.variables = new HashMap<>();
+		this.scopeStack = new java.util.ArrayDeque<>();
 		this.variables.put("$", value);
 		try {
 			writeNode(writer, listNode, value, valueBeanInfo);
 		}
 		finally {
 			this.templateDepth--;
-			this.variables.clear();
-			this.variables.putAll(savedVariables);
-			this.scopeStack.clear();
-			this.scopeStack.addAll(savedScopes);
+			this.variables = callerVariables;
+			this.scopeStack = callerScopes;
 		}
 	}
 
