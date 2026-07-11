@@ -18,6 +18,15 @@ All notable changes to gotmpl4j are documented here. The format follows
   operation (e.g. jhelm rendering one chart per call). Thread-safe for concurrent construction and
   execution. ([#119])
 
+### Changed
+- `{{ template }}` / `include`: enter a nested template by swapping in fresh, empty scope
+  state and restoring the caller's *by reference*, instead of snapshotting and copying the
+  whole variable map + scope deque on every call. Removes the per-call O(scope-size) copy that
+  Helm-style templates (a `_helpers.tpl` partial invoked from every manifest) pay constantly —
+  **−54 % allocation and ~2× throughput** on an include-heavy, deep-scope render
+  (`IncludeBenchmark`, 61.5 KB → 28.3 KB/op). Output is byte-identical (conformance green);
+  the `Executor` stays thread-confined, so the swap is a per-render field mutation. ([#114])
+
 ## [1.2.2] - 2026-07-09
 
 ### Added
@@ -176,6 +185,7 @@ First stable release. The public API is frozen under semantic versioning.
 [0.3.2]: https://github.com/alexmond/gotmpl4j/compare/0.3.1...0.3.2
 [#120]: https://github.com/alexmond/gotmpl4j/issues/120
 [#119]: https://github.com/alexmond/gotmpl4j/issues/119
+[#114]: https://github.com/alexmond/gotmpl4j/issues/114
 [#111]: https://github.com/alexmond/gotmpl4j/pull/111
 [#110]: https://github.com/alexmond/gotmpl4j/issues/110
 [#109]: https://github.com/alexmond/gotmpl4j/pull/109
