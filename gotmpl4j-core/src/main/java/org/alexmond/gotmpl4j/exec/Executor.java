@@ -87,12 +87,33 @@ public class Executor {
 	// persist.
 	private java.util.Deque<List<ScopeUndo>> scopeStack = new java.util.ArrayDeque<>();
 
+	// Shared immutable placeholder for a block that has not (yet) declared a variable.
+	// Most {{if}}/{{with}}/range iterations declare nothing, so pushing this instead of a
+	// fresh ArrayList avoids a per-block allocation; it is promoted to a real list lazily
+	// on the first declaration (#115).
+	private static final List<ScopeUndo> EMPTY_FRAME = List.of();
+
 	private void pushScope() {
-		scopeStack.push(new ArrayList<>());
+		scopeStack.push(EMPTY_FRAME);
+	}
+
+	// The current block's undo frame, allocating a real list on first use so that
+	// declaration-free blocks keep the shared empty placeholder.
+	private List<ScopeUndo> mutableFrame() {
+		List<ScopeUndo> top = scopeStack.peek();
+		if (top == EMPTY_FRAME) {
+			scopeStack.pop();
+			top = new ArrayList<>();
+			scopeStack.push(top);
+		}
+		return top;
 	}
 
 	private void popScope() {
 		List<ScopeUndo> frame = scopeStack.pop();
+		if (frame == EMPTY_FRAME) {
+			return;
+		}
 		for (int i = frame.size() - 1; i >= 0; i--) {
 			ScopeUndo u = frame.get(i);
 			if (u.existed()) {
@@ -549,7 +570,7 @@ public class Executor {
 					// unwound on block exit (Go scopes it to the block). A top-level
 					// declaration (no open scope) and any `=` assignment just persist.
 					if (pipeNode.isDeclare() && !scopeStack.isEmpty()) {
-						scopeStack.peek()
+						mutableFrame()
 							.add(new ScopeUndo(varName, variables.containsKey(varName), variables.get(varName)));
 					}
 					// Store the value even if it's null or empty string, matching Helm
