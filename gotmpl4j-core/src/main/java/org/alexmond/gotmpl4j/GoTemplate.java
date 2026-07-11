@@ -22,6 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.alexmond.gotmpl4j.exec.DispatchCache;
 import org.alexmond.gotmpl4j.exec.Executor;
 import org.alexmond.gotmpl4j.html.Escaper;
 import org.alexmond.gotmpl4j.html.Escapers;
@@ -90,6 +91,9 @@ public class GoTemplate {
 	@Getter(AccessLevel.NONE)
 	private final Map<Class<?>, Map<String, Method>> accessorCache;
 
+	@Getter(AccessLevel.NONE)
+	private final DispatchCache dispatchCache;
+
 	private String name;
 
 	private boolean htmlEscape;
@@ -133,6 +137,7 @@ public class GoTemplate {
 		this.rootNodes = new LinkedHashMap<>();
 		this.beanInfoCache = new ConcurrentHashMap<>();
 		this.accessorCache = new ConcurrentHashMap<>();
+		this.dispatchCache = new DispatchCache();
 
 		// Discover providers via ServiceLoader, sorted by priority
 		List<FunctionProvider> providers = new ArrayList<>();
@@ -162,6 +167,7 @@ public class GoTemplate {
 		this.rootNodes = new LinkedHashMap<>();
 		this.beanInfoCache = (registry != null) ? registry.beanInfoCache() : new ConcurrentHashMap<>();
 		this.accessorCache = (registry != null) ? registry.accessorCache() : new ConcurrentHashMap<>();
+		this.dispatchCache = (registry != null) ? registry.dispatchCache() : new DispatchCache();
 	}
 
 	/**
@@ -265,7 +271,7 @@ public class GoTemplate {
 		if (htmlEscape) {
 			ensureEscaped(name);
 		}
-		Executor executor = new Executor(rootNodes, functions, missingKey, beanInfoCache, accessorCache);
+		Executor executor = new Executor(rootNodes, functions, missingKey, beanInfoCache, accessorCache, dispatchCache);
 		executor.execute(name, data, writer);
 	}
 

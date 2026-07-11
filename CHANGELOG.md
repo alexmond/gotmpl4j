@@ -26,6 +26,16 @@ All notable changes to gotmpl4j are documented here. The format follows
   **−54 % allocation and ~2× throughput** on an include-heavy, deep-scope render
   (`IncludeBenchmark`, 61.5 KB → 28.3 KB/op). Output is byte-identical (conformance green);
   the `Executor` stays thread-confined, so the swap is a per-render field mutation. ([#114])
+- Method/field dispatch on data objects is cached: a shared `DispatchCache` indexes a class's
+  public methods (grouped by name) and public fields **once per class**, so a method call
+  (`{{ .obj.Method x }}`), a no-getter helper method (`{{ .obj.Helper }}`), and a public-field
+  read no longer run a fresh `getClass().getMethods()` / `getField()` scan on every access. On a
+  POJO/method-dispatch render (`PojoDispatchBenchmark`) this is **−50 % allocation and ~1.2×
+  throughput** (2075 → 1713 µs/op, 556 KB → 276 KB/op). The cache is shared like the accessor
+  cache (per-instance, or across instances when built from a `GoTemplateRegistry`) so it warms
+  once and stays warm — the shape jgomplate namespaces (`{{ strings.ToUpper }}`) hit constantly.
+  Resolution semantics are unchanged (getter → Go-style name → field → method; JDK methods still
+  skipped) and thread-safe (`ConcurrentHashMap`, deterministic resolution). ([#117])
 
 ## [1.2.2] - 2026-07-09
 
@@ -186,6 +196,7 @@ First stable release. The public API is frozen under semantic versioning.
 [#120]: https://github.com/alexmond/gotmpl4j/issues/120
 [#119]: https://github.com/alexmond/gotmpl4j/issues/119
 [#114]: https://github.com/alexmond/gotmpl4j/issues/114
+[#117]: https://github.com/alexmond/gotmpl4j/issues/117
 [#111]: https://github.com/alexmond/gotmpl4j/pull/111
 [#110]: https://github.com/alexmond/gotmpl4j/issues/110
 [#109]: https://github.com/alexmond/gotmpl4j/pull/109

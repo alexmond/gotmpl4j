@@ -71,6 +71,9 @@ public class Executor {
 
 	private final Map<Class<?>, Map<String, Method>> accessorCache;
 
+	// Shared method/field dispatch index (getMethods()/getFields() once per class, #117).
+	private final DispatchCache dispatchCache;
+
 	// Variable storage for template execution context
 	// Not final: writeTemplate swaps in fresh empty scope state for a callee and restores
 	// the caller's by reference (see #114), so these are per-render mutable references on
@@ -112,7 +115,8 @@ public class Executor {
 	}
 
 	public Executor(Map<String, Node> rootNodes, Map<String, Function> functions, MissingKeyMode missingKey) {
-		this(rootNodes, functions, missingKey, new ConcurrentHashMap<>(), new ConcurrentHashMap<>());
+		this(rootNodes, functions, missingKey, new ConcurrentHashMap<>(), new ConcurrentHashMap<>(),
+				new DispatchCache());
 	}
 
 	/**
@@ -124,14 +128,17 @@ public class Executor {
 	 * @param missingKey how a nil/absent value renders
 	 * @param beanInfoCache shared {@code Class -> BeanInfo} cache
 	 * @param accessorCache shared {@code Class -> (name -> read method)} cache
+	 * @param dispatchCache shared method/field dispatch index
 	 */
 	public Executor(Map<String, Node> rootNodes, Map<String, Function> functions, MissingKeyMode missingKey,
-			Map<Class<?>, BeanInfo> beanInfoCache, Map<Class<?>, Map<String, Method>> accessorCache) {
+			Map<Class<?>, BeanInfo> beanInfoCache, Map<Class<?>, Map<String, Method>> accessorCache,
+			DispatchCache dispatchCache) {
 		this.rootNodes = rootNodes;
 		this.functions = functions;
 		this.missingKey = missingKey;
 		this.beanInfoCache = beanInfoCache;
 		this.accessorCache = accessorCache;
+		this.dispatchCache = dispatchCache;
 	}
 
 	public void execute(String name, Object data, Writer writer)
@@ -696,15 +703,15 @@ public class Executor {
 	 * skipped so engine internals are not exposed.
 	 * @return the field value, or {@link #NO_FIELD} if no such accessible field exists
 	 */
-	private static Object readPublicField(Object target, String name) {
+	private Object readPublicField(Object target, String name) {
+		java.lang.reflect.Field field = dispatchCache.publicField(target.getClass(), name);
+		if (field == null) {
+			return NO_FIELD;
+		}
 		try {
-			java.lang.reflect.Field field = target.getClass().getField(name);
-			if (field.getDeclaringClass().getName().startsWith("java.")) {
-				return NO_FIELD;
-			}
 			return field.get(target);
 		}
-		catch (NoSuchFieldException | IllegalAccessException ex) {
+		catch (IllegalAccessException ex) {
 			return NO_FIELD;
 		}
 	}
@@ -722,9 +729,9 @@ public class Executor {
 	 * so plain maps are unaffected.
 	 * @return the method result, or {@link #NO_METHOD} if no such method exists
 	 */
-	private static Object invokeNoArgHelperMethod(Object target, String name) {
-		for (Method method : target.getClass().getMethods()) {
-			if (!method.getName().equals(name) || method.getDeclaringClass().getName().startsWith("java.")) {
+	private Object invokeNoArgHelperMethod(Object target, String name) {
+		for (Method method : dispatchCache.methodsNamed(target.getClass(), name)) {
+			if (method.getDeclaringClass().getName().startsWith("java.")) {
 				continue;
 			}
 			// A no-arg method, or a purely-variadic method invoked with zero trailing
@@ -857,8 +864,8 @@ public class Executor {
 		// First pass: an exact-arity, non-varargs match wins, so a fixed-arity overload
 		// is
 		// preferred over a variadic one (mirrors Go's method resolution).
-		for (Method m : receiver.getClass().getMethods()) {
-			if (m.getName().equals(methodName) && !m.isVarArgs() && m.getParameterCount() == args.length) {
+		for (Method m : dispatchCache.methodsNamed(receiver.getClass(), methodName)) {
+			if (!m.isVarArgs() && m.getParameterCount() == args.length) {
 				Object result = invokeMethod(m, receiver, args, methodName);
 				if (result != INVOKE_NOT_FOUND) {
 					return result;
@@ -872,8 +879,8 @@ public class Executor {
 		// reflect.Type#IsVariadic), so this keeps method-call parity with the upstream
 		// engine. Method cases are dropped from the conformance corpus, so this path is
 		// guarded by hand-written parity tests rather than the Go oracle.
-		for (Method m : receiver.getClass().getMethods()) {
-			if (m.getName().equals(methodName) && m.isVarArgs() && args.length >= m.getParameterCount() - 1) {
+		for (Method m : dispatchCache.methodsNamed(receiver.getClass(), methodName)) {
+			if (m.isVarArgs() && args.length >= m.getParameterCount() - 1) {
 				Object result = invokeMethod(m, receiver, packVarargs(m, args), methodName);
 				if (result != INVOKE_NOT_FOUND) {
 					return result;

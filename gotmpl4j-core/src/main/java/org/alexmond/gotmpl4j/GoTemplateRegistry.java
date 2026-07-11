@@ -10,6 +10,7 @@ import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lombok.extern.slf4j.Slf4j;
+import org.alexmond.gotmpl4j.exec.DispatchCache;
 
 /**
  * A pre-built, shareable source of template functions and reflection caches, so many
@@ -52,6 +53,8 @@ public final class GoTemplateRegistry {
 
 	private final Map<Class<?>, Map<String, Method>> accessorCache = new ConcurrentHashMap<>();
 
+	private final DispatchCache dispatchCache = new DispatchCache();
+
 	private GoTemplateRegistry(List<Contribution> contributions) {
 		this.contributions = contributions;
 	}
@@ -83,6 +86,10 @@ public final class GoTemplateRegistry {
 
 	Map<Class<?>, Map<String, Method>> accessorCache() {
 		return this.accessorCache;
+	}
+
+	DispatchCache dispatchCache() {
+		return this.dispatchCache;
 	}
 
 	/**
