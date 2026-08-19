@@ -8,6 +8,7 @@
 [![coverage](https://unitrack.alexmond.org/badge/37/coverage.svg)](https://unitrack.alexmond.org/projects/37)
 [![tests](https://unitrack.alexmond.org/badge/37/pass.svg)](https://unitrack.alexmond.org/projects/37)
 [![conformance](https://img.shields.io/badge/conformance-1305%20cases-brightgreen)](https://www.alexmond.org/gotmpl4j/current/conformance/)
+[![Docs](https://img.shields.io/badge/docs-alexmond.org-blue)](https://www.alexmond.org/gotmpl4j/current/)
 
 A pure-Java implementation of Go's [`text/template`](https://pkg.go.dev/text/template)
 engine, with the [Sprig](https://masterminds.github.io/sprig/) function library and an
@@ -18,7 +19,7 @@ byte-for-byte parity across **1,305 conformance cases** ported from Go's own `te
 `html/template` test suites and Sprig's upstream tests — each rendered through the real Go
 engine and Sprig funcmap for ground truth.
 
-📖 **Documentation:** <https://www.alexmond.org/gotmpl4j/current/index.html>
+📖 **Documentation:** <https://www.alexmond.org/gotmpl4j/current/>
 
 ## Modules
 
