@@ -122,7 +122,8 @@ Function div = args -> {
 
 == Spring Boot
 
-The starter wires the SPI the Spring-idiomatic way (mirroring how Thymeleaf collects
+The https://www.alexmond.org/gotmpl4j-spring-boot/current/[gotmpl4j-spring-boot^] starter
+wires the SPI the Spring-idiomatic way (mirroring how Thymeleaf collects
 `IDialect` beans): every `FunctionProvider` bean in the context is registered with the engine,
 and a single `Map<String, Function>` bean — if one is present — contributes extra
 name→function entries that override the providers on top.
@@ -144,5 +145,6 @@ class TemplateFunctionsConfig {
 }
 ----
 
-Both are then callable from any view the
-xref:spring-boot-starter.adoc[`GoTemplateService`] renders.
+Both are then callable from any view the starter's
+https://www.alexmond.org/gotmpl4j-spring-boot/current/spring-boot-starter.html[`GoTemplateService`^]
+renders.

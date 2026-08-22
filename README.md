@@ -11,8 +11,8 @@
 [![Docs](https://img.shields.io/badge/docs-alexmond.org-blue)](https://www.alexmond.org/gotmpl4j/current/)
 
 A pure-Java implementation of Go's [`text/template`](https://pkg.go.dev/text/template)
-engine, with the [Sprig](https://masterminds.github.io/sprig/) function library and an
-optional Spring Boot starter. No Go toolchain, no CGo, no native bindings — just the JVM.
+engine, with the [Sprig](https://masterminds.github.io/sprig/) function library. No Go
+toolchain, no CGo, no native bindings — just the JVM.
 
 It renders the same templates Helm, Hugo, and countless Go CLIs use, and is validated for
 byte-for-byte parity across **1,305 conformance cases** ported from Go's own `text/template` /
@@ -27,8 +27,6 @@ engine and Sprig funcmap for ground truth.
 |---|---|
 | `org.alexmond:gotmpl4j-core` | The engine: lexer → parser → AST → executor. Go builtins only; functions are pluggable via `ServiceLoader`. |
 | `org.alexmond:gotmpl4j-sprig` | The Sprig function library (strings, lists, dicts, math, crypto, date, semver, encoding, …), auto-discovered when on the classpath. |
-| `org.alexmond:gotmpl4j-spring` | Spring-context template functions — `msg` (i18n), `env` (config), `bean`, and Spring Security helpers (`hasRole`/`isAuthenticated`/…). Auto-configured; ships with the starter. |
-| `org.alexmond:gotmpl4j-spring-boot-starter` | Spring Boot auto-configuration: a ready-to-inject template engine, configuration properties, a compile cache, function beans, and an optional MVC `ViewResolver`. |
 
 ## Quick start
 
@@ -36,7 +34,7 @@ engine and Sprig funcmap for ground truth.
 <dependency>
     <groupId>org.alexmond</groupId>
     <artifactId>gotmpl4j-sprig</artifactId>
-    <version>1.3.0</version>
+    <version>1.4.0</version>
 </dependency>
 ```
 
@@ -52,7 +50,22 @@ tpl.execute("greet", java.util.Map.of("name", "world"), out);
 ```
 
 The engine alone (no Sprig) is just `gotmpl4j-core`; add `gotmpl4j-sprig` for the Sprig
-functions, or the starter for Spring Boot integration.
+functions.
+
+### Using Spring Boot?
+
+The Spring Boot starter and the Spring-context functions live in the separate
+**[gotmpl4j-spring-boot](https://github.com/alexmond/gotmpl4j-spring-boot)** project, versioned
+per Spring Boot line (`4.1.1.1` for Boot 4.1, `4.0.8.1` for Boot 4.0) so each Boot line gets its
+own maintained branch:
+
+```xml
+<dependency>
+    <groupId>org.alexmond</groupId>
+    <artifactId>gotmpl4j-spring-boot-starter</artifactId>
+    <version>4.1.1.1</version>
+</dependency>
+```
 
 ## Conformance
 

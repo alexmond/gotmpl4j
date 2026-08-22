@@ -12,11 +12,9 @@ asciidoc:
     # version is derived by Antora from the tag the hub pins, so it needs no manual bump.
     api-core: 'https://javadoc.io/doc/org.alexmond/gotmpl4j-core'
     api-sprig: 'https://javadoc.io/doc/org.alexmond/gotmpl4j-sprig'
-    api-spring: 'https://javadoc.io/doc/org.alexmond/gotmpl4j-spring'
-    api-starter: 'https://javadoc.io/doc/org.alexmond/gotmpl4j-spring-boot-starter'
     toc: left
     sectnums: ''
-    keywords: 'Go template, text/template, Sprig, Java, Spring Boot, Helm, Hugo'
+    keywords: 'Go template, text/template, Sprig, Java, Helm, Hugo'
     author: 'Alexander Mondshain'
     email: 'alex.mondshain@gmail.com'
 nav:
