@@ -2,23 +2,31 @@
 
 ## What this is
 
-A pure-Java implementation of Go's `text/template` engine, the Sprig function library, and a
-Spring Boot starter. Extracted from [jhelm](https://github.com/alexmond/jhelm) (which keeps
-the Helm-specific function extension and consumes these as published artifacts).
+A pure-Java implementation of Go's `text/template` engine plus the Sprig function library.
+Extracted from [jhelm](https://github.com/alexmond/jhelm) (which keeps the Helm-specific
+function extension and consumes these as published artifacts).
 
-**Tech stack:** Java 17, Spring Boot (starter only), Lombok, Maven. Published to Maven Central.
+**Tech stack:** Java 17, Lombok, Maven. Published to Maven Central. No Spring at runtime —
+`spring-boot-starter-parent` is inherited only as a dependency/plugin BOM.
 
 ## Modules
 
 ```
 gotmpl4j-parent (pom)
-├── gotmpl4j-core                  — lexer → parser → AST → executor; Go builtins only
-├── gotmpl4j-sprig                 — Sprig functions (ServiceLoader, priority 100)
-└── gotmpl4j-spring-boot-starter   — Spring Boot auto-config, ViewResolver, compile cache
+├── gotmpl4j-core        — lexer → parser → AST → executor; Go builtins only
+├── gotmpl4j-sprig       — Sprig functions (ServiceLoader, priority 100)
+├── gotmpl4j-benchmarks  — JMH suite (not published)
+└── gotmpl4j-samples     — quickstart + custom-functions examples (not published)
 ```
 
 `gotmpl4j-core` must NOT depend on Sprig or any host application. Functions are pluggable via
 `ServiceLoader` (see `.claude/rules/gotemplate-module.md`).
+
+> **Spring Boot lives elsewhere.** `gotmpl4j-spring` and `gotmpl4j-spring-boot-starter` were
+> split out (2026-08) into [gotmpl4j-spring-boot](https://github.com/alexmond/gotmpl4j-spring-boot),
+> which tracks the Spring Boot version in its artifact version (`4.1.1.1`, `4.0.8.1`) with one
+> branch per Boot line. It consumes this repo's engine as a released dependency — so an engine
+> release here may warrant bumping its `gotmpl4j.version` pin.
 
 ## Build & test
 

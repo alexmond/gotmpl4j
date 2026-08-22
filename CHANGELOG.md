@@ -6,6 +6,28 @@ All notable changes to gotmpl4j are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-08-22
+
+### Changed
+- **The Spring Boot integration moved to its own repository.** `gotmpl4j-spring` and
+  `gotmpl4j-spring-boot-starter` are no longer built or released from this repo — they now live
+  in [gotmpl4j-spring-boot](https://github.com/alexmond/gotmpl4j-spring-boot), which versions
+  each artifact by the Spring Boot line it builds against (`4.1.1.1` for Boot 4.1, `4.0.8.1`
+  for Boot 4.0) with one maintained branch per line. The Maven coordinates
+  (`org.alexmond:gotmpl4j-spring`, `org.alexmond:gotmpl4j-spring-boot-starter`) are unchanged;
+  only the version scheme moved, so those artifacts jump from `1.3.0` to the Boot-tracking
+  versions. Module history was preserved in the new repo.
+
+  **Why:** the engine is Spring-free and serves every Boot line from one build, while the
+  Spring half must track Boot releases. Splitting lets each half version on its own axis and
+  matches the sibling `spring-boot-*` extension libraries.
+
+  **Upgrading:** engine users take `gotmpl4j-core`/`gotmpl4j-sprig` `1.4.0` (no code change —
+  the engine is byte-identical to `1.3.0`). Spring Boot users switch the starter's version to
+  the one matching their Boot line; no import or property changes.
+- This repo's published set is now `gotmpl4j-core` and `gotmpl4j-sprig`. Samples are reduced to
+  the two non-Spring examples (`quickstart`, `custom-functions`).
+
 ## [1.3.0] - 2026-07-11
 
 ### Added
@@ -206,7 +228,8 @@ First stable release. The public API is frozen under semantic versioning.
   engine, Sprig, the Spring Boot starter, the conformance tooling, and Maven Central publishing
   established.
 
-[Unreleased]: https://github.com/alexmond/gotmpl4j/compare/1.3.0...HEAD
+[Unreleased]: https://github.com/alexmond/gotmpl4j/compare/1.4.0...HEAD
+[1.4.0]: https://github.com/alexmond/gotmpl4j/compare/1.3.0...1.4.0
 [1.3.0]: https://github.com/alexmond/gotmpl4j/compare/1.2.2...1.3.0
 [1.2.2]: https://github.com/alexmond/gotmpl4j/compare/1.2.1...1.2.2
 [1.2.1]: https://github.com/alexmond/gotmpl4j/compare/1.2.0...1.2.1
