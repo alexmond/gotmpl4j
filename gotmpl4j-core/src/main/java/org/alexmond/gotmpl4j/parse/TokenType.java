@@ -7,22 +7,22 @@ package org.alexmond.gotmpl4j.parse;
 public enum TokenType {
 
 	/**
-	 * equals ('=') introducing an assignment
+	 * equals ('=') introducing an assignment.
 	 */
 	ASSIGN,
 
 	/**
-	 * block keyword
+	 * block keyword.
 	 */
 	BLOCK,
 
 	/**
-	 * break keyword
+	 * break keyword.
 	 */
 	BREAK,
 
 	/**
-	 * boolean constant
+	 * boolean constant.
 	 */
 	BOOL,
 
@@ -32,32 +32,32 @@ public enum TokenType {
 	CHAR,
 
 	/**
-	 * character constant
+	 * character constant.
 	 */
 	CHAR_CONSTANT,
 
 	/**
-	 * comment text
+	 * comment text.
 	 */
 	COMMENT,
 
 	/**
-	 * complex constant (1+2i); imaginary is just a number
+	 * complex constant (1+2i); imaginary is just a number.
 	 */
 	COMPLEX,
 
 	/**
-	 * continue keyword
+	 * continue keyword.
 	 */
 	CONTINUE,
 
 	/**
-	 * colon-equals (':=') introducing a declaration
+	 * colon-equals (':=') introducing a declaration.
 	 */
 	DECLARE,
 
 	/**
-	 * define keyword
+	 * define keyword.
 	 */
 	DEFINE,
 
@@ -67,22 +67,22 @@ public enum TokenType {
 	DOT,
 
 	/**
-	 * else keyword
+	 * else keyword.
 	 */
 	ELSE,
 
 	/**
-	 * end keyword
+	 * end keyword.
 	 */
 	END,
 
 	/**
-	 * end of file
+	 * end of file.
 	 */
 	EOF,
 
 	/**
-	 * error occurred; value is text of error
+	 * error occurred; value is text of error.
 	 */
 	ERROR,
 
@@ -97,87 +97,87 @@ public enum TokenType {
 	IDENTIFIER,
 
 	/**
-	 * if keyword
+	 * if keyword.
 	 */
 	IF,
 
 	/**
-	 * used only to delimit the keywords
+	 * used only to delimit the keywords.
 	 */
 	KEYWORD,
 
 	/**
-	 * left action delimiter
+	 * left action delimiter.
 	 */
 	LEFT_DELIM,
 
 	/**
-	 * '(' inside action
+	 * '(' inside action.
 	 */
 	LEFT_PAREN,
 
 	/**
-	 * the untyped nil constant, easiest to treat as a keyword
+	 * the untyped nil constant, easiest to treat as a keyword.
 	 */
 	NIL,
 
 	/**
-	 * simple number, including imaginary
+	 * simple number, including imaginary.
 	 */
 	NUMBER,
 
 	/**
-	 * pipe symbol
+	 * pipe symbol.
 	 */
 	PIPE,
 
 	/**
-	 * range keyword
+	 * range keyword.
 	 */
 	RANGE,
 
 	/**
-	 * raw quoted string (includes quotes)
+	 * raw quoted string (includes quotes).
 	 */
 	RAW_STRING,
 
 	/**
-	 * right action delimiter
+	 * right action delimiter.
 	 */
 	RIGHT_DELIM,
 
 	/**
-	 * ')' inside action
+	 * ')' inside action.
 	 */
 	RIGHT_PAREN,
 
 	/**
-	 * run of spaces separating arguments
+	 * run of spaces separating arguments.
 	 */
 	SPACE,
 
 	/**
-	 * quoted string (includes quotes)
+	 * quoted string (includes quotes).
 	 */
 	STRING,
 
 	/**
-	 * template keyword
+	 * template keyword.
 	 */
 	TEMPLATE,
 
 	/**
-	 * plain text
+	 * plain text.
 	 */
 	TEXT,
 
 	/**
-	 * variable starting with '$', such as '$' or '$1' or '$hello'
+	 * variable starting with '$', such as '$' or '$1' or '$hello'.
 	 */
 	VARIABLE,
 
 	/**
-	 * with keyword
+	 * with keyword.
 	 */
 	WITH
 

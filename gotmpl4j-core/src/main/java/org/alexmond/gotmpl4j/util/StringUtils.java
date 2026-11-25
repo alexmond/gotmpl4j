@@ -9,7 +9,7 @@ public final class StringUtils {
 	}
 
 	/**
-	 * Quote string with double-quote
+	 * Quote string with double-quote.
 	 * @param str string to be quoted
 	 * @return quoted string
 	 */
@@ -18,7 +18,7 @@ public final class StringUtils {
 	}
 
 	/**
-	 * Unquote string
+	 * Unquote string.
 	 * @param str string with quotes at the beginning and ending
 	 * @return unquoted string
 	 * @throws IllegalArgumentException when string is not quoted properly, such as:

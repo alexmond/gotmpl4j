@@ -12,7 +12,7 @@ import org.alexmond.gotmpl4j.util.StringUtils;
 
 /**
  * Document of go
- * template：<a href="https://pkg.go.dev/text/template#pkg-overview">Template</a>
+ * template：<a href="https://pkg.go.dev/text/template#pkg-overview">Template</a>.
  */
 public class Parser {
 
@@ -49,7 +49,7 @@ public class Parser {
 	}
 
 	/**
-	 * Parser a template text
+	 * Parser a template text.
 	 * @param name the name of template
 	 * @param text template content
 	 * @return a map containing all ast root nodes
@@ -727,7 +727,7 @@ public class Parser {
 	}
 
 	/**
-	 * Look at the next token without advancing the position marker
+	 * Look at the next token without advancing the position marker.
 	 * @return The next token. First call returns the first token, returns null after the
 	 * last token
 	 */
@@ -768,7 +768,7 @@ public class Parser {
 	}
 
 	/**
-	 * Look at the next non-space token without advancing the position marker
+	 * Look at the next non-space token without advancing the position marker.
 	 * @return The next non-space token. First call returns the first non-space token,
 	 * returns null after the last token
 	 */
@@ -788,7 +788,7 @@ public class Parser {
 	}
 
 	/**
-	 * Get the previous non-space token
+	 * Get the previous non-space token.
 	 * @return The previous non-space token. First call returns null, after the last token
 	 * returns the last token
 	 */
@@ -805,7 +805,7 @@ public class Parser {
 	}
 
 	/**
-	 * Get the next non-space token and advance the position marker past it
+	 * Get the next non-space token and advance the position marker past it.
 	 * @return The next non-space token. First call returns the first non-space token,
 	 * returns null after the last token
 	 */
@@ -844,12 +844,12 @@ public class Parser {
 		private final Map<String, Node> nodes = new LinkedHashMap<>();
 
 		/**
-		 * A list which contains all the variables in a branch context
+		 * A list which contains all the variables in a branch context.
 		 */
 		private final List<String> variables = new ArrayList<>();
 
 		/**
-		 * Position marker
+		 * Position marker.
 		 */
 		private int tokenIndex;
 

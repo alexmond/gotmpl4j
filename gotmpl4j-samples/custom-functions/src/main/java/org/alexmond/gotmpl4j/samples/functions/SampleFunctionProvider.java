@@ -38,12 +38,12 @@ public class SampleFunctionProvider implements FunctionProvider {
 		return Map.of("greet", greet(), "mask", mask(), "quote", singleQuote());
 	}
 
-	/** {@code {{ greet "Ada" }}} -> {@code Hello, Ada!} */
+	/** {@code {{ greet "Ada" }}} -> {@code Hello, Ada!}. */
 	private static Function greet() {
 		return (args) -> "Hello, " + str(args, 0) + "!";
 	}
 
-	/** {@code {{ "4111111111111234" | mask }}} -> {@code ************1234} */
+	/** {@code {{ "4111111111111234" | mask }}} -> {@code ************1234}. */
 	private static Function mask() {
 		return (args) -> {
 			String s = str(args, 0);

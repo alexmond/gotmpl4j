@@ -6,6 +6,9 @@ All notable changes to gotmpl4j are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+- Build: Spring Boot parent 4.0.10 (from 4.0.7), Checkstyle 10.12.4 and spring-javaformat 0.0.48, the versions Spring Boot's own build uses, with small style fixes for its new rules.
+
 ## [1.4.0] - 2026-08-22
 
 ### Changed

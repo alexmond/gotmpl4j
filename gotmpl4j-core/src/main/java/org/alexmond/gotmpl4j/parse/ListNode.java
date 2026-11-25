@@ -18,6 +18,7 @@ public class ListNode implements Node, Iterable<Node> {
 	}
 
 	/**
+	 * Returns the number of child nodes.
 	 * @return the number of child nodes
 	 */
 	public int size() {
@@ -25,6 +26,7 @@ public class ListNode implements Node, Iterable<Node> {
 	}
 
 	/**
+	 * Returns one child node.
 	 * @param index the child position (0-based)
 	 * @return the child node at {@code index}
 	 */
