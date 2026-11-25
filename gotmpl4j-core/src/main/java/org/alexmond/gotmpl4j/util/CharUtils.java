@@ -47,7 +47,7 @@ public final class CharUtils {
 	}
 
 	/**
-	 * Is number a single digit in 0-9 ?
+	 * Tells whether a character is a digit from 0 to 9.
 	 * @param ch Character to be checked
 	 * @return true if character is a single digit in 0-9
 	 */
@@ -56,7 +56,7 @@ public final class CharUtils {
 	}
 
 	/**
-	 * Is letter of '_' or a unicode letter or unicode digit?
+	 * Tells whether a character is '_' or a Unicode letter or digit.
 	 * @param ch Character to be checked
 	 * @return true if letter is '_' or a unicode letter or unicode digit
 	 */
@@ -65,7 +65,7 @@ public final class CharUtils {
 	}
 
 	/**
-	 * Check if single character is one of the characters you expect
+	 * Check if single character is one of the characters you expect.
 	 * @param ch Character to be checked
 	 * @param chars An array including characters which you expect
 	 * @return true if ch is what you want
@@ -80,7 +80,7 @@ public final class CharUtils {
 	}
 
 	/**
-	 * Check if single character is one of the characters you expect
+	 * Check if single character is one of the characters you expect.
 	 * <p>
 	 * This is same with {@link CharUtils#isAnyOf(char, char...)} but accept a
 	 * CharSequence to indicate expected characters

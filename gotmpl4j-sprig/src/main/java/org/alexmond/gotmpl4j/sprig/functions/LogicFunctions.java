@@ -9,7 +9,7 @@ import org.alexmond.gotmpl4j.FunctionExecutionException;
 
 /**
  * Sprig logic and control flow functions Based on: <a href=
- * "https://masterminds.github.io/sprig/defaults.html">https://masterminds.github.io/sprig/defaults.html</a>
+ * "https://masterminds.github.io/sprig/defaults.html">https://masterminds.github.io/sprig/defaults.html</a>.
  */
 public final class LogicFunctions {
 

@@ -1132,7 +1132,7 @@ public class Executor {
 	}
 
 	/**
-	 * Introspect the data object with caching for performance
+	 * Introspect the data object with caching for performance.
 	 * @param data Data object for the template
 	 * @return BeanInfo telling the details of data object
 	 */
@@ -1160,7 +1160,7 @@ public class Executor {
 	}
 
 	/**
-	 * Get go style property name
+	 * Get go style property name.
 	 * @param propertyDescriptorName Name of property in an object
 	 * @return Go style property name
 	 */
@@ -1219,7 +1219,7 @@ public class Executor {
 
 	/**
 	 * Determine if a pipe evaluation returns a positive result, such as 'true' for a
-	 * bool, a none-null value for an object, a none-empty array or list
+	 * bool, a none-null value for an object, a none-empty array or list.
 	 * @param value The result of the pipe evaluation
 	 * @return true if evaluation returns a positive result
 	 */

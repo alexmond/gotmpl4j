@@ -61,35 +61,35 @@ public class Lexer {
 	private final List<Token> tokens;
 
 	/**
-	 * Current position of the input
+	 * Current position of the input.
 	 */
 	private int pos;
 
 	/**
-	 * Start position of current token
+	 * Start position of current token.
 	 */
 	private int start;
 
 	private int parenDepth;
 
 	/**
-	 * The count of newline have met + 1
+	 * The count of newline have met + 1.
 	 */
 	private int line = 1;
 
 	/**
-	 * Start line of current token
+	 * Start line of current token.
 	 */
 	private int startLine = line;
 
 	/**
-	 * Start line of current token
+	 * Start line of current token.
 	 */
 	private int lineStart;
 
 	/* Result tokens */
 	/**
-	 * Start line of current token
+	 * Start line of current token.
 	 */
 	private static final int START_LINE_START = 1;
 
@@ -138,7 +138,7 @@ public class Lexer {
 	}
 
 	/**
-	 * Parse and handle states
+	 * Parse and handle states.
 	 */
 	private void parse() {
 		State state = parseText();

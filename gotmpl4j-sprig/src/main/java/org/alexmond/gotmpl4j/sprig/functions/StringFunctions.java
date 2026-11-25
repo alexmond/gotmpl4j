@@ -19,7 +19,7 @@ import org.alexmond.gotmpl4j.FunctionExecutionException;
 
 /**
  * Sprig String manipulation functions Based on: <a href=
- * "https://masterminds.github.io/sprig/strings.html">https://masterminds.github.io/sprig/strings.html</a>
+ * "https://masterminds.github.io/sprig/strings.html">https://masterminds.github.io/sprig/strings.html</a>.
  */
 @Slf4j
 public final class StringFunctions {

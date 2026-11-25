@@ -37,7 +37,7 @@ public final class SprigFunctionsRegistry {
 	}
 
 	/**
-	 * Get all Sprig functions from all categories
+	 * Get all Sprig functions from all categories.
 	 * @return Map of function name to Function implementation
 	 */
 	public static Map<String, Function> getAllFunctions() {
@@ -80,7 +80,7 @@ public final class SprigFunctionsRegistry {
 	}
 
 	/**
-	 * Get function categories for documentation
+	 * Get function categories for documentation.
 	 * @return Map of category name to list of function names
 	 */
 	public static Map<String, List<String>> getFunctionCategories() {
